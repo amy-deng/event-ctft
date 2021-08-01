@@ -57,7 +57,7 @@ df['assoc_actor_1'] = df['assoc_actor_1'].fillna('Undefined')
 df['assoc_actor_2'] = df['assoc_actor_2'].fillna('Undefined')
 sub = df['actor1'].unique()
 ob = df['actor2'].unique()
-entity = list(set(sub + ob))
+entity = list(set(np.concatenate([sub,ob])))
 entity.sort()
 entity_idx_path = path + 'entity2id.txt'
 entity_idx_f = open(entity_idx_path, 'w')
