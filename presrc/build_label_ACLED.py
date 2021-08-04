@@ -136,5 +136,7 @@ for i in range(WINDOW,len(date_table),HORIZON+PREDWINDOW-1): # no overlap of pre
     df_window = df.loc[df['event_date'].isin(date_list)]['notes']
     # curr = subevent_count_seq[i:i+WINDOW]
     data_text.append(' '.join(df_window.values))
+    if i+WINDOW >=len(date_ids) or i+WINDOW+PREDWINDOW-1 >= len(date_ids):
+        break
  
 print(len(data_time),len(data_Y),data_X.shape, len(data_time))
