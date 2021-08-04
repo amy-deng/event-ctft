@@ -131,7 +131,7 @@ date_ids = list(date_table.values())
 date_name = list(date_table.keys())
 date_table_rev = dict(zip(date_ids,date_name))
 for i in range(WINDOW,len(date_table),HORIZON+PREDWINDOW-1): # no overlap of pre_window
-    date_list = [date_table_rev[i] for i in range(i,i+WINDOW)]
+    date_list = [date_table_rev[j] for j in range(i,i+WINDOW)]
     # print(date_list)
     df_window = df.loc[df['event_date'].isin(date_list)]['notes']
     # curr = subevent_count_seq[i:i+WINDOW]
