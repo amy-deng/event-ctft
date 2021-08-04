@@ -62,7 +62,6 @@ start = date(start_year,start_month,start_day)
 end = date(end_year,end_month,end_day)
 delta = timedelta(days=DELTA)
 date_table = {}
-
 i = 0
 while start <= end:
     start_date_str = start.strftime("%Y-%m-%d")
@@ -71,58 +70,71 @@ while start <= end:
     start += delta
 
 
-subevent2id_file = path + "subevent2id.txt"
-with open(path + "subevent2id.txt",'r') as f:
-    subevents = f.read().splitlines()
 
-# subevents = subevent2id_file.read().split(',')
-print('subevents',subevents)
+
+subevents_df = pd.read_csv(path + "subevent2id.txt",names=['id','name'],sep='\t')
+subevents = subevents_df['name'].unique()
+subevents.sort()
 subevent_count_dict = {}
 for v in subevents:
     subevent_count_dict[v] = np.array([0 for i in range(len(date_table))])
-
-i = 0
+start = date(start_year,start_month,start_day)
+end = date(end_year,end_month,end_day)
+dayi = 0
 while start <= end:
     start_date_str = start.strftime("%Y-%m-%d")
-
     df_day = df.loc[df['event_date'] == start_date_str]
     df_count = df_day['sub_event_type'].value_counts().rename_axis('unique_values').reset_index(name='counts')
     for i,row in df_count.iterrows():
-        subevent_count_dict[row['unique_values']][i] = row['counts']
-    i += 1
+        subevent_count_dict[row['unique_values']][dayi] = row['counts']
+    dayi += 1
     start += delta
+Protests_count = subevent_count_dict['Protest with intervention'] + subevent_count_dict['Peaceful protest'] + subevent_count_dict['Excessive force against protesters']
 
-# subevent_count_dict
+# build sequence data
+subevent_count_seq = []
+for k in subevents:
+    v = subevent_count_dict[k].tolist()
+    subevent_count_seq.append(v)
+subevent_count_seq = np.array(subevent_count_seq)
+subevent_count_seq = np.swapaxes(subevent_count_seq,0,1)
+# print(subevent_count_seq.shape,'subevent_count_seq')
+ 
 
-exit()
+# get label and Y, and corresponding time
+date_ids = list(date_table.values())
+data_time = []
+data_Y = []
+data_treat = []
+data_X = []
+for i in range(WINDOW,len(date_ids),HORIZON+PREDWINDOW-1): # no overlap of pre_window
+    last = subevent_count_seq[i-WINDOW:i]
+#     print(i-WINDOW,i,'---',i,i+WINDOW,'   yyy',i+WINDOW,i+WINDOW+PREDWINDOW-1)
+    curr = subevent_count_seq[i:i+WINDOW]
+    data_X.append(curr)
+    treat = curr.sum(0) - last.sum(0)
+    data_treat.append(list(np.where(treat>0,1,0)))
+    # print(i+WINDOW,i+WINDOW+PREDWINDOW-1)
+    protest = Protests_count[i+WINDOW:i+WINDOW+PREDWINDOW].sum()
+    data_Y.append(1 if protest > 0 else 0)
+    data_time.append(date_ids[i+WINDOW])
+    if i+WINDOW >=len(date_ids) or i+WINDOW+PREDWINDOW-1 >= len(date_ids):
+        break
+
+# to build counter factual data
+data_X = np.stack(data_X) # t,window,#subevent
 
 
-# start_date = date(start_year, start_month, start_day)
-# end_date = date(end_year, end_month, end_day)
-# delta = timedelta(days=DELTA)
-# day_i = 0
-# last_date = start_date - delta
-# while start_date <= end_date:
-#     last_date_str = last_date.strftime("%Y-%m-%d") #("%d %B %Y")
-#     date_str = start_date.strftime("%Y-%m-%d")
-#     df_day = df.loc[(df['event_date'] > last_date_str) & (df['event_date'] <= date_str)]
-#     if day_i%300==0:
-#         print('#',day_i,len(df_day),len(df))
-#     df_count = df_day[event_type_column].value_counts().rename_axis('unique_values').reset_index(name='counts')
-#     for i,row in df_count.iterrows():
-#         subevent_count_dict[row['unique_values']][day_i] = row['counts']
-#     last_date = start_date
-#     start_date += delta
-#     day_i += 1
-# print('day_i =',day_i)
-
-
-
-# date_ids = date_table.values()
-# date_name = date_table.keys()
-# for i in range(len)
-# data_X = []
-# data_Y = []
-# for i in range(0,len(date_table),HORIZON+PREDWINDOW-1): # no overlap of pre_window
-#     i+WINDOW, :i+WINDOW+PREDWINDOW
-#     pass
+# get text for each day
+data_text = []
+date_ids = list(date_table.values())
+date_name = list(date_table.keys())
+date_table_rev = dict(zip(date_ids,date_name))
+for i in range(WINDOW,len(date_table),HORIZON+PREDWINDOW-1): # no overlap of pre_window
+    date_list = [date_table_rev[i] for i in range(i,i+WINDOW)]
+    # print(date_list)
+    df_window = df.loc[df['event_date'].isin(date_list)]['notes']
+    # curr = subevent_count_seq[i:i+WINDOW]
+    data_text.append(' '.join(df_window.values))
+ 
+print(len(data_time),len(data_Y),data_X.shape, len(data_time))

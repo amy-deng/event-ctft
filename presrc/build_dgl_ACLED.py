@@ -74,6 +74,8 @@ df['event_type'] = df['event_type'].fillna('Undefined') # if nan
 df['sub_event_type'] = df['sub_event_type'].fillna('Undefined')
 event_type = df['event_type'].unique()
 sub_event_type = df['sub_event_type'].unique()
+event_type.sort()
+sub_event_type.sort()
 event_idx_path = path + 'event2id.txt'
 event_idx_f = open(event_idx_path, 'w')
 for i in range(len(event_type)):
