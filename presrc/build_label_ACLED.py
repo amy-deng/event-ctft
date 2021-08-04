@@ -72,7 +72,10 @@ while start <= end:
 
 
 subevent2id_file = path + "subevent2id.txt"
-subevents = subevent2id_file.read().split(',')
+with open(path + "subevent2id.txt",'r') as f:
+    subevents = f.read().splitlines()
+
+# subevents = subevent2id_file.read().split(',')
 print('subevents',subevents)
 subevent_count_dict = {}
 for v in subevents:
