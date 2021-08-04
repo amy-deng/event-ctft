@@ -161,9 +161,15 @@ print('data_time',len(data_time),'data_Y',len(data_Y),data_X.shape, len(data_tex
 with open('/home/sdeng/data/stopwords-en-basic.txt','r') as f:
     stop_words = f.read().splitlines()
 stop_words += ['aren', 'can', 'couldn', 'didn', 'doesn', 'don', 'hadn', 'hasn', 'haven', 'isn', 'let', 'll', 'mustn', 'placeholder', 're', 'shan', 'shouldn', 've', 'wasn', 'weren', 'won', 'wouldn']
-vectorizer = TfidfVectorizer(stop_words=stop_words,min_df=5)
+vectorizer = TfidfVectorizer(stop_words=stop_words,min_df=0.05,max_df=0.95)
 tfidf = vectorizer.fit_transform(data_text)
 feature_names = vectorizer.get_feature_names()
+tfidf_vocab = path + 'tfidf_vocab.txt'
+tfidf_vocab_f = open(tfidf_vocab, 'w')
+for i in range(len(feature_names)):
+    tfidf_vocab_f.write("{}\n".format(feature_names[i]))
+tfidf_vocab_f.close()
+
 print('tfidf',tfidf.shape)
 
 
