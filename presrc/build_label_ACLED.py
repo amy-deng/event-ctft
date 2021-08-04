@@ -139,4 +139,10 @@ for i in range(WINDOW,len(date_table),HORIZON+PREDWINDOW-1): # no overlap of pre
     if i+WINDOW >=len(date_ids) or i+WINDOW+PREDWINDOW-1 >= len(date_ids):
         break
  
-print(len(data_time),len(data_Y),data_X.shape, len(data_time))
+print(len(data_time),len(data_Y),data_X.shape, len(data_text))
+
+
+######
+# for all samples,
+# 1. make time series smooth, moving average
+# 2. get tfidf matrix using text data
