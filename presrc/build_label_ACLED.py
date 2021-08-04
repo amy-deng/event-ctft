@@ -94,32 +94,32 @@ while start <= end:
 exit()
 
 
-start_date = date(start_year, start_month, start_day)
-end_date = date(end_year, end_month, end_day)
-delta = timedelta(days=DELTA)
-day_i = 0
-last_date = start_date - delta
-while start_date <= end_date:
-    last_date_str = last_date.strftime("%Y-%m-%d") #("%d %B %Y")
-    date_str = start_date.strftime("%Y-%m-%d")
-    df_day = df.loc[(df['event_date'] > last_date_str) & (df['event_date'] <= date_str)]
-    if day_i%300==0:
-        print('#',day_i,len(df_day),len(df))
-    df_count = df_day[event_type_column].value_counts().rename_axis('unique_values').reset_index(name='counts')
-    for i,row in df_count.iterrows():
-        subevent_count_dict[row['unique_values']][day_i] = row['counts']
-    last_date = start_date
-    start_date += delta
-    day_i += 1
-print('day_i =',day_i)
+# start_date = date(start_year, start_month, start_day)
+# end_date = date(end_year, end_month, end_day)
+# delta = timedelta(days=DELTA)
+# day_i = 0
+# last_date = start_date - delta
+# while start_date <= end_date:
+#     last_date_str = last_date.strftime("%Y-%m-%d") #("%d %B %Y")
+#     date_str = start_date.strftime("%Y-%m-%d")
+#     df_day = df.loc[(df['event_date'] > last_date_str) & (df['event_date'] <= date_str)]
+#     if day_i%300==0:
+#         print('#',day_i,len(df_day),len(df))
+#     df_count = df_day[event_type_column].value_counts().rename_axis('unique_values').reset_index(name='counts')
+#     for i,row in df_count.iterrows():
+#         subevent_count_dict[row['unique_values']][day_i] = row['counts']
+#     last_date = start_date
+#     start_date += delta
+#     day_i += 1
+# print('day_i =',day_i)
 
 
 
-date_ids = date_table.values()
-date_name = date_table.keys()
-for i in range(len)
-data_X = []
-data_Y = []
-for i in range(0,len(date_table),HORIZON+PREDWINDOW-1): # no overlap of pre_window
-    i+WINDOW, :i+WINDOW+PREDWINDOW
-    pass
+# date_ids = date_table.values()
+# date_name = date_table.keys()
+# for i in range(len)
+# data_X = []
+# data_Y = []
+# for i in range(0,len(date_table),HORIZON+PREDWINDOW-1): # no overlap of pre_window
+#     i+WINDOW, :i+WINDOW+PREDWINDOW
+#     pass
