@@ -10,6 +10,8 @@ import dgl
 from dgl.data.utils import save_graphs,load_graphs
 import torch
 from datetime import date,timedelta
+from sklearn.feature_extraction.text import TfidfVectorizer
+
 print(os.getcwd())
 
 
@@ -103,46 +105,83 @@ subevent_count_seq = np.swapaxes(subevent_count_seq,0,1)
 
 # get label and Y, and corresponding time
 date_ids = list(date_table.values())
+date_name = list(date_table.keys())
+date_table_rev = dict(zip(date_ids,date_name))
 data_time = []
 data_Y = []
 data_treat = []
 data_X = []
+data_text = []
 for i in range(WINDOW,len(date_ids),HORIZON+PREDWINDOW-1): # no overlap of pre_window
+    # treat
     last = subevent_count_seq[i-WINDOW:i]
 #     print(i-WINDOW,i,'---',i,i+WINDOW,'   yyy',i+WINDOW,i+WINDOW+PREDWINDOW-1)
     curr = subevent_count_seq[i:i+WINDOW]
     data_X.append(curr)
     treat = curr.sum(0) - last.sum(0)
     data_treat.append(list(np.where(treat>0,1,0)))
+    # label
     # print(i+WINDOW,i+WINDOW+PREDWINDOW-1)
     protest = Protests_count[i+WINDOW:i+WINDOW+PREDWINDOW].sum()
     data_Y.append(1 if protest > 0 else 0)
+    # time
     data_time.append(date_ids[i+WINDOW])
+    # text
+    date_list = [date_table_rev[j] for j in range(i,i+WINDOW)]
+    df_window = df.loc[df['event_date'].isin(date_list)]['notes']
+    data_text.append(' '.join(df_window.values))
+
     if i+WINDOW >=len(date_ids) or i+WINDOW+PREDWINDOW-1 >= len(date_ids):
         break
 
 # to build counter factual data
 data_X = np.stack(data_X) # t,window,#subevent
 
-
-# get text for each day
-data_text = []
-date_ids = list(date_table.values())
-date_name = list(date_table.keys())
-date_table_rev = dict(zip(date_ids,date_name))
-for i in range(WINDOW,len(date_table),HORIZON+PREDWINDOW-1): # no overlap of pre_window
-    date_list = [date_table_rev[j] for j in range(i,i+WINDOW)]
-    # print(date_list)
-    df_window = df.loc[df['event_date'].isin(date_list)]['notes']
-    # curr = subevent_count_seq[i:i+WINDOW]
-    data_text.append(' '.join(df_window.values))
-    if i+WINDOW >=len(date_ids) or i+WINDOW+PREDWINDOW-1 >= len(date_ids):
-        break
+# # get text for each day
+# data_text = []
+# date_ids = list(date_table.values())
+# date_name = list(date_table.keys())
+# date_table_rev = dict(zip(date_ids,date_name))
+# for i in range(WINDOW,len(date_table),HORIZON+PREDWINDOW-1): # no overlap of pre_window
+#     date_list = [date_table_rev[j] for j in range(i,i+WINDOW)]
+#     # print(date_list)
+#     df_window = df.loc[df['event_date'].isin(date_list)]['notes']
+#     # curr = subevent_count_seq[i:i+WINDOW]
+#     data_text.append(' '.join(df_window.values))
+#     if i+WINDOW >=len(date_ids) or i+WINDOW+PREDWINDOW-1 >= len(date_ids):
+#         break
  
-print(len(data_time),len(data_Y),data_X.shape, len(data_text))
+print('data_time',len(data_time),'data_Y',len(data_Y),data_X.shape, len(data_text))
 
 
 ######
 # for all samples,
 # 1. make time series smooth, moving average
 # 2. get tfidf matrix using text data
+with open('/home/sdeng/data/stopwords-en-basic.txt','r') as f:
+    stop_words = f.read().splitlines()
+
+vectorizer = TfidfVectorizer(stop_words=stop_words,min_df=5)
+tfidf = vectorizer.fit_transform(data_text)
+feature_names = vectorizer.get_feature_names()
+print('tfidf',tfidf.shape)
+
+
+def movingaverage(a, n=3) :
+    padding = []
+    for i in range(n-1):
+        padding.append(a[:i+1].mean())
+    padding = np.array(padding)
+    ret = np.cumsum(a, dtype=float)
+    ret[n:] = ret[n:] - ret[:-n]
+    return np.concatenate((padding, ret[n - 1:] / n),0)
+data_X_smooth = [] # 549,10,24
+d1,d2,d3 = data_X.shape
+for i in range(d1):
+    tmp = []
+    for j in range(d2):
+        tmp.append(list(movingaverage(data_X[i,j,:],WINDOW//2)))
+    data_X_smooth.append(tmp)
+data_X_smooth = np.array(data_X_smooth)
+print('data_X_smooth',data_X_smooth.shape)
+
