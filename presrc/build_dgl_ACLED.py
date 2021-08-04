@@ -40,7 +40,9 @@ end_year = int(filename.split('-')[3])
 end_month = int(filename.split('-')[4])
 end_day = int(filename.split('-')[5])
 
+
 path = '../data/{}/'.format(DATASET)
+os.makedirs(path, exist_ok=True)
 print('path',path)
 
 # map actors
@@ -53,8 +55,8 @@ df['event_date'] = pd.to_datetime(df['event_date'])
 
 
 # entity
-df['assoc_actor_1'] = df['assoc_actor_1'].fillna('Undefined')
-df['assoc_actor_2'] = df['assoc_actor_2'].fillna('Undefined')
+df['actor1'] = df['actor1'].fillna('Undefined')
+df['actor2'] = df['actor2'].fillna('Undefined')
 sub = df['actor1'].unique()
 ob = df['actor2'].unique()
 entity = list(set(np.concatenate([sub,ob])))
@@ -76,6 +78,7 @@ event_idx_path = path + 'event2id.txt'
 event_idx_f = open(event_idx_path, 'w')
 for i in range(len(event_type)):
     event_idx_f.write("{}\t{}\n".format(i,event_type[i]))
+event_idx_f.close()
 print(event_idx_path, 'saved!')
 event_table = dict(zip(event_type,list(range(len(event_type)))))
 
@@ -83,6 +86,7 @@ sub_event_idx_path = path + 'subevent2id.txt'
 sub_event_idx_f = open(sub_event_idx_path, 'w')
 for i in range(len(sub_event_type)):
     sub_event_idx_f.write("{}\t{}\n".format(i,sub_event_type[i]))
+sub_event_idx_f.close()
 print(sub_event_idx_path, 'saved!')
 sub_event_table = dict(zip(sub_event_type,list(range(len(sub_event_type)))))
 
