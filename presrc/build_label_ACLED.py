@@ -245,7 +245,7 @@ with open('/home/sdeng/data/stopwords-en-basic.txt','r') as f:
 stop_words += ['aren', 'can', 'couldn', 'didn', 'doesn', 'don', 'hadn', 'hasn', 'haven', 'isn', 'let', 'll', 'mustn', 'placeholder', 're', 'shan', 'shouldn', 've', 'wasn', 'weren', 'won', 'wouldn']
 # vectorizer = TfidfVectorizer(stop_words=stop_words,min_df=0.05,max_df=0.95)
 # stop_words += ['20','3','21','2','2017','6','7','8','9','10','11','12','13','14','15','16','17','18','19','22','23','24','25','26','27','28','29','30','31','2015','2016','2018','2019','2020','2021']
-
+# stop_words += ["'", '/', '<', '>', 'A', 'C', 'D', 'E', 'H', 'L', 'O', 'P', 'R', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'l', 'm', 'n', 'o', 'p', 'r', 's', 't', 'u', 'v', 'w', 'y']
 all_tokens = []
 for sentences in data_text:
     tokens = get_lem_token_list(sentences)
@@ -264,6 +264,7 @@ tfidf_vocab_f.close()
 
 with open(path+'tmp_label.pkl','wb') as f:
     pickle.dump([data_time,data_Y,data_X_smooth,tfidf],f)
+print('tmp data saved')
 
 # for each samples, find a cf data, 
 # TODO
