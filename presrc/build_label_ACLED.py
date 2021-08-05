@@ -8,10 +8,21 @@ import pickle
 import collections
 import dgl
 from dgl.data.utils import save_graphs,load_graphs
-import torch
+import torch 
 from datetime import date,timedelta
 from sklearn.feature_extraction.text import TfidfVectorizer
+from gensim.models.phrases import Phrases, ENGLISH_CONNECTOR_WORDS, original_scorer
+import nltk
+import re
+from nltk.stem import WordNetLemmatizer
+from nltk.tokenize import RegexpTokenizer
+from nltk.corpus import wordnet
+from nltk.corpus import stopwords
 
+nltk.download("stopwords")
+nltk.download('punkt')
+nltk.download('averaged_perceptron_tagger')
+nltk.download('wordnet')
 print(os.getcwd())
 
 
@@ -136,20 +147,7 @@ for i in range(WINDOW,len(date_ids),HORIZON+PREDWINDOW-1): # no overlap of pre_w
 
 # to build counter factual data
 data_X = np.stack(data_X) # t,window,#subevent
-
-# # get text for each day
-# data_text = []
-# date_ids = list(date_table.values())
-# date_name = list(date_table.keys())
-# date_table_rev = dict(zip(date_ids,date_name))
-# for i in range(WINDOW,len(date_table),HORIZON+PREDWINDOW-1): # no overlap of pre_window
-#     date_list = [date_table_rev[j] for j in range(i,i+WINDOW)]
-#     # print(date_list)
-#     df_window = df.loc[df['event_date'].isin(date_list)]['notes']
-#     # curr = subevent_count_seq[i:i+WINDOW]
-#     data_text.append(' '.join(df_window.values))
-#     if i+WINDOW >=len(date_ids) or i+WINDOW+PREDWINDOW-1 >= len(date_ids):
-#         break
+ 
  
 print('data_time',len(data_time),'data_Y',len(data_Y),data_X.shape, len(data_text))
 
@@ -158,20 +156,6 @@ print('data_time',len(data_time),'data_Y',len(data_Y),data_X.shape, len(data_tex
 # for all samples,
 # 1. make time series smooth, moving average
 # 2. get tfidf matrix using text data
-with open('/home/sdeng/data/stopwords-en-basic.txt','r') as f:
-    stop_words = f.read().splitlines()
-stop_words += ['aren', 'can', 'couldn', 'didn', 'doesn', 'don', 'hadn', 'hasn', 'haven', 'isn', 'let', 'll', 'mustn', 'placeholder', 're', 'shan', 'shouldn', 've', 'wasn', 'weren', 'won', 'wouldn']
-vectorizer = TfidfVectorizer(stop_words=stop_words,min_df=0.05,max_df=0.95)
-tfidf = vectorizer.fit_transform(data_text)
-feature_names = vectorizer.get_feature_names()
-tfidf_vocab = path + 'tfidf_vocab.txt'
-tfidf_vocab_f = open(tfidf_vocab, 'w')
-for i in range(len(feature_names)):
-    tfidf_vocab_f.write("{}\n".format(feature_names[i]))
-tfidf_vocab_f.close()
-
-print('tfidf',tfidf.shape)
-
 
 def movingaverage(a, n=3) :
     padding = []
@@ -191,3 +175,95 @@ for i in range(d1):
 data_X_smooth = np.array(data_X_smooth)
 print('data_X_smooth',data_X_smooth.shape)
 
+
+
+def get_wordnet_pos(treebank_tag):
+    if treebank_tag.startswith('J'):
+        return wordnet.ADJ
+    elif treebank_tag.startswith('V'):
+        return wordnet.VERB
+    elif treebank_tag.startswith('N'):
+        return wordnet.NOUN
+    elif treebank_tag.startswith('R'):
+        return wordnet.ADV
+    else:
+        return None
+
+def get_sep_token_list(sentences):
+    sentences = re.sub(r'\[[^)]*\]', '',sentences)
+    sentences = re.sub(r"[-()*$\"#%/@;:'<>{}`+=~|]", '', sentences)
+    sentences = sentences.strip().lower()
+    # print(sentences)
+    tokens = nltk.word_tokenize(sentences)
+    tagged = nltk.pos_tag(tokens)
+    # print('tagged:',tagged)
+    wordnet_lemmatizer = WordNetLemmatizer()
+    out_tokens = []
+    sents,sent = [], []
+    for (word,tag) in tagged:
+        wntag = get_wordnet_pos(tag)
+        if wntag is None:
+            w = wordnet_lemmatizer.lemmatize(word)
+        else:
+            w = wordnet_lemmatizer.lemmatize(word, pos=wntag)
+        if w not in [',','.','?','!','']:# and w not in stopwords.words('english'):
+            sent.append(w)
+        elif len(sent) > 0:
+            sents.append(sent)
+            sent = []
+    return sents
+
+def get_lem_token_list(sentences):
+    sentences = re.sub(r'\[[^)]*\]', '',sentences)
+    sentences = re.sub(r"[-()*$\"#%/@;:'<>{}`+=~|]", '', sentences)
+    sentences = sentences.strip().lower()
+    out_tokens = []
+    # print(sentences)
+    tokens = nltk.word_tokenize(sentences)
+    tagged = nltk.pos_tag(tokens)
+    # print('tagged:',tagged)
+    wordnet_lemmatizer = WordNetLemmatizer()
+    for (word,tag) in tagged:
+        wntag = get_wordnet_pos(tag)
+        if wntag is None:
+            w = wordnet_lemmatizer.lemmatize(word)
+        else:
+            w = wordnet_lemmatizer.lemmatize(word, pos=wntag)
+        if w not in [',','.','?','!'] and w not in stopwords.words('english') and w.isalpha() : # did notremove adv and other words
+            out_tokens.append(w)
+    return out_tokens
+
+# all_sent_list = []
+# for v in data_text:
+#     sent_list = get_sep_token_list(v)
+#     all_sent_list += sent_list
+# ignore_set = ENGLISH_CONNECTOR_WORDS
+# phrases = Phrases(all_sent_list, min_count=5, threshold=0.2, scoring="npmi", connector_words=ignore_set)
+
+with open('/home/sdeng/data/stopwords-en-basic.txt','r') as f:
+    stop_words = f.read().splitlines()
+stop_words += ['aren', 'can', 'couldn', 'didn', 'doesn', 'don', 'hadn', 'hasn', 'haven', 'isn', 'let', 'll', 'mustn', 'placeholder', 're', 'shan', 'shouldn', 've', 'wasn', 'weren', 'won', 'wouldn']
+# vectorizer = TfidfVectorizer(stop_words=stop_words,min_df=0.05,max_df=0.95)
+# stop_words += ['20','3','21','2','2017','6','7','8','9','10','11','12','13','14','15','16','17','18','19','22','23','24','25','26','27','28','29','30','31','2015','2016','2018','2019','2020','2021']
+
+all_tokens = []
+for sentences in data_text:
+    tokens = get_lem_token_list(sentences)
+    all_tokens.append(tokens)
+vectorizer = TfidfVectorizer(tokenizer=(lambda x:x), lowercase=False, stop_words=stop_words,min_df=5,max_df=0.99)#token_pattern=r'(?u)\b\w*[a-zA-Z]\w*\b') # stopwords='english' u'(?u)\b\w*[a-zA-Z]\w*\b
+tfidf = vectorizer.fit_transform(all_tokens)
+print('tfidf',tfidf.shape)
+
+feature_names = vectorizer.get_feature_names()
+tfidf_vocab = path + 'tfidf_vocab.txt'
+tfidf_vocab_f = open(tfidf_vocab, 'w')
+for i in range(len(feature_names)):
+    tfidf_vocab_f.write("{}\n".format(feature_names[i]))
+tfidf_vocab_f.close()
+
+
+with open(path+'tmp_label.pkl','wb') as f:
+    pickle.dump([data_time,data_Y,data_X_smooth,tfidf],f)
+
+# for each samples, find a cf data, 
+# TODO
