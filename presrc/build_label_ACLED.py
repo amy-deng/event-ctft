@@ -124,6 +124,8 @@ data_treat = []
 data_X = []
 data_text = []
 for i in range(WINDOW,len(date_ids),HORIZON+PREDWINDOW-1): # no overlap of pre_window
+    if i+WINDOW >=len(date_ids) or i+WINDOW+PREDWINDOW-1 >= len(date_ids):
+        break
     # treat
     last = subevent_count_seq[i-WINDOW:i]
 #     print(i-WINDOW,i,'---',i,i+WINDOW,'   yyy',i+WINDOW,i+WINDOW+PREDWINDOW-1)
@@ -142,8 +144,7 @@ for i in range(WINDOW,len(date_ids),HORIZON+PREDWINDOW-1): # no overlap of pre_w
     df_window = df.loc[df['event_date'].isin(date_list)]['notes']
     data_text.append(' '.join(df_window.values))
 
-    if i+WINDOW >=len(date_ids) or i+WINDOW+PREDWINDOW-1 >= len(date_ids):
-        break
+    
 
 # to build counter factual data
 data_X = np.stack(data_X) # t,window,#subevent
