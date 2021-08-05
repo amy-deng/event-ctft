@@ -148,9 +148,9 @@ for i in range(WINDOW,len(date_ids),HORIZON+PREDWINDOW-1): # no overlap of pre_w
 
 # to build counter factual data
 data_X = np.stack(data_X) # t,window,#subevent
+data_treat = np.array(data_treat)
  
- 
-print('data_time',len(data_time),'data_Y',len(data_Y),data_X.shape, len(data_text))
+print('data_time',len(data_time),'data_Y',len(data_Y),data_X.shape,data_treat.shape, len(data_text))
 
 
 ######
@@ -264,8 +264,9 @@ tfidf_vocab_f.close()
 
 
 with open(path+'tmp_label.pkl','wb') as f:
-    pickle.dump([data_time,data_Y,data_X_smooth,tfidf],f)
+    pickle.dump([data_time,data_Y,data_X_smooth,data_treat,tfidf],f)
 print('tmp data saved')
 
 # for each samples, find a cf data, 
 # TODO
+# for i in range(data_treat)
