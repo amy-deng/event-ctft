@@ -160,7 +160,8 @@ if TARGETEVENT == 'p':
     exit()
 elif TARGETEVENT == 'r':
     Y = riots_count
-    y_threshod = 0
+    # y_threshod = 0
+    y_threshod = np.percentile(Y, 90)#Y.mean()
     pass
 
 print('X',X.shape,'Y',Y.shape, 'y_threshod',y_threshod)
@@ -176,7 +177,7 @@ for i in range(0,len(X),HORIZON+PREDWINDOW-1): # no overlap of pre_window
     protest = Y[i+WINDOW:i+WINDOW+PREDWINDOW].sum()
 #     print(Y[i+window:i+window+pred_window])
 #     print(X[i:i+window],Y[i+window:i+window+pred_window-1])
-    data_Y.append(1 if protest > 0 else 0)
+    data_Y.append(1 if protest > y_threshod else 0)
     if i+WINDOW >=len(X) or i+WINDOW+PREDWINDOW-1 >= len(X):
         break
     ii+=1
@@ -207,3 +208,6 @@ all_datasets['static'] = [X_train, X_test, y_train, y_test]
                        
 with open(path+'count_dataset.pkl','wb') as f:
     pickle.dump(all_datasets,f)
+
+
+# python build_count_dataset_GDELT.py NI 14 1 3 r 
