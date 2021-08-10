@@ -40,7 +40,7 @@ path = '../data/{}/'.format(DATASET)
 os.makedirs(path, exist_ok=True)
 print('path',path)
 
-df = pd.read_csv(path,sep=';')
+df = pd.read_csv(RAWDATA,sep=';')
 df = df.drop_duplicates(subset=['data_id'], keep='first')
 df['event_date'] = pd.to_datetime(df['event_date'])
 print(df.columns)
