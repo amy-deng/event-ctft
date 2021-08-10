@@ -102,7 +102,7 @@ while start <= end:
         subevent_count_dict[row['unique_values']][dayi] = row['counts']
     dayi += 1
     start += delta
-Protests_count = subevent_count_dict['Protest with intervention'] + subevent_count_dict['Peaceful protest'] + subevent_count_dict['Excessive force against protesters']
+Protests_count = subevent_count_dict['Mob violence'] + subevent_count_dict['Violent demonstration']  
 
 # build sequence data
 subevent_count_seq = []
