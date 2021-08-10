@@ -44,8 +44,8 @@ except:
 tmp = TMPFILE.split('_')
 WINDOW = int(tmp[2][1:])
 HORIZON = int(tmp[3][1:])
-PREWINDOW = int(tmp[4][1:])
-
+PREWINDOW = int(tmp[4][1:2])
+print('WINDOW={}  HORIZON={}  PREWINDOW={}'.format(WINDOW,HORIZON,PREWINDOW))
 path = '../data/{}/'.format(DATASET)
 
 with open(path+TMPFILE,'rb') as f:
@@ -59,3 +59,5 @@ print('tfidf',type(tfidf))
 
 
 # TODO
+# for each sample, find a cf sample, different treatment, see what is the outcome
+ 

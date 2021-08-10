@@ -160,8 +160,8 @@ if TARGETEVENT == 'p':
     exit()
 elif TARGETEVENT == 'r':
     Y = riots_count
-    # y_threshod = 0
-    y_threshod = np.percentile(Y, 90)#Y.mean()
+    y_threshod = 0
+    y_threshod = np.percentile(Y, 70)#Y.mean()
     pass
 
 print('X',X.shape,'Y',Y.shape, 'y_threshod',y_threshod)
