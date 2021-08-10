@@ -12,89 +12,56 @@ import sys,os
 import pickle
 
 try:
-    RAWDATA = sys.argv[1]
+    CONTRY = sys.argv[1]
     # DELTA = int(sys.argv[2])
     WINDOW = int(sys.argv[2])
     HORIZON = int(sys.argv[3])
     PREDWINDOW = int(sys.argv[4]) 
     TARGETEVENT = str(sys.argv[5]) 
 except:
-    print("Usage: DATASET, WINDOW, HORIZON, PREDWINDOW, TARGETEVENT (protest(p), riot(r)) (delta=1) ")
+    print("Usage: CONTRY(NI,EG), WINDOW, HORIZON, PREDWINDOW, TARGETEVENT (protest(p), riot(r)) (delta=1) ")
     exit()
 
+mydir = '/home/sdeng/workspace/gdelt_data_preprocess/event/'
+# file_list = glob.glob(mydir + "*NI*.json")
+# file_list = glob.glob(mydir + "*CA*.json")
+# country_name = 'EG'
+country_name = CONTRY
 
-DATASET = RAWDATA.split('-')[7][:-4]
-print(DATASET,'dataset_name')
-
-filename = RAWDATA.split('/')[-1]
-print('path',RAWDATA,'filename',filename)
-start_year = int(filename.split('-')[0])
-start_month = int(filename.split('-')[1])
-start_day = int(filename.split('-')[2])
-end_year = int(filename.split('-')[3])
-end_month = int(filename.split('-')[4])
-end_day = int(filename.split('-')[5])
-
-
-path = '../data/{}/'.format(DATASET)
+file_list = glob.glob(mydir + "*{}*.json".format(country_name))
+file_list
+df_list = []
+for f in file_list:
+    cur_df = pd.read_json(f,lines=True)
+    df_list.append(cur_df)
+#     print(cur_df.head())
+#     break
+    
+path = '../data/{}/'.format(CONTRY)
 os.makedirs(path, exist_ok=True)
 print('path',path)
 
-df = pd.read_csv(RAWDATA,sep=';')
-df = df.drop_duplicates(subset=['data_id'], keep='first')
-df['event_date'] = pd.to_datetime(df['event_date'])
-print(df.columns)
-df.sort_values(by=['event_date'],inplace=True ) 
+df = pd.concat(df_list, ignore_index=True)
+df['event_date'] = pd.to_datetime(df['event_date'],format='%Y%m%d' )
+df.sort_values(by=['event_date'],inplace=True) 
+df = df.loc[df['IsRootEvent'] == 1]
 
-event_type_column = 'sub_event_type'
-# event_type_column = 'event_type'
-
-subevents = df[event_type_column].unique()
-print(len(subevents),subevents)
-delta_value = 1
-if delta_value == 1:
-    level = 'day'
-elif delta_value == 7:
-    level = 'week'
-elif delta_value == 14:
-    level = 'biweek'
-elif delta_value == 30:
-    level = 'month'
-
-subevent_count_dict = {}
-start_date = date(start_year, start_month, start_day)
-end_date = date(end_year, end_month, end_day)
-delta = timedelta(days=delta_value)
-n_days = 0
-last_date = start_date - delta
-while start_date <= end_date:
-    last_date = start_date
-    start_date += delta
-    n_days += 1
-print('n_days =',n_days)
-for v in subevents:
-    subevent_count_dict[v] = np.array([0 for i in range(n_days)])
+df['event_date'] = df.event_date.dt.strftime('%Y-%m-%d')
+df = df.loc[df['event_date']>='2015-01-01']
 
 
-start_date = date(start_year, start_month, start_day)
-end_date = date(end_year, end_month, end_day)
-delta = timedelta(days=delta_value)
-day_i = 0
-last_date = start_date - delta
-while start_date <= end_date:
-    last_date_str = last_date.strftime("%Y-%m-%d") #("%d %B %Y")
-    date_str = start_date.strftime("%Y-%m-%d")
-    df_day = df.loc[(df['event_date'] > last_date_str) & (df['event_date'] <= date_str)]
-    if day_i%300==0:
-        print('#',day_i,len(df_day),len(df))
-    df_count = df_day[event_type_column].value_counts().rename_axis('unique_values').reset_index(name='counts')
-    for i,row in df_count.iterrows():
-        subevent_count_dict[row['unique_values']][day_i] = row['counts']
-    last_date = start_date
-    start_date += delta
-    day_i += 1
-print('day_i =',day_i)
-
+def getRoot(x):
+    x = int(x)
+    if len(str(x)) == 4: # 1128
+        return x // 100
+    elif len(str(x)) == 3:
+        if x // 10 < 20: # 190
+            return x // 10
+        else:
+            return x // 100
+    else:
+        return x // 10
+    
 def movingaverage(a, n=3) :
     padding = []
     for i in range(n-1):
@@ -104,35 +71,78 @@ def movingaverage(a, n=3) :
     ret[n:] = ret[n:] - ret[:-n]
     return np.concatenate((padding, ret[n - 1:] / n),0)
 
+df = df.loc[df['EventCode'] != '---'] 
+df['RootEventCode'] = df['EventCode'].apply(lambda x: getRoot(x) )
+ 
+start_year = 2015
+start_month = 1
+start_day = 1
+end_year = 2020
+end_month = 12
+end_day = 31
+event_type_column = 'EventCode'
+event_type_column = 'RootEventCode'
+delta_value = 1
+if delta_value == 1:
+    level = 'day'
+elif delta_value == 7:
+    level = 'week'
+elif delta_value == 14:
+    level = 'biweek'
+elif delta_value == 30:
+    level = 'month'
+subevents = df[event_type_column].unique()
+print(len(subevents),subevents)
+subevent_count_dict = {}
+start_date = date(start_year, start_month, start_day)
+end_date = date(end_year, end_month, end_day)
+delta = timedelta(days=delta_value)
+n_days = 0
+last_date = start_date - delta
+while start_date <= end_date:
+#     print('last_date',last_date,'start_date',start_date )
+    last_date = start_date
+    start_date += delta
+    n_days += 1
+print('n_days =',n_days)
+# print('n_days =',len(df['event_date'].unique()))
+for v in subevents:
+    subevent_count_dict[v] = np.array([0 for i in range(n_days)])
 
-if TARGETEVENT == 'p':
-    event_set_protest = ['Protest with intervention','Excessive force against protesters','Peaceful protest']
-    subevent_count_dict['Protests'] = subevent_count_dict['Protest with intervention'] + subevent_count_dict['Peaceful protest'] + subevent_count_dict['Excessive force against protesters']
-    # del subevent_count_dict['Protest with intervention']
-    # del subevent_count_dict['Excessive force against protesters']
-    # del subevent_count_dict['Peaceful protest']
-elif TARGETEVENT == 'r':
-    event_set_protest = ['Mob violence','Violent demonstration']
-    subevent_count_dict['Protests'] = subevent_count_dict['Mob violence'] + subevent_count_dict['Violent demonstration'] 
-else:
-    print('please choose p or r for TARGETEVENT')
-    exit()
+riots_count = np.array([0 for i in range(n_days)])
 
+# for loop day.... save count of each subevent.
+start_date = date(start_year, start_month, start_day)
+end_date = date(end_year, end_month, end_day)
+delta = timedelta(days=delta_value)
+day_i = 0
+last_date = start_date - delta
+# print('last_date',last_date,'start_date',start_date,'end_date',end_date)
+while start_date <= end_date:
+#     print('last_date',last_date,'start_date',start_date )
+    last_date_str = last_date.strftime("%Y-%m-%d") #("%d %B %Y")
+    date_str = start_date.strftime("%Y-%m-%d")
+#     print('last_date_str',last_date_str,' --- date_str',date_str)
+    df_day = df.loc[(df['event_date'] > last_date_str) & (df['event_date'] <= date_str)]
+    if day_i%200==0:
+        print('#',len(df_day),len(df))
+#         print(df_day['sub_event_type'] )
+    df_count = df_day[event_type_column].value_counts().rename_axis('unique_values').reset_index(name='counts')
+#     print('df_count',df_count,df)
+    for i,row in df_count.iterrows():
+        subevent_count_dict[row['unique_values']][day_i] = row['counts']
 
-SUBEVENTS = ['Abduction/forced disappearance', 'Agreement', 'Air/drone strike',
-       'Armed clash', 'Arrests', 'Attack', 'Change to group/activity',
-       'Chemical weapon', 'Disrupted weapons use',
-       'Excessive force against protesters',
-       'Government regains territory', 'Grenade',
-       'Headquarters or base established', 'Looting/property destruction',
-       'Mob violence', 'Non-state actor overtakes territory',
-       'Non-violent transfer of territory', 'Other', 'Peaceful protest',
-       'Protest with intervention', 'Remote explosive/landmine/IED',
-       'Sexual violence', 'Shelling/artillery/missile attack',
-       'Suicide bomb', 'Violent demonstration']
+    df_riots = df_day.loc[df_day['EventCode'].isin([145,1451,1452,1453,1454])]
+    riots_count[day_i] = len(df_riots)
+    last_date = start_date
+    start_date += delta
+    day_i += 1
+print('day_i =',day_i)
 
+subevent_count_dict
+SUBEVENTS = [i+1 for i in range(20)]
 
-# build sequence data, consider all
+# build sequence data
 X = []
 for k in SUBEVENTS:
     try:
@@ -143,9 +153,19 @@ for k in SUBEVENTS:
     
 X = np.array(X)
 X = np.swapaxes(X,0,1)
-Y = subevent_count_dict['Protests']
+if TARGETEVENT == 'p':
+    print('exit for p as target event')
+    Y = subevent_count_dict[14]
+    y_threshod = np.percentile(Y, 95)#Y.mean()
+    exit()
+elif TARGETEVENT == 'r':
+    Y = riots_count
+    y_threshod = 0
+    pass
 
- 
+print('X',X.shape,'Y',Y.shape, 'y_threshod',y_threshod)
+
+
 ii = 0
 data_X = []
 data_Y = []
@@ -185,5 +205,5 @@ X_train, X_test, y_train, y_test = train_test_split(flat_data_X, data_Y, stratif
 print(X_train.shape, X_test.shape, y_train.shape, y_test.shape)
 all_datasets['static'] = [X_train, X_test, y_train, y_test]
                        
-with open('count_dataset.pkl','wb') as f:
+with open(path+'count_dataset.pkl','wb') as f:
     pickle.dump(all_datasets,f)
