@@ -8,6 +8,7 @@ import argparse
 
 
 parser = argparse.ArgumentParser()
+parser.add_argument('--gpu', type=int, default=0, help='')
 parser.add_argument('--data_path', type=str, default='../data')
 parser.add_argument('-d','--dataset', type=str, default='Afghanistan')
 parser.add_argument('--seed', type=int, default=42, help='Random seed')
