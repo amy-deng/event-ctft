@@ -8,14 +8,15 @@ import argparse
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-d','--dataset', type=str, default='THA-10147')
-parser.add_argument('--seed', type=int, default=42, help='Random seed.')
-parser.add_argument('--epochs', type=int, default=100, help='Number of epochs to train.')
-parser.add_argument('--lr', type=float, default=1e-3, help='Initial learning rate.')
-parser.add_argument('--weight_decay', type=float, default=1e-5, help='Weight decay (L2 loss on parameters).')
-parser.add_argument('--h_dim', type=int, default=128, help='Number of hidden units.')
-parser.add_argument('--dropout', type=float, default=0.5, help='Dropout rate (1 - keep probability).')
-parser.add_argument('--alpha', type=float, default=1e-4, help='trade-off of representation balancing.')
+parser.add_argument('--data_path', type=str, default='../data')
+parser.add_argument('-d','--dataset', type=str, default='Afghanistan')
+parser.add_argument('--seed', type=int, default=42, help='Random seed')
+parser.add_argument('--epochs', type=int, default=100, help='Number of epochs to train')
+parser.add_argument('--lr', type=float, default=1e-3, help='Initial learning rate')
+parser.add_argument('--weight_decay', type=float, default=1e-5, help='Weight decay (L2 loss on parameters)')
+parser.add_argument('--h_dim', type=int, default=128, help='Number of hidden units')
+parser.add_argument('--dropout', type=float, default=0.5, help='Dropout rate (1 - keep probability)')
+# parser.add_argument('--alpha', type=float, default=1e-4, help='trade-off of representation balancing')
 parser.add_argument('--clip', type=float, default=100., help='gradient clipping')
 parser.add_argument("-b",'--batch', type=int, default=64)
 parser.add_argument('-w','--window', type=int, default=10)
@@ -25,7 +26,6 @@ parser.add_argument('-p','--patience', type=int, default=10)
 parser.add_argument('--train', type=float, default=0.6)
 parser.add_argument('--val', type=float, default=0.2)
 parser.add_argument('--test', type=float, default=0.2)
-parser.add_argument('--data_path', type=str, default='../data')
 parser.add_argument('-m','--model', type=str, default='cevae', help='deconf')
 parser.add_argument('--loop', type=int, default=10)
 # parser.add_argument('--realy', action="store_true", help='real value comes with normalization')
@@ -50,7 +50,7 @@ parser.add_argument('--z_dim', type=int, default=32)
 
 
 args = parser.parse_args()
-assert args.val > .0, print('args.val should be greater than 0.')
+assert args.val > .0, print('args.val should be greater than 0')
 
 if args.model in ['cevae']:
     args.h_dim = 64
@@ -70,20 +70,18 @@ args.cuda = args.gpu >= 0 and torch.cuda.is_available()
 Tensor = torch.cuda.FloatTensor if args.cuda else torch.FloatTensor
 LongTensor = torch.cuda.LongTensor if args.cuda else torch.LongTensor
 
-alpha = Tensor([args.alpha])
+# alpha = Tensor([args.alpha])
 
 np.random.seed(args.seed)
 torch.manual_seed(args.seed)
 
 if args.cuda:
     torch.cuda.manual_seed(args.seed)
-    alpha = alpha.cuda()
+    # alpha = alpha.cuda()
 
 args.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print('args.device:',args.device,' args.cuda:',args.cuda)
  
-
-
 
 if args.model == 'site':
     print('dataloader for SITE TODO')
@@ -116,8 +114,8 @@ def prepare(args):
         model = CFR_WASS(data_loader.f, rep_hid=args.h_dim, hyp_hid=args.h_dim, rep_layer=2, hyp_layer=2, binary=(not args.realy), p=p_treated, device=args.device)
     # elif args.model == 'deconf':
         # model = GCN_DECONF(nfeat=data_loader.f, nhid=args.h_dim, dropout=args.dropout,n_in=2, n_out=2, cuda=args.cuda, binary=(not args.realy))
-    elif args.model == 'cevae':
-        model = CEVAE(x_dim=data_loader.f, h_dim=args.h_dim, z_dim=args.z_dim, binfeats=data_loader.f, contfeats=0, device=args.device, bi_outcome=(not args.realy))
+    # elif args.model == 'cevae':
+    #     model = CEVAE(x_dim=data_loader.f, h_dim=args.h_dim, z_dim=args.z_dim, binfeats=data_loader.f, contfeats=0, device=args.device, bi_outcome=(not args.realy))
     elif args.model == 'site':
         model = SITE(data_loader.f, rep_hid=args.h_dim, hyp_hid=args.h_dim, rep_layer=2, hyp_layer=2, binary=(not args.realy), dropout=args.dropout)
     else: 
@@ -144,6 +142,7 @@ def prepare(args):
     if args.model == 'cevae':
         print('cevae model init TODO')
         pass
+    print('<<< model and data are ready >>>')
     return model, optimizer, result_file, token
     # TODO train file, model file, data, run results, treatment effect
 
@@ -155,7 +154,7 @@ def eval(data_loader, data, tag='val'):
     total_loss = 0.  
     treat_eval, yf_eval, y1_pred_eval, y0_pred_eval = [], [], [], []
     for inputs in data_loader.get_batches(data, args.batch, False):
-        [C, Y, X] = inputs 
+        [C, Y, X, Y1, Y0] = inputs 
         if args.model in ['ols1','ols2','tarnet','cfrmmd','cfrwass']:
             loss, y0, y1  = model(X, C, Y)
         # elif args.model in ['site']:
@@ -174,19 +173,19 @@ def train(data_loader, data, epoch, tag='train'):
     total_loss = 0.
     n_samples = 0.
     for inputs in data_loader.get_batches(data, args.batch, True):
-        [C, Y, X]  = inputs
-    if args.model in ['ols1','ols2','tarnet','cfrmmd','cfrwass']:
-        loss, y_pred, y0, y1  = model(X, C, Y)
-    # elif args.model in ['site']:
-        # P = A
-        # loss, y_pred, y0, y1  = model(X, C, A, Y) 
-    total_loss += loss.item()
-    optimizer.zero_grad()
-    loss.backward() 
-    # torch.nn.utils.clip_grad_norm(model.parameters(),args.clip)
-    optimizer.step()
-    # n_samples += (Y_norm.view(-1).size(0))
-    n_samples += 1
+        [C, Y, X, Y1, Y0]   = inputs
+        if args.model in ['ols1','ols2','tarnet','cfrmmd','cfrwass']:
+            loss, y_pred, y0, y1  = model(X, C, Y)
+        # elif args.model in ['site']:
+            # P = A
+            # loss, y_pred, y0, y1  = model(X, C, A, Y) 
+        total_loss += loss.item()
+        optimizer.zero_grad()
+        loss.backward() 
+        # torch.nn.utils.clip_grad_norm(model.parameters(),args.clip)
+        optimizer.step()
+        # n_samples += (Y_norm.view(-1).size(0))
+        n_samples += 1
     return float(total_loss / n_samples)
 
 

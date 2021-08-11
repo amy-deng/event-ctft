@@ -25,7 +25,7 @@ class CountDataLoader(object):
         # load labels: Y treatments X
         with open('{}/{}/cf_data.pkl'.format(args.data_path, self.dataset),'rb') as f:
             data_dict = pickle.dump(f)
-        data_time = data_dict['data_time'] # n
+        data_time = data_dict['TIME'] # n
         self.data_Y = data_dict['Y'] # n
         data_treat = data_dict['C'] # n * #c
         self.data_Y_cf = data_dict['CF_Y'] # n 
@@ -36,9 +36,9 @@ class CountDataLoader(object):
         self.data_X = data_dict['X'] # load features: count data X 
         self.data_Xsm = data_dict['X_sm']
         self.treatment = data_treat[:,self.treat_idx]
-        self.treatment_cf = data_treat_cf[:,self.treat_idx]
-        # self.Y1 = 
-        # self.Y0 = 
+        # self.treatment_cf = data_treat_cf[:,self.treat_idx]
+        self.Y1 = self.treatment * self.data_Y + (1-self.treatment) * self.data_Y_cf
+        self.Y0 = (1-self.treatment) * self.data_Y + self.treatment * self.data_Y_cf
 
         # self.realization_and_split(args.train,args.val,args.test)
         # load graph features TODO
@@ -46,22 +46,24 @@ class CountDataLoader(object):
         # generate treatments and corresponding outcomes
         # then split data into train, val and test
         self.rea_treat = torch.randint(0, 2, self.treatment.shape)*1.0 #np.random
-        self.rea_y = torch.tensor(self.rea_treat * self.data_Y + (self.rea_treat * self.data_Y_cf))
+        self.rea_y = torch.tensor(self.rea_treat * self.Y1 + (1-self.rea_treat) * self.Y0)
         self.rea_x = torch.tensor(self.data_X)
+        self.Y1 = torch.tensor(self.Y1)
+        self.Y0 = torch.tensor(self.Y0)
         # self._split()
 
         idx = list(range(len(self.rea_y)))
         random.shuffle(idx) # set random.seed(42)
 
-        ind_train = int(round(self.rea_y.shape[0]*train)) 5
-        ind_test = int(round(self.rea_y.shape[0]*(train+test))) 8
+        ind_train = int(round(self.rea_y.shape[0]*train)) 
+        ind_test = int(round(self.rea_y.shape[0]*(train+test))) 
         train_idx = idx[:ind_train]
         val_idx = idx[ind_train:ind_test]
         test_idx = idx[ind_test:]
 
-        self.train = [self.rea_treat[train_idx], self.rea_y[train_idx], self.rea_x[train_idx]]
-        self.val = [self.rea_treat[val_idx], self.rea_y[val_idx], self.rea_x[val_idx]]
-        self.test = [self.rea_treat[test_idx], self.rea_y[test_idx], self.rea_x[test_idx]]
+        self.train = [self.rea_treat[train_idx], self.rea_y[train_idx], self.rea_x[train_idx], self.Y1[train_idx], self.Y0[train_idx]]
+        self.val = [self.rea_treat[val_idx], self.rea_y[val_idx], self.rea_x[val_idx], self.Y1[val_idx], self.Y0[val_idx]]
+        self.test = [self.rea_treat[test_idx], self.rea_y[test_idx], self.rea_x[test_idx], self.Y1[test_idx], self.Y0[test_idx]]
 
     # def _split(self, train, valid, test):
     #     idx = list(range(len(self.data_Y)))
@@ -79,7 +81,7 @@ class CountDataLoader(object):
  
 
     def get_batches(self, data, batch_size, shuffle=True):
-        [C, Y, X] = data
+        [C, Y, X, Y1, Y0] = data
         length = len(C)
         if shuffle:
             index = torch.randperm(length)
@@ -89,18 +91,22 @@ class CountDataLoader(object):
         while (start_idx < length):
             end_idx = min(length, start_idx + batch_size)
             excerpt = index[start_idx:end_idx]
-            cc = C[excerpt,:]
-            yy = Y[excerpt,:]
-            xx = X[excerpt,:]
+            c = C[excerpt,:]
+            y = Y[excerpt,:]
+            x = X[excerpt,:]
+            y1 = Y1[excerpt,:]
+            y0 = Y0[excerpt,:]
             if self.cuda:  
-                cc = cc.cuda()
-                yy = yy.cuda()
-                xx = xx.cuda()
-            data = [Variable(cc), Variable(yy), Variable(xx)]
+                c = c.cuda()
+                y = y.cuda()
+                x = x.cuda()
+                y1 = y1.cuda()
+                y0 = y0.cuda()
+            data = [Variable(c), Variable(y), Variable(x), Variable(y1), Variable(y0)]
             yield data
             start_idx += batch_size
          
-
+# TODO
 def eval_causal_effect_cf(treatment, yf, y1_pred, y0_pred, y_both, ymax=None, ymin=None, lam=.0, y_pred=None,eval_pred=True):
     r = {}
     # not discriminate locations
