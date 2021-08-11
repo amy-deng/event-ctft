@@ -53,10 +53,11 @@ print('WINDOW={}  HORIZON={}  PREWINDOW={}'.format(WINDOW,HORIZON,PREWINDOW))
 path = '../data/{}/'.format(DATASET)
 
 with open(path+TMPFILE,'rb') as f:
-    [data_time,data_Y,data_X_smooth,data_treat,tfidf] = pickle.load(f)
+    [data_time,data_Y,data_X,data_X_smooth,data_treat,tfidf] = pickle.load(f)
 
 print('data_time',type(data_time),len(data_time))
 print('data_Y',type(data_Y),len(data_Y))
+print('data_X',type(data_X),len(data_X))
 print('data_X_smooth',type(data_X_smooth),data_X_smooth.shape)
 print('data_treat',type(data_treat),data_treat.shape)
 print('tfidf',type(tfidf),tfidf.shape)
@@ -100,6 +101,6 @@ data_Y_cf_all = np.swapaxes(data_Y_cf_all, 0,1)
 print('data_Y_cf_all',data_Y_cf_all.shape, 'data_treat_cf',data_treat_cf.shape)
 
 with open(path+'cf_data.pkl','wb') as f:
-    pickle.dump({'data_time':data_time,'Y':data_Y,'C':data_treat,'CF_Y':data_Y_cf_all, 'CF_C':data_treat_cf},f)
+    pickle.dump({'TIME':data_time,'Y':data_Y,'X':data_X,'X_sm':data_X_smooth,'C':data_treat,'CF_Y':data_Y_cf_all, 'CF_C':data_treat_cf},f)
 print(path+'cf_data.pkl', 'saved!')
 
