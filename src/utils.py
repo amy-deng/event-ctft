@@ -39,7 +39,7 @@ class CountDataLoader(object):
         # self.treatment_cf = data_treat_cf[:,self.treat_idx]
         self.Y1 = self.treatment * self.data_Y + (1-self.treatment) * self.data_Y_cf
         self.Y0 = (1-self.treatment) * self.data_Y + self.treatment * self.data_Y_cf
-
+        print('<<< data processed >>>')
         # self.realization_and_split(args.train,args.val,args.test)
         # load graph features TODO
     def realization_and_split(self, train, valid, test):
