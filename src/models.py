@@ -249,9 +249,10 @@ class OLS1(nn.Module):
             self.criterion = F.mse_loss
   
     def forward(self, X, C, Y): 
-        X = X.view(-1, X.size(-1))
+        X = X.view(X.size(0), -1)
         Y = Y.view(-1)
         C = C.view(-1,1) 
+        # print(X.shape,C.shape,'x c')
         C0 = torch.zeros(C.shape).to(self.device)
         X0 = torch.cat((X,C0),-1)
         y0 = self.linear(X0).view(-1)
@@ -261,6 +262,7 @@ class OLS1(nn.Module):
         y = torch.where(C.view(-1) > 0, y1, y0)
         loss = self.criterion(y, Y)
         if self.binary:
+            # print('binary')
             y = torch.sigmoid(y)
             y0 = torch.sigmoid(y0)
             y1 = torch.sigmoid(y1)
@@ -279,8 +281,9 @@ class OLS2(nn.Module):
             self.criterion = F.mse_loss
   
     def forward(self, X, C, Y): 
-        X = X.view(-1, X.size(-1))
+        X = X.view(X.size(0), -1)
         Y = Y.view(-1)
+        # print(X.dtype,'X',Y.dtype,'Y')
         y0 = self.linear_t0(X).view(-1) # update 20210224
         y1 = self.linear_t1(X).view(-1)
         y = torch.where(C.view(-1) > 0, y1, y0)
@@ -289,7 +292,7 @@ class OLS2(nn.Module):
             y = torch.sigmoid(y)
             y0 = torch.sigmoid(y0)
             y1 = torch.sigmoid(y1)
-        return loss, y, y0, y1#, Y
+        return loss, y, y0, y1 
 
 class TARNet(nn.Module): 
     def __init__(self, in_feat, rep_hid, hyp_hid, rep_layer=2, hyp_layer=2, binary=True, dropout=0.2, device=torch.device('cpu')): 
@@ -324,7 +327,7 @@ class TARNet(nn.Module):
             self.criterion = F.mse_loss
   
     def forward(self, X, C, Y): 
-        X = X.view(-1, X.size(-1))
+        X = X.view(X.size(0), -1)
         Y = Y.view(-1)
         h = self.dropout(F.relu(self.rep_bn_fst(self.rep_layer_fst(X))))
         for fc, bn in zip(self.rep_layers, self.rep_bns):
@@ -386,7 +389,7 @@ class CFR_MMD(nn.Module):
             self.criterion = F.mse_loss
   
     def forward(self, X, C, Y): 
-        X = X.view(-1, X.size(-1))
+        X = X.view(X.size(0), -1)
         Y = Y.view(-1)
 
         h = self.dropout(F.relu(self.rep_bn_fst(self.rep_layer_fst(X))))
@@ -456,7 +459,7 @@ class CFR_WASS(nn.Module):
             self.criterion = F.mse_loss
   
     def forward(self, X, C, Y): 
-        X = X.view(-1, X.size(-1))
+        X = X.view(X.size(0), -1)
         Y = Y.view(-1)
         h = self.dropout(F.relu(self.rep_bn_fst(self.rep_layer_fst(X))))
         for fc, bn in zip(self.rep_layers, self.rep_bns):
@@ -564,7 +567,8 @@ class SITE(nn.Module):
             self.criterion = F.mse_loss
   
     def forward(self, X, C, P, Y): 
-        X = X.view(-1, X.size(-1))
+        # X = X.view(-1, X.size(-1))
+        X = X.view(X.size(0), -1)
         Y = Y.view(-1)
         C = C.view(-1)
         P = P.view(-1)
@@ -582,11 +586,15 @@ class SITE(nn.Module):
         # print('index_i, index_j',index_i, index_j)
         # find x_k, x_l
         index_k = torch.argmax(torch.abs(prop_c - prop_t[index_i])).item()
+        # print(prop_t.shape,  index_k,'====')
+
         index_l = find_nearest_point(prop_c, prop_c[index_k])
-        # print('index_k, index_l',index_k, index_l)
+        # print('index_k, index_l',index_k, i ndex_l)
         # find x_n, x_m
         index_m = torch.argmax(np.abs(prop_t - prop_c[index_j])).item()
+        # print(prop_t.shape,index_m,'====')
         index_n = find_nearest_point(prop_t, prop_t[index_m,])
+
         # print('index_m, index_n',index_m, index_n)
         index_i = t_idx_map[index_i]
         index_j = c_idx_map[index_j]

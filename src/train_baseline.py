@@ -13,9 +13,9 @@ parser.add_argument('--data_path', type=str, default='../data')
 parser.add_argument('-d','--dataset', type=str, default='Afghanistan')
 parser.add_argument('--seed', type=int, default=42, help='Random seed')
 parser.add_argument('--epochs', type=int, default=100, help='Number of epochs to train')
-parser.add_argument('--lr', type=float, default=1e-3, help='Initial learning rate')
+parser.add_argument('--lr', type=float, default=5e-4, help='Initial learning rate')
 parser.add_argument('--weight_decay', type=float, default=1e-5, help='Weight decay (L2 loss on parameters)')
-parser.add_argument('--h_dim', type=int, default=128, help='Number of hidden units')
+parser.add_argument('--h_dim', type=int, default=64, help='Number of hidden units')
 parser.add_argument('--dropout', type=float, default=0.5, help='Dropout rate (1 - keep probability)')
 # parser.add_argument('--alpha', type=float, default=1e-4, help='trade-off of representation balancing')
 parser.add_argument('--clip', type=float, default=100., help='gradient clipping')
@@ -23,15 +23,17 @@ parser.add_argument("-b",'--batch', type=int, default=64)
 parser.add_argument('-w','--window', type=int, default=10)
 parser.add_argument('--horizon', type=int, default=1)
 parser.add_argument('--pred_window', type=int, default=3)
-parser.add_argument('-p','--patience', type=int, default=10)
+parser.add_argument('-p','--patience', type=int, default=15)
 parser.add_argument('--train', type=float, default=0.6)
 parser.add_argument('--val', type=float, default=0.2)
 parser.add_argument('--test', type=float, default=0.2)
 parser.add_argument('-m','--model', type=str, default='ols1', help='deconf')
-parser.add_argument('--loop', type=int, default=10)
-# parser.add_argument('--realy', action="store_true", help='real value comes with normalization')
+parser.add_argument('--loop', type=int, default=2)
+parser.add_argument('--realy', action="store_true", help='real value comes with normalization')
 # parser.add_argument('--normy', action="store_false")
 parser.add_argument('--shuffle', action="store_false")
+parser.add_argument('--aggr_feat', action="store_true")
+
 # parser.add_argument('--perloc', action="store_true", help='evaluate per location')
 # parser.add_argument('--usegeo', action="store_true")
 # parser.add_argument('--generate', action="store_true")
@@ -84,12 +86,12 @@ args.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print('args.device:',args.device,' args.cuda:',args.cuda)
  
 
-if args.model == 'site':
-    print('dataloader for SITE TODO')
-    pass
-    # data_loader = EventDataSITEBasicLoader(args)
-else:
-    data_loader = CountDataLoader(args)
+# if args.model == 'site':
+#     print('dataloader for SITE TODO')
+#     pass
+#     # data_loader = EventDataSITEBasicLoader(args)
+# else:
+data_loader = CountDataLoader(args)
 
 
 os.makedirs('models', exist_ok=True)
@@ -122,18 +124,18 @@ def prepare(args):
     token = args.model + '-lr'+str(args.lr)[1:] + 'wd'+str(args.weight_decay) + 'hd' + str(args.h_dim) \
         + 'dp' + str(args.dropout)[1:] \
         + 'b' + str(args.batch) + 'w' + str(args.window) + 'h'+str(args.horizon) + 'pw'+str(args.pred_window) + 'p' + str(args.patience) \
-        + 'tr'+str(args.train)[1:] + 'va'+str(args.val)[1:]
+        + 'tr'+str(args.train)[1:] + 'va'+str(args.val)[1:] + 'agg'+str(args.aggr_feat)
     if args.model == 'cevae':
         token += '-z' + str(args.z_dim)
 
-    print('Model:', model_name)
-    print('Token:', token)
+    
     os.makedirs('models/{}/{}'.format(args.dataset, token), exist_ok=True)
     result_file = 'results/{}/{}.csv'.format(args.dataset,token)
 
     optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
     total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
-    print('#params:', total_params)
+    print('Model:{} \t # params {}'.format(model_name,total_params))
+    print('Token:', token)
     if args.cuda:
         model.cuda()
     data_loader.realization_and_split(args.train,args.val,args.test)
@@ -150,18 +152,27 @@ def eval(data_loader, data, tag='val'):
     total = 0.
     n_samples = 0.
     total_loss = 0.  
-    treat_eval, yf_eval, y1_pred_eval, y0_pred_eval = [], [], [], []
+    treatment, y_true, y1_true, y0_true, y_pred, y1_pred, y0_pred = [], [], [], [], [], [], []
     for inputs in data_loader.get_batches(data, args.batch, False):
-        [C, Y, X, Y1, Y0] = inputs 
+        [C, Y, X, Y1, Y0, P] = inputs 
         if args.model in ['ols1','ols2','tarnet','cfrmmd','cfrwass']:
-            loss, y0, y1  = model(X, C, Y)
-        # elif args.model in ['site']:
-            # loss, y_pred, y0, y1 = model(X, C, A, Y)# TODO
+            loss, y, y0, y1  = model(X, C, Y)
+        elif args.model in ['site']:
+            loss, y_pred, y0, y1 = model(X, C, P, Y)# TODO
         total_loss += loss.item()
         # n_samples += (Y.view(-1).size(0))
+        y1_true.append(Y1)
+        y0_true.append(Y0)
+        y1_pred.append(y1)
+        y0_pred.append(y0)
         n_samples += 1
         # eval
-    # eval_dict = #TODO
+    y1_true = torch.cat(y1_true).cpu().detach().numpy() 
+    y0_true = torch.cat(y0_true).cpu().detach().numpy() 
+    y1_pred = torch.cat(y1_pred).cpu().detach().numpy() 
+    y0_pred = torch.cat(y0_pred).cpu().detach().numpy() 
+    # print(y1_true.shape,'y1_true', y1_pred.shape,'y1_pred')
+    eval_dict = eval_causal_effect_cf(y1_true, y0_true, y1_pred, y0_pred)
     return float(total_loss / n_samples), eval_dict
 
 
@@ -171,12 +182,12 @@ def train(data_loader, data, epoch, tag='train'):
     total_loss = 0.
     n_samples = 0.
     for inputs in data_loader.get_batches(data, args.batch, True):
-        [C, Y, X, Y1, Y0]   = inputs
+        [C, Y, X, Y1, Y0, P]   = inputs
         if args.model in ['ols1','ols2','tarnet','cfrmmd','cfrwass']:
             loss, y_pred, y0, y1  = model(X, C, Y)
-        # elif args.model in ['site']:
+        elif args.model in ['site']:
             # P = A
-            # loss, y_pred, y0, y1  = model(X, C, A, Y) 
+            loss, y_pred, y0, y1  = model(X, C, P, Y) 
         total_loss += loss.item()
         optimizer.zero_grad()
         loss.backward() 
@@ -188,7 +199,7 @@ def train(data_loader, data, epoch, tag='train'):
 
 
 for i in range(args.loop):
-    print('i =', i, args.dataset)
+    print('============== Loop i = {} on Dataset {} =============='.format(i,args.dataset))
     model, optimizer, result_file, token = prepare(args)
     model_state_file = 'models/{}/{}/{}.pth'.format(args.dataset, token, i)
     if i == 0 and os.path.exists(result_file):  # if result_file exist
@@ -197,7 +208,7 @@ for i in range(args.loop):
     bad_counter = 0
     stop_criteria = float('inf') # loss as criteria for early stop
     try:
-        print('begin training');
+        print('Begin training');
         for epoch in range(0, args.epochs):
             train_loss = train(data_loader, data_loader.train, epoch)
             valid_loss, eval_dict = eval(data_loader, data_loader.val, tag='val')
@@ -205,7 +216,7 @@ for i in range(args.loop):
                 stop_criteria = valid_loss
                 bad_counter = 0
                 torch.save({'state_dict': model.state_dict(), 'epoch': epoch}, model_state_file)
-                print('Epo {} tr_los:{:.5f} val_los:{:.5f} '.format(epoch, train_loss, valid_loss),'|'.join(['{}:{:.4f}'.format(k, eval_dict[k]) for k in eval_dict]))
+                print('Epo {} tr_los:{:.5f} val_los:{:.5f} '.format(epoch, train_loss, valid_loss),'\t'.join(['{}:{:.4f}'.format(k, eval_dict[k]) for k in eval_dict]))
             else:
                 bad_counter += 1
             if bad_counter == args.patience:
@@ -223,14 +234,14 @@ for i in range(args.loop):
     print("Test using best epoch: {}".format(checkpoint['epoch']))
 
     val_loss, eval_dict = eval(data_loader, data_loader.val, 'val')
-    print('Val','|'.join(['{}:{:.4f}'.format(k, eval_dict[k]) for k in eval_dict]))
+    print('Val      ','\t'.join(['{}:{:.4f}'.format(k, eval_dict[k]) for k in eval_dict]))
 
     val_loss, eval_dict = eval(data_loader, data_loader.train_val, 'train_val')
-    print('train_val','|'.join(['{}:{:.4f}'.format(k, eval_dict[k]) for k in eval_dict]))
+    print('Train+Val','\t'.join(['{}:{:.4f}'.format(k, eval_dict[k]) for k in eval_dict]))
     train_val_res = [eval_dict[k] for k in eval_dict]
 
     _, eval_dict = eval(data_loader, data_loader.test, 'test')
-    print('Test','|'.join(['{}:{:.4f}'.format(k, eval_dict[k]) for k in eval_dict]))
+    print('Test     ','\t'.join(['{}:{:.4f}'.format(k, eval_dict[k]) for k in eval_dict]))
     test_res = [eval_dict[k] for k in eval_dict]
     wrt.writerow([val_loss] + [0] + train_val_res + [0] + test_res)
     f.close()
