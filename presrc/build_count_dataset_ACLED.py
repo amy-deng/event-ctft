@@ -149,7 +149,10 @@ Y = subevent_count_dict['Protests']
 ii = 0
 data_X = []
 data_Y = []
+data_time = []
 for i in range(0,len(X),HORIZON+PREDWINDOW-1): # no overlap of pre_window
+    if i+WINDOW >=len(X) or i+WINDOW+PREDWINDOW-1 >= len(X):
+        break
 # for i in range(0,len(X),HORIZON): # overlap 1
 #     print('x',i,i+window,' y',i+window,i+window+pred_window)
     data_X.append(X[i:i+WINDOW])
@@ -157,8 +160,8 @@ for i in range(0,len(X),HORIZON+PREDWINDOW-1): # no overlap of pre_window
 #     print(Y[i+window:i+window+pred_window])
 #     print(X[i:i+window],Y[i+window:i+window+pred_window-1])
     data_Y.append(1 if protest > 0 else 0)
-    if i+WINDOW >=len(X) or i+WINDOW+PREDWINDOW-1 >= len(X):
-        break
+    # if i+WINDOW >=len(X) or i+WINDOW+PREDWINDOW-1 >= len(X):
+    #     break
     ii+=1
 print(ii)
 

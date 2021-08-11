@@ -174,7 +174,7 @@ for i in range(d1):
         tmp.append(list(movingaverage(data_X[i,j,:],WINDOW//2)))
     data_X_smooth.append(tmp)
 data_X_smooth = np.array(data_X_smooth)
-print('data_X_smooth',data_X_smooth.shape)
+print('data_X_smooth',data_X_smooth.shape,'data_X',data_X.shape)
 
 
 
@@ -244,13 +244,15 @@ def get_lem_token_list(sentences):
 with open('/home/sdeng/data/stopwords-en-basic.txt','r') as f:
     stop_words = f.read().splitlines()
 stop_words += ['aren', 'can', 'couldn', 'didn', 'doesn', 'don', 'hadn', 'hasn', 'haven', 'isn', 'let', 'll', 'mustn', 'placeholder', 're', 'shan', 'shouldn', 've', 'wasn', 'weren', 'won', 'wouldn']
-# vectorizer = TfidfVectorizer(stop_words=stop_words,min_df=0.05,max_df=0.95)
-# stop_words += ['20','3','21','2','2017','6','7','8','9','10','11','12','13','14','15','16','17','18','19','22','23','24','25','26','27','28','29','30','31','2015','2016','2018','2019','2020','2021']
-# stop_words += ["'", '/', '<', '>', 'A', 'C', 'D', 'E', 'H', 'L', 'O', 'P', 'R', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'l', 'm', 'n', 'o', 'p', 'r', 's', 't', 'u', 'v', 'w', 'y']
 all_tokens = []
+k = 0
 for sentences in data_text:
     tokens = get_lem_token_list(sentences)
     all_tokens.append(tokens)
+    if k % 1000 == 0:
+        print('processing k = {}'.format(k))
+    k+=1
+
 vectorizer = TfidfVectorizer(tokenizer=(lambda x:x), lowercase=False, stop_words=stop_words,min_df=5,max_df=0.99)#token_pattern=r'(?u)\b\w*[a-zA-Z]\w*\b') # stopwords='english' u'(?u)\b\w*[a-zA-Z]\w*\b
 tfidf = vectorizer.fit_transform(all_tokens)
 print('tfidf',tfidf.shape)
@@ -264,7 +266,7 @@ tfidf_vocab_f.close()
 
 
 with open(path+'tmp_label_w{}_h_{}_p{}.pkl'.format(WINDOW,HORIZON,PREDWINDOW),'wb') as f:
-    pickle.dump([data_time,data_Y,data_X_smooth,data_treat,tfidf],f)
+    pickle.dump([data_time,data_Y,data_X,data_X_smooth,data_treat,tfidf],f)
 print('tmp data saved')
 
 # for each samples, find a cf data, 

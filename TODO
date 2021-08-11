@@ -1,3 +1,29 @@
 1. check correlations between riots and protests
 2. run simple models to predict riots
-3. build cf data
+3. build cf data 
+
+
+4. train baseline model. causal inference model. 
+
+
+When learning a causal model, one
+should, thus, require fewer examples to adapt as most
+knowledge, that is, modules, can be reused without further
+training.
+
+
+ discovering
+causal relations means acquiring robust knowledge that
+holds beyond the support of observed data distribution
+and a set of training tasks, and it extends to situations
+involving forms of reasoning.
+
+ causality, with its focus on representing structural knowledge
+about the data generating process that allows interventions
+and changes, can contribute toward understanding and
+resolving some limitations of current machine learning
+methods
+
+
+assume that the words are sufficient for
+adjustment.
