@@ -12,11 +12,12 @@ from torch.distributions import bernoulli, normal
 import time
 from layers import *
 from utils import *
-from sparsemax import Sparsemax
-from tcn import *
+# from sparsemax import Sparsemax
+# from tcn import *
 try:
     import dgl
 except:
+    print("<<< dgl are not imported >>>")
     pass
 
 
