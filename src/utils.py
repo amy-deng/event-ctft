@@ -43,6 +43,7 @@ class CountDataLoader(object):
         else:
             self.f = self.data_X.shape[2]*self.data_X.shape[1]
         self.treatment = data_treat[:,self.treat_idx]
+        print('<<< original treated proportion {:.4f} >>>'.format(self.treatment.mean()))
         self.data_Y_cf = self.data_Y_cf[:,self.treat_idx]
         # self.treatment_cf = data_treat_cf[:,self.treat_idx]
         self.Y1 = self.treatment * self.data_Y + (1-self.treatment) * self.data_Y_cf

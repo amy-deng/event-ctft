@@ -124,7 +124,7 @@ def prepare(args):
     token = args.model + '-lr'+str(args.lr)[1:] + 'wd'+str(args.weight_decay) + 'hd' + str(args.h_dim) \
         + 'dp' + str(args.dropout)[1:] \
         + 'b' + str(args.batch) + 'w' + str(args.window) + 'h'+str(args.horizon) + 'pw'+str(args.pred_window) + 'p' + str(args.patience) \
-        + 'tr'+str(args.train)[1:] + 'va'+str(args.val)[1:] + 'agg'+str(args.aggr_feat)
+        + 'tr'+str(args.train)[1:] + 'va'+str(args.val)[1:] + 'agg'+str(args.aggr_feat) +'treat'+str(args.treat_idx)
     if args.model == 'cevae':
         token += '-z' + str(args.z_dim)
 
