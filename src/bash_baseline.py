@@ -8,10 +8,10 @@ try:
     gpu = sys.argv[2]
     loop = sys.argv[3]
     models = str(sys.argv[4])
-    treats = str(sys.argv[5])
+    treat = str(sys.argv[5])
     others = str(sys.argv[6])
 except:
-    print('Usage: dataset, gpu, loop, models[ols1,ols2,tarnet,cfrmmd,cfrwas,site,deconf,dnd,cevae,`all` - use `,`],treats[24 yemen, 23 afg, syria 7 ],others()')
+    print('Usage: dataset, gpu, loop, models[ols1,ols2,tarnet,cfrmmd,cfrwas,site,deconf,dnd,cevae,`all` - use `,`],treat[24 yemen, 23 afg, syria 7 ],others()')
     exit()
 
 MODELS = ['ols1','ols2','tarnet','cfrmmd','cfrwass','site','deconf','dndc','cevae']
@@ -25,9 +25,9 @@ else:
     assert len(model_list) > 0, 'invalid model'
 
 print(model_list)
-treat_list = [int(v) for v in treats.split(',')]
+# treat_list = [int(v) for v in treats.split(',')]
 base = "python train_baseline.py"
-args = ' -w 10 --horizon 1 --pred_window 3 -d {} --gpu {} --loop {} '.format(dataset,gpu,loop)
+args = ' -w 10 --horizon 1 --pred_window 3 -d {} --gpu {} --loop {} --treat_idx {}'.format(dataset,gpu,loop,treat)
 
 args += others
 for aggr in ["", "--aggr_feat"]:
