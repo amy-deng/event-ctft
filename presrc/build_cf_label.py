@@ -82,6 +82,7 @@ for treat_id in range(data_treat.shape[-1]):
         for j in sel_idx_list:
             can_x = data_X_smooth_flat[j]
             can_s = tfidf[j]
+            print('s',s.shape,can_s.shape)
             v, p = stats.pearsonr(x, can_x)
             cos_sim = 1 - spatial.distance.cosine(s, can_s)
             if cos_sim + abs(v) > sel_idx_similarity_score:
