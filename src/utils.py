@@ -36,6 +36,7 @@ class CountDataLoader(object):
         self.data_X = data_dict['X'] # load features: count data X 
         self.data_Xsm = data_dict['X_sm']
         self.treatment = data_treat[:,self.treat_idx]
+        self.data_Y_cf = self.data_Y_cf[:,self.treat_idx]
         # self.treatment_cf = data_treat_cf[:,self.treat_idx]
         self.Y1 = self.treatment * self.data_Y + (1-self.treatment) * self.data_Y_cf
         self.Y0 = (1-self.treatment) * self.data_Y + self.treatment * self.data_Y_cf
