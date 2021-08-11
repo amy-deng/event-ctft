@@ -409,18 +409,19 @@ class CFR_MMD(nn.Module):
         y0 = self.hyp_out0(h0).view(-1)
         y1 = self.hyp_out1(h1).view(-1)
  
-        try:
-            imb = mmd2_rbf(h,C,self.p)
-        except:
-            imb = 0.
-
+        # try:
+        p = torch.mean(C)
+        imb = mmd2_rbf(h,C,p)
+        # except:
+        #     imb = 0.
         C_1d = C.view(-1)
         p = torch.mean(C_1d)
         weight = C_1d/(2*p) + (1-C_1d)/(2*(1-p))
         # weight = weight.to(self.device)
         y = torch.where(C_1d > 0, y1, y0)
         loss = self.criterion(y, Y, reduction='none')
-        loss = torch.mean(loss * weight) + 1e-4*imb
+        loss = torch.mean(loss * weight) + 1e-3*imb
+        # print(torch.mean(loss * weight),1e-3*imb)
         if self.binary:
             y = torch.sigmoid(y)
             y0 = torch.sigmoid(y0)
@@ -477,10 +478,11 @@ class CFR_WASS(nn.Module):
 
         y0 = self.hyp_out0(h0).view(-1)
         y1 = self.hyp_out1(h1).view(-1)
-        try:
-            imb, _ = wasserstein_ht(h,C,self.p,self.device)
-        except:
-            imb = 0.
+        p = torch.mean(C)
+        # try:
+        imb, _ = wasserstein_ht(h,C,p,device=self.device)
+        # except:
+        #     imb = 0.
 
         C_1d = C.view(-1)
         p = torch.mean(C_1d)
@@ -489,6 +491,7 @@ class CFR_WASS(nn.Module):
         weight = C_1d/(2*p) + (1-C_1d)/(2*(1-p))
         # weight = weight.to(self.device)
         loss = self.criterion(y, Y, reduction='none')
+        # print(torch.mean(loss * weight),1e-4*imb)
         loss = torch.mean(loss * weight) + 1e-4*imb
         if self.binary:
             y = torch.sigmoid(y)

@@ -31,6 +31,8 @@ class CountDataLoader(object):
         data_time = data_dict['TIME'] # n
         self.data_Y = np.array(data_dict['Y']) # n
         data_treat = data_dict['C'] # n * #c
+        print(data_treat.mean(0))
+        # exit()
         self.data_Y_cf = np.array(data_dict['CF_Y']) # n 
         data_treat_cf = data_dict['CF_C'] # n
         if not (data_treat == 1 - data_treat_cf).any():
