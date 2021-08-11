@@ -637,8 +637,10 @@ class SITE(nn.Module):
         # print('loss_PDDM',loss_PDDM,type(loss_PDDM))
         loss_MPDM = func_MPDM(z[index_i],z[index_m],z[index_j],z[index_k])
         # print('loss_MPDM',loss_MPDM,type(loss_MPDM))
-        beta = 1e-1
-        gamma = 1e-2
+        # print('loss_PDDM',loss_PDDM,'loss_MPDM',loss_MPDM)
+        beta = 0.1
+        gamma = 0.001
+        # print(beta*loss_PDDM,gamma*loss_MPDM,loss_factual)
         loss = loss_factual + beta*loss_PDDM + gamma*loss_MPDM
         if self.binary:
             y = torch.sigmoid(y)
