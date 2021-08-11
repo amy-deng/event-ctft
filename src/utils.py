@@ -177,6 +177,9 @@ class CountDataLoader(object):
         while (start_idx < length):
             end_idx = min(length, start_idx + batch_size)
             excerpt = index[start_idx:end_idx]
+            if len(excerpt) < batch_size:
+                random_pad = torch.randperm(length)[:(batch_size-len(excerpt))]
+                excerpt = torch.cat([excerpt,random_pad])
             c = C[excerpt]
             y = Y[excerpt]
             x = X[excerpt,:]
@@ -342,6 +345,7 @@ def wasserstein_ht(X,t,p=0.5,lam=10,its=10,sq=False,backpropT=False,device=torch
 def find_middle_pair(x, y):
     x = torch.abs(x-0.5)
     y = torch.abs(y-0.5)
+    # print(x.shape,y.shape,'x y')
     index_1 = torch.argmin(x).item()
     index_2 = torch.argmin(y).item()
     # print('index_1',index_1,'index_2',index_2)
