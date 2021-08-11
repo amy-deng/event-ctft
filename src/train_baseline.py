@@ -260,7 +260,7 @@ std = [round(float(v),3) for v in arr.std(0)]
 res = [str(mean[i]) +' ' + str(std[i]) for i in range(len(mean))]
 print(res)
 
-all_res_file = 'results/{}/res_stat.csv'.format(args.dataset)
+all_res_file = 'results/{}/res_stat_{}.csv'.format(args.dataset,args.dataset)
 f = open(all_res_file,'a')
 wrt = csv.writer(f)
 wrt.writerow([token] + [line_count] + res)
