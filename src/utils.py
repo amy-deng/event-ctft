@@ -24,7 +24,7 @@ class CountDataLoader(object):
         self.treat_idx = args.treat_idx
         # load labels: Y treatments X
         with open('{}/{}/cf_data.pkl'.format(args.data_path, self.dataset),'rb') as f:
-            data_dict = pickle.dump(f)
+            data_dict = pickle.load(f)
         data_time = data_dict['TIME'] # n
         self.data_Y = data_dict['Y'] # n
         data_treat = data_dict['C'] # n * #c
