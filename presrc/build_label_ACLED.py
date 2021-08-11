@@ -265,7 +265,7 @@ for i in range(len(feature_names)):
 tfidf_vocab_f.close()
 
 
-with open(path+'tmp_label_w{}_h_{}_p{}.pkl'.format(WINDOW,HORIZON,PREDWINDOW),'wb') as f:
+with open(path+'tmp_label_w{}_h{}_p{}.pkl'.format(WINDOW,HORIZON,PREDWINDOW),'wb') as f:
     pickle.dump([data_time,data_Y,data_X,data_X_smooth,data_treat,tfidf],f)
 print('tmp data saved')
 

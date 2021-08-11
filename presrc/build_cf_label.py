@@ -57,7 +57,7 @@ with open(path+TMPFILE,'rb') as f:
 
 print('data_time',type(data_time),len(data_time))
 print('data_Y',type(data_Y),len(data_Y))
-print('data_X',type(data_X),len(data_X))
+print('data_X',type(data_X),data_X.shape)
 print('data_X_smooth',type(data_X_smooth),data_X_smooth.shape)
 print('data_treat',type(data_treat),data_treat.shape)
 print('tfidf',type(tfidf),tfidf.shape)
