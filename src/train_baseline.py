@@ -91,9 +91,6 @@ if args.model == 'site':
 else:
     data_loader = CountDataLoader(args)
 
-p_treated = np.mean(data_loader.rea_treat) # should be different for each realization TODO
-p_treated = torch.tensor(p_treated).to(args.device)
-print('p_treated =',p_treated)
 
 os.makedirs('models', exist_ok=True)
 os.makedirs('models/' + args.dataset, exist_ok=True)
@@ -108,11 +105,11 @@ def prepare(args):
     elif args.model == 'ols2':
         model = OLS2(data_loader.f, not args.realy, device=args.device)
     elif args.model == 'tarnet':
-        model = TARNet(data_loader.f, rep_hid=args.h_dim, hyp_hid=args.h_dim, rep_layer=2, hyp_layer=2, binary=(not args.realy), p=p_treated, device=args.device)
+        model = TARNet(data_loader.f, rep_hid=args.h_dim, hyp_hid=args.h_dim, rep_layer=2, hyp_layer=2, binary=(not args.realy), device=args.device)
     elif args.model == 'cfrmmd':
-        model = CFR_MMD(data_loader.f, rep_hid=args.h_dim, hyp_hid=args.h_dim, rep_layer=2, hyp_layer=2, binary=(not args.realy), p=p_treated, device=args.device)
+        model = CFR_MMD(data_loader.f, rep_hid=args.h_dim, hyp_hid=args.h_dim, rep_layer=2, hyp_layer=2, binary=(not args.realy), device=args.device)
     elif args.model == 'cfrwass':
-        model = CFR_WASS(data_loader.f, rep_hid=args.h_dim, hyp_hid=args.h_dim, rep_layer=2, hyp_layer=2, binary=(not args.realy), p=p_treated, device=args.device)
+        model = CFR_WASS(data_loader.f, rep_hid=args.h_dim, hyp_hid=args.h_dim, rep_layer=2, hyp_layer=2, binary=(not args.realy), device=args.device)
     # elif args.model == 'deconf':
         # model = GCN_DECONF(nfeat=data_loader.f, nhid=args.h_dim, dropout=args.dropout,n_in=2, n_out=2, cuda=args.cuda, binary=(not args.realy))
     # elif args.model == 'cevae':

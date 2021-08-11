@@ -292,9 +292,9 @@ class OLS2(nn.Module):
         return loss, y, y0, y1#, Y
 
 class TARNet(nn.Module): 
-    def __init__(self, in_feat, rep_hid, hyp_hid, rep_layer=2, hyp_layer=2, binary=True, p=0.5, dropout=0.2, device=torch.device('cpu')): 
+    def __init__(self, in_feat, rep_hid, hyp_hid, rep_layer=2, hyp_layer=2, binary=True, dropout=0.2, device=torch.device('cpu')): 
         super().__init__() 
-        self.p = p
+        # self.p = p
         self.device = device
         self.hyp_layer = hyp_layer
         self.rep_layer_fst = nn.Linear(in_feat, rep_hid)
@@ -343,9 +343,10 @@ class TARNet(nn.Module):
         y0 = self.hyp_out0(h0).view(-1)
         y1 = self.hyp_out1(h1).view(-1)
         C_1d = C.view(-1)
+        p = torch.mean(C_1d)
         y = torch.where(C_1d > 0, y1, y0)
         loss = self.criterion(y, Y, reduction='none')
-        weight = C_1d/(2*self.p) + (1-C_1d)/(2*(1-self.p))
+        weight = C_1d/(2*p) + (1-C_1d)/(2*(1-p))
         loss = torch.mean(loss * weight)
         if self.binary:
             y = torch.sigmoid(y)
@@ -354,9 +355,8 @@ class TARNet(nn.Module):
         return loss, y, y0, y1 
 
 class CFR_MMD(nn.Module): 
-    def __init__(self, in_feat, rep_hid, hyp_hid, rep_layer=2, hyp_layer=2, binary=True, p=0.5, dropout=0.2, device=torch.device('cpu')): 
+    def __init__(self, in_feat, rep_hid, hyp_hid, rep_layer=2, hyp_layer=2, binary=True, dropout=0.2, device=torch.device('cpu')): 
         super().__init__() 
-        self.p = p
         self.device = device
         self.hyp_layer = hyp_layer
         self.rep_layer_fst = nn.Linear(in_feat, rep_hid)
@@ -412,7 +412,8 @@ class CFR_MMD(nn.Module):
             imb = 0.
 
         C_1d = C.view(-1)
-        weight = C_1d/(2*self.p) + (1-C_1d)/(2*(1-self.p))
+        p = torch.mean(C_1d)
+        weight = C_1d/(2*p) + (1-C_1d)/(2*(1-p))
         # weight = weight.to(self.device)
         y = torch.where(C_1d > 0, y1, y0)
         loss = self.criterion(y, Y, reduction='none')
@@ -424,9 +425,8 @@ class CFR_MMD(nn.Module):
         return loss, y, y0, y1 
 
 class CFR_WASS(nn.Module): 
-    def __init__(self, in_feat, rep_hid, hyp_hid, rep_layer=2, hyp_layer=2, binary=True, p=0.5, dropout=0.2, device=torch.device('cpu')): 
+    def __init__(self, in_feat, rep_hid, hyp_hid, rep_layer=2, hyp_layer=2, binary=True, dropout=0.2, device=torch.device('cpu')): 
         super().__init__() 
-        self.p = p
         self.device = device
         self.hyp_layer = hyp_layer
         self.rep_layer_fst = nn.Linear(in_feat, rep_hid)
@@ -480,8 +480,10 @@ class CFR_WASS(nn.Module):
             imb = 0.
 
         C_1d = C.view(-1)
+        p = torch.mean(C_1d)
+        p = torch.mean(C_1d)
         y = torch.where(C_1d > 0, y1, y0)
-        weight = C_1d/(2*self.p) + (1-C_1d)/(2*(1-self.p))
+        weight = C_1d/(2*p) + (1-C_1d)/(2*(1-p))
         # weight = weight.to(self.device)
         loss = self.criterion(y, Y, reduction='none')
         loss = torch.mean(loss * weight) + 1e-4*imb
