@@ -30,7 +30,7 @@ class CountDataLoader(object):
         data_treat = data_dict['C'] # n * #c
         self.data_Y_cf = data_dict['CF_Y'] # n 
         data_treat_cf = data_dict['CF_C'] # n
-        if not (data_treat == 1 - data_treat_cf):
+        if not any((data_treat == 1 - data_treat_cf)):
             print('treatment error. check')
             exit()
         self.data_X = data_dict['X'] # load features: count data X 
