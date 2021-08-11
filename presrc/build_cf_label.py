@@ -60,7 +60,7 @@ print('data_Y',type(data_Y),len(data_Y))
 print('data_X_smooth',type(data_X_smooth),data_X_smooth.shape)
 print('data_treat',type(data_treat),data_treat.shape)
 print('tfidf',type(tfidf),tfidf.shape)
-
+tfidf = tfidf.toarray()
 
 # TODO assume it is not biased
 # for each sample, find a cf sample, different treatment, see what is the outcome
@@ -82,7 +82,7 @@ for treat_id in range(data_treat.shape[-1]):
         for j in sel_idx_list:
             can_x = data_X_smooth_flat[j]
             can_s = tfidf[j]
-            print('s',s.shape,can_s.shape)
+            # print('s',s.shape,can_s.shape)
             v, p = stats.pearsonr(x, can_x)
             cos_sim = 1 - spatial.distance.cosine(s, can_s)
             if cos_sim + abs(v) > sel_idx_similarity_score:
