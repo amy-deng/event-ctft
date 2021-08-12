@@ -124,9 +124,12 @@ def prepare(args):
     #     model = CEVAE(x_dim=data_loader.f, h_dim=args.h_dim, z_dim=args.z_dim, binfeats=data_loader.f, contfeats=0, device=args.device, bi_outcome=(not args.realy))
     elif args.model == 'site':
         model = SITE(data_loader.f, rep_hid=args.rep_dim, hyp_hid=args.hyp_dim, rep_layer=args.rep_layer, hyp_layer=args.hyp_layer, binary=(not args.realy), dropout=args.dropout, balance1=args.balance1, balance2=args.balance2)
+    elif args.model == 'tarnetgru':
+        model = TARNetGRU(data_loader.f, rep_hid=args.rep_dim, hyp_hid=args.hyp_dim, rep_layer=args.rep_layer, hyp_layer=args.hyp_layer, binary=(not args.realy), device=args.device)
     else: 
         raise LookupError('can not find the model')
     model_name = model.__class__.__name__
+    # print(model)
     # token = args.model + '-lr'+str(args.lr)[1:] + 'wd'+str(args.weight_decay) + 'hd' + str(args.h_dim) \
     #     + 'dp' + str(args.dropout)[1:] \
     #     + 'b' + str(args.batch) + 'w' + str(args.window) + 'h'+str(args.horizon) + 'pw'+str(args.pred_window) + 'p' + str(args.patience) \
@@ -167,7 +170,7 @@ def eval(data_loader, data, tag='val'):
     treatment, y_true, y1_true, y0_true, y_pred, y1_pred, y0_pred = [], [], [], [], [], [], []
     for inputs in data_loader.get_batches(data, args.batch, False):
         [C, Y, X, Y1, Y0, P] = inputs 
-        if args.model in ['ols1','ols2','tarnet','cfrmmd','cfrwass']:
+        if args.model in ['ols1','ols2','tarnet','cfrmmd','cfrwass','tarnetgru']:
             loss, y, y0, y1  = model(X, C, Y)
         elif args.model in ['site']:
             loss, y_pred, y0, y1 = model(X, C, P, Y)# TODO
@@ -195,7 +198,7 @@ def train(data_loader, data, epoch, tag='train'):
     n_samples = 0.
     for inputs in data_loader.get_batches(data, args.batch, True):
         [C, Y, X, Y1, Y0, P]   = inputs
-        if args.model in ['ols1','ols2','tarnet','cfrmmd','cfrwass']:
+        if args.model in ['ols1','ols2','tarnet','cfrmmd','cfrwass','tarnetgru']:
             loss, y_pred, y0, y1  = model(X, C, Y)
         elif args.model in ['site']:
             # P = A

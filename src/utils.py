@@ -42,8 +42,10 @@ class CountDataLoader(object):
         self.data_Xsm = data_dict['X_sm']
         if self.aggr_feat:
             self.f = self.data_X.shape[-1]
-        else:
+        elif args.model not in ['tarnetgru']:
             self.f = self.data_X.shape[2]*self.data_X.shape[1]
+        else:
+            self.f = self.data_X.shape[-1]
         self.treatment = data_treat[:,self.treat_idx]
         print('<<< original treated proportion {:.4f} >>>'.format(self.treatment.mean()))
         self.data_Y_cf = self.data_Y_cf[:,self.treat_idx]
