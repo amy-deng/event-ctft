@@ -216,6 +216,8 @@ def eval_causal_effect_cf(y1_true, y0_true, y1_pred, y0_pred):
 
     ite_est = y1_pred - y0_pred # y1 - y0
     r['ate_err'] = ate(ite_est, y1_true, y0_true) 
+    r['ate'] =  np.mean(y1_true - y0_true)
+    r['ate_p'] = np.mean(ite_est)
     r['pehe'] = pehe(ite_est, y1_true, y0_true)  
     # print('policy_risk', 1-policy_value,  policy_risk)
     return r

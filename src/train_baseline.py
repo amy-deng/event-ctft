@@ -132,12 +132,14 @@ def prepare(args):
     #     + 'b' + str(args.batch) + 'w' + str(args.window) + 'h'+str(args.horizon) + 'pw'+str(args.pred_window) + 'p' + str(args.patience) \
     #     + 'tr'+str(args.train)[1:] + 'va'+str(args.val)[1:] + 'agg'+str(args.aggr_feat) +'treat'+str(args.treat_idx)
     token = args.model + '-lr'+str(args.lr)[1:] +  'w' + str(args.window) + 'h'+str(args.horizon) + 'pw'+str(args.pred_window)  \
-        + 'agg'+str(args.aggr_feat) +'treat'+str(args.treat_idx) + 'b1'+str(args.balance1) + 'rep'+str(args.rep_layer) + '*'+str(args.hyp_layer) + 'hyp'+str(args.rep_dim) +'*'+ str(args.hyp_dim) 
+        + 'agg'+str(args.aggr_feat) +'treat'+str(args.treat_idx) + 'b1'+str(args.balance1) + 'rep'+str(args.rep_layer) + '*'+str(args.rep_dim) + 'hyp'+str(args.hyp_layer) +'*'+ str(args.hyp_dim) 
     if args.model == 'cevae':
         token += '-z' + str(args.z_dim)
 
     if args.model == 'site':
         token += 'b2'+str(args.balance2) 
+
+    
 
     os.makedirs('models/{}/{}'.format(args.dataset, token), exist_ok=True)
     result_file = 'results/{}/{}.csv'.format(args.dataset,token)

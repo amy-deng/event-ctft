@@ -49,8 +49,28 @@ if model in ['ols1','ols2']:
         call('{} -m {}'.format(cur_args, model), shell=True)
         ii+=1
     print('# ', ii)
-
-elif model in ['tarnet','cfrwass','cfrmmd']:
+elif model in ['tarnet']:
+    params = {
+        'rep_layer':[1,2,3],
+        'hyp_layer':[1,2,3],
+        'rep_dim':[50, 100],
+        'hyp_dim':[50, 100],
+        'batch':[64]
+    }
+    ii=0
+    keys = list(params.keys())
+    for combo in product(params['rep_layer'],params['hyp_layer'],params['rep_dim'],params['hyp_dim'],params['batch'], repeat=1):
+        arguments = {k: v for k, v in zip(keys, combo) if v is not None}
+        param_set = ''
+        for k in arguments:
+            param_set += ' --{} {}'.format(k,arguments[k])
+        cur_args = args + param_set
+        print(' ---- {} -m {} ---- '.format(cur_args, model))
+        call('{} -m {}'.format(cur_args, model), shell=True)
+        ii+=1
+    print('# ', ii)
+    
+elif model in ['cfrwass','cfrmmd']:
     params = {
         'balance1':[round(10**(i/2),6) for i in range(-10,2)],
         'rep_layer':[1,2,3],
