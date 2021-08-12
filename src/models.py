@@ -358,8 +358,9 @@ class TARNet(nn.Module):
         return loss, y, y0, y1 
 
 class CFR_MMD(nn.Module): 
-    def __init__(self, in_feat, rep_hid, hyp_hid, rep_layer=2, hyp_layer=2, binary=True, dropout=0.2, device=torch.device('cpu')): 
+    def __init__(self, in_feat, rep_hid, hyp_hid, rep_layer=2, hyp_layer=2, binary=True, dropout=0.2, device=torch.device('cpu'), balance1=0.1): 
         super().__init__() 
+        self.balance1=balance1
         self.device = device
         self.hyp_layer = hyp_layer
         self.rep_layer_fst = nn.Linear(in_feat, rep_hid)
@@ -420,7 +421,7 @@ class CFR_MMD(nn.Module):
         # weight = weight.to(self.device)
         y = torch.where(C_1d > 0, y1, y0)
         loss = self.criterion(y, Y, reduction='none')
-        loss = torch.mean(loss * weight) + 1e-3*imb
+        loss = torch.mean(loss * weight) + self.balance1*imb
         # print(torch.mean(loss * weight),1e-3*imb)
         if self.binary:
             y = torch.sigmoid(y)
@@ -429,8 +430,9 @@ class CFR_MMD(nn.Module):
         return loss, y, y0, y1 
 
 class CFR_WASS(nn.Module): 
-    def __init__(self, in_feat, rep_hid, hyp_hid, rep_layer=2, hyp_layer=2, binary=True, dropout=0.2, device=torch.device('cpu')): 
+    def __init__(self, in_feat, rep_hid, hyp_hid, rep_layer=2, hyp_layer=2, binary=True, dropout=0.2, device=torch.device('cpu'), balance1=0.1): 
         super().__init__() 
+        self.balance1 = balance1
         self.device = device
         self.hyp_layer = hyp_layer
         self.rep_layer_fst = nn.Linear(in_feat, rep_hid)
@@ -492,7 +494,7 @@ class CFR_WASS(nn.Module):
         # weight = weight.to(self.device)
         loss = self.criterion(y, Y, reduction='none')
         # print(torch.mean(loss * weight),1e-4*imb)
-        loss = torch.mean(loss * weight) + 1e-4*imb
+        loss = torch.mean(loss * weight) + self.balance1*imb
         if self.binary:
             y = torch.sigmoid(y)
             y0 = torch.sigmoid(y0)
@@ -536,8 +538,10 @@ def func_MPDM(zi,zm,zj,zk):
     return r.double()
 
 class SITE(nn.Module):
-    def __init__(self, in_feat, rep_hid, hyp_hid, rep_layer=2, hyp_layer=2, binary=True, dropout=0.2): 
+    def __init__(self, in_feat, rep_hid, hyp_hid, rep_layer=2, hyp_layer=2, binary=True, dropout=0.2, balance1=0.1, balance2=0.1): 
         super().__init__() 
+        self.balance1 = balance1
+        self.balance2 = balance2
         self.hyp_layer = hyp_layer
         self.rep_layer_fst = nn.Linear(in_feat, rep_hid)
         self.rep_bn_fst = nn.BatchNorm1d(rep_hid)
@@ -641,8 +645,8 @@ class SITE(nn.Module):
         loss_MPDM = func_MPDM(z[index_i],z[index_m],z[index_j],z[index_k])
         # print('loss_MPDM',loss_MPDM,type(loss_MPDM))
         # print('loss_PDDM',loss_PDDM,'loss_MPDM',loss_MPDM)
-        beta = 0.1
-        gamma = 0.001
+        beta = self.balance1
+        gamma = self.balance2
         # print(beta*loss_PDDM,gamma*loss_MPDM,loss_factual)
         loss = loss_factual + beta*loss_PDDM + gamma*loss_MPDM
         if self.binary:

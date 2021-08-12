@@ -227,7 +227,7 @@ def ate(ite_est, y1_true, y0_true):
 
 def pehe(ite_est, y1_true, y0_true):
     ite_true = y1_true - y0_true
-    return np.mean((ite_est - ite_true)**2)
+    return np.sqrt(np.mean((ite_est - ite_true)**2))
 
 def pdist(sample_1, sample_2, norm=2, eps=1e-5):
     """Compute the matrix of all squared pairwise distances.

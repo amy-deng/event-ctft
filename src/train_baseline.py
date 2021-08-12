@@ -13,7 +13,7 @@ parser.add_argument('--data_path', type=str, default='../data')
 parser.add_argument('-d','--dataset', type=str, default='Afghanistan')
 parser.add_argument('--seed', type=int, default=42, help='Random seed')
 parser.add_argument('--epochs', type=int, default=100, help='Number of epochs to train')
-parser.add_argument('--lr', type=float, default=5e-4, help='Initial learning rate')
+parser.add_argument('--lr', type=float, default=1e-3, help='Initial learning rate')
 parser.add_argument('--weight_decay', type=float, default=1e-5, help='Weight decay (L2 loss on parameters)')
 parser.add_argument('--h_dim', type=int, default=128, help='Number of hidden units')
 parser.add_argument('--dropout', type=float, default=0.5, help='Dropout rate (1 - keep probability)')
@@ -48,6 +48,12 @@ parser.add_argument('--treat_idx', type=int, default=24, help='index of treatmen
 # parser.add_argument('--ttype', type=int, default=1, help="treatment type, 0:Inc. 1:50%Inc. 2: 50%Dec")
 # parser.add_argument('--hw', type=int, default=0, help="predict protest in a future window h=1-3 [horizon=1]")
 # parser.add_argument('--cf', action="store_true", help="cf")
+parser.add_argument('--balance1', type=float, default=0.1)
+parser.add_argument('--balance2', type=float, default=0.1)
+parser.add_argument('--rep_layer', type=int, default=2)
+parser.add_argument('--hyp_layer', type=int, default=2)
+parser.add_argument('--rep_dim', type=int, default=100)
+parser.add_argument('--hyp_dim', type=int, default=100)
 
 parser.add_argument('--z_dim', type=int, default=32)
 
@@ -107,17 +113,17 @@ def prepare(args):
     elif args.model == 'ols2':
         model = OLS2(data_loader.f, not args.realy, device=args.device)
     elif args.model == 'tarnet':
-        model = TARNet(data_loader.f, rep_hid=args.h_dim, hyp_hid=args.h_dim, rep_layer=2, hyp_layer=2, binary=(not args.realy), device=args.device)
+        model = TARNet(data_loader.f, rep_hid=args.rep_dim, hyp_hid=args.hyp_dim, rep_layer=args.rep_layer, hyp_layer=args.hyp_layer, binary=(not args.realy), device=args.device)
     elif args.model == 'cfrmmd':
-        model = CFR_MMD(data_loader.f, rep_hid=args.h_dim, hyp_hid=args.h_dim, rep_layer=2, hyp_layer=2, binary=(not args.realy), device=args.device)
+        model = CFR_MMD(data_loader.f, rep_hid=args.rep_dim, hyp_hid=args.hyp_dim, rep_layer=args.rep_layer, hyp_layer=args.hyp_layer, binary=(not args.realy), device=args.device, balance1=args.balance1)
     elif args.model == 'cfrwass':
-        model = CFR_WASS(data_loader.f, rep_hid=args.h_dim, hyp_hid=args.h_dim, rep_layer=2, hyp_layer=2, binary=(not args.realy), device=args.device)
+        model = CFR_WASS(data_loader.f, rep_hid=args.rep_dim, hyp_hid=args.hyp_dim, rep_layer=args.rep_layer, hyp_layer=args.hyp_layer, binary=(not args.realy), device=args.device, balance1=args.balance1)
     # elif args.model == 'deconf':
         # model = GCN_DECONF(nfeat=data_loader.f, nhid=args.h_dim, dropout=args.dropout,n_in=2, n_out=2, cuda=args.cuda, binary=(not args.realy))
     # elif args.model == 'cevae':
     #     model = CEVAE(x_dim=data_loader.f, h_dim=args.h_dim, z_dim=args.z_dim, binfeats=data_loader.f, contfeats=0, device=args.device, bi_outcome=(not args.realy))
     elif args.model == 'site':
-        model = SITE(data_loader.f, rep_hid=args.h_dim, hyp_hid=args.h_dim, rep_layer=2, hyp_layer=2, binary=(not args.realy), dropout=args.dropout)
+        model = SITE(data_loader.f, rep_hid=args.rep_dim, hyp_hid=args.hyp_dim, rep_layer=args.rep_layer, hyp_layer=args.hyp_layer, binary=(not args.realy), dropout=args.dropout, balance1=args.balance1, balance2=args.balance2)
     else: 
         raise LookupError('can not find the model')
     model_name = model.__class__.__name__
@@ -260,7 +266,7 @@ std = [round(float(v),3) for v in arr.std(0)]
 res = [str(mean[i]) +' ' + str(std[i]) for i in range(len(mean))]
 print(res)
 
-all_res_file = 'results/{}/res_stat_{}.csv'.format(args.dataset,args.dataset)
+all_res_file = 'results/{}/res_stat_{}_{}.csv'.format(args.dataset,args.dataset,args.model)
 f = open(all_res_file,'a')
 wrt = csv.writer(f)
 wrt.writerow([token] + [line_count] + res)
