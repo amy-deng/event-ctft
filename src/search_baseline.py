@@ -52,7 +52,7 @@ if model in ['ols1','ols2']:
 
 elif model in ['tarnet','cfrwass','cfrmmd']:
     params = {
-        'balance1':[round(10**(i/2),3) for i in range(-10,2)],
+        'balance1':[round(10**(i/2),6) for i in range(-10,2)],
         'rep_layer':[1,2,3],
         'hyp_layer':[1,2,3],
         'rep_dim':[50, 100],
@@ -74,8 +74,8 @@ elif model in ['tarnet','cfrwass','cfrmmd']:
 
 elif model in ['site']:
     params = {
-        'balance1':[round(10**(i/2),3) for i in range(-10,2)],
-        'balance2':[round(10**(i/2),3) for i in range(-10,2)],
+        'balance1':[round(10**(i/2),6) for i in range(-10,2)],
+        'balance2':[round(10**(i/2),6) for i in range(-10,2)],
         'rep_layer':[1,2,3],
         'hyp_layer':[1,2,3],
         'rep_dim':[50, 100],
