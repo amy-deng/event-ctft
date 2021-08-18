@@ -56,7 +56,7 @@ start_month = 1
 start_day = 1
 end_year = 2017
 end_month = 3
-end_day = 23
+end_day = 26
 print(start_year,start_month,start_day,'  -  ',end_year,end_month,end_day)
 
 path = '../data/{}/'.format(DATASET)
@@ -72,7 +72,9 @@ print('#event =',len(df))
 if DATASET == 'IND':
     df = df.loc[df['City'].isin(['New Delhi','Delhi'])]
     print('select locations for IND  #event =',len(df))
-
+elif DATASET =='RUS':
+    df = df.loc[df['City'].isin(['Moscow Kremlin','Moscow'])]
+    print('select locations for RUS  #event =',len(df))
 
 DELTA = 1
 # date and get protest count
