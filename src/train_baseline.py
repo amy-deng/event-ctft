@@ -71,7 +71,7 @@ import torch.optim as optim
 from torch.distributions import normal
 import pandas as pd
 import csv
-# from cevae_net import p_x_z, p_t_z, p_y_zt, q_t_x, q_y_xt, q_z_tyx, init_qz, CEVAE
+from cevae_net import p_x_z, p_t_z, p_y_zt, q_t_x, q_y_xt, q_z_tyx, init_qz, CEVAE
 from models import *
 from utils import *
 
@@ -120,8 +120,8 @@ def prepare(args):
         model = CFR_WASS(data_loader.f, rep_hid=args.rep_dim, hyp_hid=args.hyp_dim, rep_layer=args.rep_layer, hyp_layer=args.hyp_layer, binary=(not args.realy), device=args.device, balance1=args.balance1)
     # elif args.model == 'deconf':
         # model = GCN_DECONF(nfeat=data_loader.f, nhid=args.h_dim, dropout=args.dropout,n_in=2, n_out=2, cuda=args.cuda, binary=(not args.realy))
-    # elif args.model == 'cevae':
-    #     model = CEVAE(x_dim=data_loader.f, h_dim=args.h_dim, z_dim=args.z_dim, binfeats=data_loader.f, contfeats=0, device=args.device, bi_outcome=(not args.realy))
+    elif args.model == 'cevae':
+        model = CEVAE(x_dim=data_loader.f, h_dim=args.rep_dim, z_dim=args.z_dim, binfeats=0, contfeats=data_loader.f, device=args.device, bi_outcome=(not args.realy))
     elif args.model == 'site':
         model = SITE(data_loader.f, rep_hid=args.rep_dim, hyp_hid=args.hyp_dim, rep_layer=args.rep_layer, hyp_layer=args.hyp_layer, binary=(not args.realy), dropout=args.dropout, balance1=args.balance1, balance2=args.balance2)
     elif args.model == 'tarnetgru':
@@ -155,8 +155,13 @@ def prepare(args):
         model.cuda()
     data_loader.realization_and_split(args.train,args.val,args.test)
     if args.model == 'cevae':
-        print('cevae model init TODO')
-        pass
+        [C, Y, X, Y1, Y0, P] = data_loader.train
+        feat_tr = X.view(-1, data_loader.f)
+        treat_tr = C.view(-1, 1)
+        Y_norm = Y.float()
+        outc_tr = Y_norm.view(-1, 1)
+        model.init_qz_func(outc_tr.to(args.device), treat_tr.to(args.device), feat_tr.to(args.device))
+
     print('<<< model and data are ready >>>')
     return model, optimizer, result_file, token
     # TODO train file, model file, data, run results, treatment effect
@@ -174,6 +179,9 @@ def eval(data_loader, data, tag='val'):
             loss, y, y0, y1  = model(X, C, Y)
         elif args.model in ['site']:
             loss, y_pred, y0, y1 = model(X, C, P, Y)# TODO
+        elif args.model == 'cevae':
+            x_train, y_train, t_train = X.view(-1, data_loader.f), Y.view(-1,1), C.view(-1,1)
+            loss, y_pred, y0, y1 = model(x_train, y_train, t_train)
         total_loss += loss.item()
         # n_samples += (Y.view(-1).size(0))
         y1_true.append(Y1)
@@ -203,6 +211,10 @@ def train(data_loader, data, epoch, tag='train'):
         elif args.model in ['site']:
             # P = A
             loss, y_pred, y0, y1  = model(X, C, P, Y) 
+        elif args.model == 'cevae':
+            x_train, y_train, t_train = X.view(-1, data_loader.f), Y.view(-1,1), C.view(-1,1)
+            # x_train[x_train>0] = 1
+            loss, y_pred, y0, y1 = model(x_train, y_train, t_train)
         total_loss += loss.item()
         optimizer.zero_grad()
         loss.backward() 

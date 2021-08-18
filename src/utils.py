@@ -30,6 +30,7 @@ class CountDataLoader(object):
             data_dict = pickle.load(f)
         data_time = data_dict['TIME'] # n
         self.data_Y = np.array(data_dict['Y']) # n
+        print(self.data_Y.shape,'self.data_Y') # 548 792
         data_treat = data_dict['C'] # n * #c
         print(data_treat.mean(0))
         # exit()
@@ -60,7 +61,7 @@ class CountDataLoader(object):
     def realization_and_split(self, train, valid, test):
         # generate treatments and corresponding outcomes
         self.rea_treat = torch.randint(0, 2, self.treatment.shape)*1.0 #np.random
-        self.rea_y = torch.tensor(self.rea_treat * self.Y1 + (1-self.rea_treat) * self.Y0)
+        self.rea_y = torch.tensor(self.rea_treat * self.Y1 + (1-self.rea_treat) * self.Y0).float()
         
         self.Y1 = torch.tensor(self.Y1)
         self.Y0 = torch.tensor(self.Y0)
