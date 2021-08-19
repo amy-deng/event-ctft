@@ -71,7 +71,7 @@ for treat_id in range(data_treat.shape[-1]):
     treatment = data_treat[:,treat_id] 
     data_X_smooth_flat = data_X_smooth.reshape(data_X_smooth.shape[0],-1)
     data_Y_cf = []
-    for i in range(len(data_Y)):
+    for i in range(len(data_Y)-1):
         y = data_Y[i]
         t = treatment[i]
 
