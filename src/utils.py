@@ -202,7 +202,183 @@ class CountDataLoader(object):
             data = [Variable(c), Variable(y), Variable(x), Variable(y1), Variable(y0), Variable(p)]
             yield data
             start_idx += batch_size
-         
+
+class CountFactDataLoader(object):
+    def __init__(self, args):
+        self.dataset = args.dataset
+        self.model = args.model
+        self.cuda = args.cuda
+        self.window = args.window
+        self.horizon = args.horizon
+        self.pred_window = args.pred_window
+        # self.treat_idx = args.treat_idx
+        self.aggr_feat = args.aggr_feat
+
+        # load labels: Y treatments X
+        with open('{}/{}/cf_data.pkl'.format(args.data_path, self.dataset),'rb') as f:
+            data_dict = pickle.load(f)
+        data_time = data_dict['TIME'] # n
+        self.data_Y = np.array(data_dict['Y']) # n
+        print(self.data_Y.shape,self.data_Y.mean(),'self.data_Y') # 548 792
+        data_treat = data_dict['C'] # n * #c
+        # print(data_treat.mean(0))
+        # exit()
+        # self.data_Y_cf = np.array(data_dict['CF_Y']) # n 
+        # data_treat_cf = data_dict['CF_C'] # n
+        # if not (data_treat == 1 - data_treat_cf).any():
+        #     print('treatment error. check')
+        #     exit()
+        self.data_X = data_dict['X'] # load features: count data X 
+        # self.data_Xsm = data_dict['X_sm']
+        if self.aggr_feat:
+            self.f = self.data_X.shape[-1]
+        elif args.model not in ['tarnetgru']:
+            self.f = self.data_X.shape[2]*self.data_X.shape[1]
+        else:
+            self.f = self.data_X.shape[-1]
+        # self.treatment = data_treat[:,self.treat_idx]
+        # print('<<< original treated proportion {:.4f} >>>'.format(self.treatment.mean()))
+        # self.data_Y_cf = self.data_Y_cf[:,self.treat_idx]
+        # self.treatment_cf = data_treat_cf[:,self.treat_idx]
+        # self.Y1 = self.treatment * self.data_Y + (1-self.treatment) * self.data_Y_cf
+        # self.Y0 = (1-self.treatment) * self.data_Y + self.treatment * self.data_Y_cf
+        # print('< y_f {:.4f}  y_cf {:.4f} >'.format(self.data_Y.mean(),self.data_Y_cf.mean()))
+        print('<<< data processed >>>')
+        # self.realization_and_split(args.train,args.val,args.test)
+        # load graph features TODO
+
+    def realization_and_split(self, train, valid, test):
+        # generate treatments and corresponding outcomes
+        # self.rea_treat = torch.randint(0, 2, self.treatment.shape)*1.0 #np.random
+        self.rea_y = torch.tensor(self.data_Y).float()
+        
+        # self.Y1 = torch.tensor(self.Y1)
+        # self.Y0 = torch.tensor(self.Y0)
+        if self.aggr_feat:
+            self.rea_x = torch.FloatTensor(self.data_X.sum(1)).unsqueeze(1)
+            print('< aggregate event counts in historical days>')
+        else:
+            self.rea_x = torch.FloatTensor(self.data_X)
+        # split data into train, val and test
+        idx = list(range(len(self.rea_y)))
+        random.shuffle(idx) # set random.seed(42)
+        ind_train = int(round(self.rea_y.shape[0]*train)) 
+        ind_test = int(round(self.rea_y.shape[0]*(train+test))) 
+        train_idx = idx[:ind_train]
+        val_idx = idx[ind_train:ind_test]
+        test_idx = idx[ind_test:]
+        # train_val_idx = idx[:ind_test]
+        # train_treat = self.rea_treat[train_idx]
+        # val_treat = self.rea_treat[val_idx]
+        # test_treat = self.rea_treat[test_idx]
+        # train_val_treat = self.rea_treat[train_val_idx]
+
+        # scale data/count features
+        train_x = self.rea_x[train_idx]
+        train_x_merge01 = train_x.view(-1,train_x.shape[-1])
+        means = train_x_merge01.mean(dim=0)
+        stds = train_x_merge01.std(dim=0)
+        means_repeated = means.repeat(train_x.shape[0],train_x.shape[1],1)
+        stds_repeated = stds.repeat(train_x.shape[0],train_x.shape[1],1)
+        # print('self.train[2]',self.train[2].shape)
+        # print('means_repeated',means_repeated.shape,stds_repeated.shape)
+        train_x  = (train_x  - means_repeated) / (stds_repeated+1e-12)
+
+        val_x = self.rea_x[val_idx]
+        means_repeated = means.repeat(val_x.shape[0],val_x.shape[1],1)
+        stds_repeated = stds.repeat(val_x.shape[0],val_x.shape[1],1)
+        val_x  = (val_x  - means_repeated) / (stds_repeated+1e-12)
+
+        test_x = self.rea_x[test_idx]
+        means_repeated = means.repeat(test_x.shape[0],test_x.shape[1],1)
+        stds_repeated = stds.repeat(test_x.shape[0],test_x.shape[1],1)
+        test_x  = (test_x  - means_repeated) / (stds_repeated+1e-12)
+
+        # train_val_x = self.rea_x[train_val_idx]
+        # means_repeated = means.repeat(train_val_x.shape[0],train_val_x.shape[1],1)
+        # stds_repeated = stds.repeat(train_val_x.shape[0],train_val_x.shape[1],1)
+        # train_val_x  = (train_val_x  - means_repeated) / (stds_repeated+1e-12)
+        if torch.any(train_x.isnan()):
+            print('train has nan')
+            exit()
+        if torch.any(test_x.isnan()):
+            print('test has nan')
+            exit()
+
+        
+        
+        self.train = [self.rea_y[train_idx], train_x]
+        self.val = [self.rea_y[val_idx], val_x]
+        self.test = [self.rea_y[test_idx], test_x]
+        # self.train_val = [self.rea_y[train_val_idx], train_val_x]
+
+        print("<< the proportion of positive samples: >>")
+        print("  < train {:.4f} >".format(self.train[0].mean()))
+        print("  < val {:.4f} >".format(self.val[0].mean()))
+        print("  < test {:.4f} >".format(self.test[0].mean()))
+        # print("  < train_val {:.4f} >".format(self.train_val[0].mean()))
+
+        print('<< spliting and scaling done >>')
+    # def _split(self, train, valid, test):
+    #     idx = list(range(len(self.data_Y)))
+    #     random.shuffle(idx) # set random.seed(42)
+
+    #     ind_train = int(round(self.data_Y.shape[0]*train)) 5
+    #     ind_test = int(round(self.data_Y.shape[0]*(train+test))) 8
+    #     train_idx = idx[:ind_train]
+    #     val_idx = idx[ind_train:ind_test]
+    #     test_idx = idx[ind_test:]
+
+    #     self.train = [self.rea_treat[train_idx], self.rea_y[train_idx], self.rea_x[train_idx]]
+    #     self.val = [self.rea_treat[val_idx], self.rea_y[val_idx], self.rea_x[val_idx]]
+    #     self.test = [self.rea_treat[test_idx], self.rea_y[test_idx], self.rea_x[test_idx]]
+ 
+
+    def get_batches(self, data, batch_size, shuffle=True):
+        [Y, X] = data
+        # print(C.shape,Y.shape,X.shape,Y1.shape)
+        # torch.Size([329]) torch.Size([329]) torch.Size([329, 10, 24]) torch.Size([329])
+        length = len(Y)
+        if shuffle:
+            index = torch.randperm(length)
+        else:
+            index = torch.LongTensor(range(length))
+        start_idx = 0
+        while (start_idx < length):
+            end_idx = min(length, start_idx + batch_size)
+            excerpt = index[start_idx:end_idx]
+            if len(excerpt) < batch_size:
+                random_pad = torch.randperm(length)[:(batch_size-len(excerpt))]
+                excerpt = torch.cat([excerpt,random_pad])
+            # c = C[excerpt]
+            y = Y[excerpt]
+            x = X[excerpt,:]
+            # y1 = Y1[excerpt]
+            # y0 = Y0[excerpt]
+            # p = P[excerpt]
+            if self.cuda:  
+                # c = c.cuda()
+                y = y.cuda()
+                x = x.cuda()
+                # y1 = y1.cuda()
+                # y0 = y0.cuda()
+                # p = p.cuda()
+            data = [Variable(y), Variable(x)]
+            yield data
+            start_idx += batch_size
+
+
+def eval_classifier(y_true, y_pred):
+    r = {}
+    r['auc'] = metrics.roc_auc_score(y_true, y_pred)
+    y_bi = np.where(y_pred>0.5, 1, 0)
+    r['bacc'] = metrics.balanced_accuracy_score(y_true, y_bi)
+    r['prec'] = metrics.precision_score(y_true, y_bi)
+    r['rec'] = metrics.recall_score(y_true, y_bi)
+    r['f1'] = metrics.f1_score(y_true, y_bi)
+    return r
+
+
 def eval_causal_effect_cf(y1_true, y0_true, y1_pred, y0_pred):
     r = {}
     # not discriminate locations

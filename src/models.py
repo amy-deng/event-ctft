@@ -723,3 +723,64 @@ class TARNetGRU(nn.Module):
             y0 = torch.sigmoid(y0)
             y1 = torch.sigmoid(y1)
         return loss, y, y0, y1 
+
+
+
+### classifier
+class DNN(nn.Module): 
+    def __init__(self, in_feat, rep_hid, hyp_hid, rep_layer=2, hyp_layer=2, binary=True, dropout=0.2, device=torch.device('cpu')): 
+        super().__init__() 
+        # self.p = p
+        self.device = device
+        self.hyp_layer = hyp_layer
+        self.rep_layer_fst = nn.Linear(in_feat, rep_hid)
+        self.rep_bn_fst = nn.BatchNorm1d(rep_hid)
+    
+        self.rep_layers = nn.ModuleList([nn.Linear(rep_hid, rep_hid) for i in range(rep_layer-1)])
+        self.rep_bns = nn.ModuleList([nn.BatchNorm1d(rep_hid) for i in range(rep_layer-1)])
+
+        self.hyp_layer_fst0 = nn.Linear(rep_hid, hyp_hid)
+        self.hyp_bn_fst0 = nn.BatchNorm1d(hyp_hid)
+        if hyp_layer > 2:
+            self.hyp_layers0= nn.ModuleList([nn.Linear(hyp_hid, hyp_hid) for i in range(hyp_layer-1)])
+            self.hyp_bns0 = nn.ModuleList([nn.BatchNorm1d(hyp_hid) for i in range(hyp_layer-1)])
+        self.hyp_out0 = nn.Linear(hyp_hid, 1) 
+
+        self.dropout = nn.Dropout(p=dropout)
+        self.binary = binary
+        if binary:
+            self.criterion = F.binary_cross_entropy_with_logits
+        else:
+            self.criterion = F.mse_loss
+  
+    def forward(self, X, Y): 
+        X = X.view(X.size(0), -1)
+        Y = Y.view(-1)
+        h = self.dropout(F.relu(self.rep_bn_fst(self.rep_layer_fst(X))))
+        for fc, bn in zip(self.rep_layers, self.rep_bns):
+            h = self.dropout(F.relu(bn(fc(h))))
+
+        h0 = self.dropout(F.relu(self.hyp_bn_fst0(self.hyp_layer_fst0(h))))
+        if self.hyp_layer > 2:
+            for fc, bn in zip(self.hyp_layers0, self.hyp_bns0):
+                h0 = self.dropout(F.relu(bn(fc(h0))))
+
+        # h1 = self.dropout(F.relu(self.hyp_bn_fst1(self.hyp_layer_fst1(h))))
+        # if self.hyp_layer > 2:
+        #     for fc, bn in zip(self.hyp_layers1, self.hyp_bns1):
+        #         h1 = self.dropout(F.relu(bn(fc(h1))))
+
+        y0 = self.hyp_out0(h0).view(-1)
+        y = y0
+        # y1 = self.hyp_out1(h1).view(-1)
+        # C_1d = C.view(-1)
+        # p = torch.mean(C_1d)
+        # y = torch.where(C_1d > 0, y1, y0)
+        loss = self.criterion(y, Y, reduction='mean')
+        # weight = C_1d/(2*p) + (1-C_1d)/(2*(1-p))
+        # loss = torch.mean(loss * weight)
+        if self.binary:
+            y = torch.sigmoid(y)
+            # y0 = torch.sigmoid(y0)
+            # y1 = torch.sigmoid(y1)
+        return loss, y
