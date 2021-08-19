@@ -75,7 +75,10 @@ if DATASET == 'IND':
 elif DATASET =='RUS':
     df = df.loc[df['City'].isin(['Moscow Kremlin','Moscow'])]
     print('select locations for RUS  #event =',len(df))
-
+elif DATASET == 'GBR':
+    df = df.loc[df['District'].isin(['Greater London'])]
+    print('select locations for GBR  #event =',len(df))
+    
 DELTA = 1
 # date and get protest count
 start = date(start_year,start_month,start_day)
