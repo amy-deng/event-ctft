@@ -2,6 +2,7 @@ dataset='TUR'
 outdir='search_results/cfrcf'
 data_path="../data"
 model='cfrcf'
+loop=10
 seed=42
 epochs=100
 epochs_ft=50

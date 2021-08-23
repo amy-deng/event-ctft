@@ -12,7 +12,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--gpu', type=int, default=0, help='')
 parser.add_argument('-d','--dataset', type=str, default='Afghanistan')
 parser.add_argument('-m','--model', type=str, default='dnnf', help='')
-parser.add_argument('--loop', type=int, default=2)
+parser.add_argument('--loop', type=int, default=10)
 parser.add_argument('--aggr_feat', action="store_true")
 parser.add_argument('--treat_idx', type=int, default=0, help='not used')
 
