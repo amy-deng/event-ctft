@@ -5,6 +5,7 @@
 
 4. train baseline model. causal inference model. 
 
+5. overlap of data, window and pred window
 
 When learning a causal model, one
 should, thus, require fewer examples to adapt as most

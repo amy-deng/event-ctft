@@ -9,6 +9,7 @@ data/
 tmp/
 src/models/
 src/results/
+src/search_results/
 src/results*/
 src/__pycache__/
 *.csv
