@@ -234,9 +234,9 @@ class CountFactDataLoader(object):
         #     exit()
         self.data_X = data_dict['X'] # load features: count data X 
         # self.data_Xsm = data_dict['X_sm']
-        if args.enc == 'gru':
+        if self.aggr_feat:
             self.f = self.data_X.shape[-1]
-        elif args.enc == 'dnn':
+        elif args.model not in ['tarnetgru']:
             self.f = self.data_X.shape[2]*self.data_X.shape[1]
         else:
             self.f = self.data_X.shape[-1]
@@ -395,11 +395,12 @@ class CountCombineDataLoader(object):
             exit()
         self.data_X = data_dict['X'] # load features: count data X 
         self.data_Xsm = data_dict['X_sm']
-        if self.aggr_feat:
+        if args.enc == 'dnn':
+            self.aggr_feat = True
             self.f = self.data_X.shape[-1]
-        elif args.model not in ['tarnetgru']:
-            self.f = self.data_X.shape[2]*self.data_X.shape[1]
+            # self.f = self.data_X.shape[2]*self.data_X.shape[1]
         else:
+            self.aggr_feat = False
             self.f = self.data_X.shape[-1]
         self.treatment = data_treat[:,self.treat_idx]
         print('<<< original treated proportion {:.4f} >>>'.format(self.treatment.mean()))

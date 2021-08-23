@@ -104,7 +104,7 @@ def prepare(args):
     else: 
         raise LookupError('can not find the model')
     model_name = model.__class__.__name__
-    # print(model)
+    print(model)
     token = args.model + '-lr'+str(args.lr)[1:] +  'w' + str(args.window) + 'h'+str(args.horizon) + 'pw'+str(args.pred_window)  \
         + 'agg'+str(args.aggr_feat) + 'rep'+str(args.rep_layer) + '*'+str(args.rep_dim) + 'hyp'+str(args.hyp_layer) +'*'+ str(args.hyp_dim) \
         + 'enc'+str(args.enc) 
