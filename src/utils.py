@@ -63,6 +63,10 @@ class CountDataLoader(object):
         self.rea_treat = torch.randint(0, 2, self.treatment.shape)*1.0 #np.random
         self.rea_y = torch.tensor(self.rea_treat * self.Y1 + (1-self.rea_treat) * self.Y0).float()
         
+        # self.rea_y = torch.tensor(self.data_Y).float()
+        # self.rea_treat = torch.tensor(self.treatment).float()
+
+
         self.Y1 = torch.tensor(self.Y1)
         self.Y0 = torch.tensor(self.Y0)
         if self.aggr_feat:
@@ -230,9 +234,9 @@ class CountFactDataLoader(object):
         #     exit()
         self.data_X = data_dict['X'] # load features: count data X 
         # self.data_Xsm = data_dict['X_sm']
-        if self.aggr_feat:
+        if args.enc == 'gru':
             self.f = self.data_X.shape[-1]
-        elif args.model not in ['tarnetgru']:
+        elif args.enc == 'dnn':
             self.f = self.data_X.shape[2]*self.data_X.shape[1]
         else:
             self.f = self.data_X.shape[-1]
@@ -293,11 +297,7 @@ class CountFactDataLoader(object):
         means_repeated = means.repeat(test_x.shape[0],test_x.shape[1],1)
         stds_repeated = stds.repeat(test_x.shape[0],test_x.shape[1],1)
         test_x  = (test_x  - means_repeated) / (stds_repeated+1e-12)
-
-        # train_val_x = self.rea_x[train_val_idx]
-        # means_repeated = means.repeat(train_val_x.shape[0],train_val_x.shape[1],1)
-        # stds_repeated = stds.repeat(train_val_x.shape[0],train_val_x.shape[1],1)
-        # train_val_x  = (train_val_x  - means_repeated) / (stds_repeated+1e-12)
+ 
         if torch.any(train_x.isnan()):
             print('train has nan')
             exit()
@@ -367,6 +367,162 @@ class CountFactDataLoader(object):
             yield data
             start_idx += batch_size
 
+class CountCombineDataLoader(object):
+    def __init__(self, args):
+        self.dataset = args.dataset
+        self.model = args.model
+        self.cuda = args.cuda
+        self.window = args.window
+        self.horizon = args.horizon
+        self.pred_window = args.pred_window
+        self.treat_idx = args.treat_idx
+        self.aggr_feat = args.aggr_feat
+
+        # load labels: Y treatments X
+        with open('{}/{}/cf_data.pkl'.format(args.data_path, self.dataset),'rb') as f:
+            data_dict = pickle.load(f)
+        data_time = data_dict['TIME'] # n
+        self.data_Y = np.array(data_dict['Y']) # n
+        self.n = len(self.data_Y)
+        print(self.data_Y.shape,'self.data_Y') # 548 792
+        data_treat = data_dict['C'] # n * #c
+        print(data_treat.mean(0))
+        # exit()
+        self.data_Y_cf = np.array(data_dict['CF_Y']) # n 
+        data_treat_cf = data_dict['CF_C'] # n
+        if not (data_treat == 1 - data_treat_cf).any():
+            print('treatment error. check')
+            exit()
+        self.data_X = data_dict['X'] # load features: count data X 
+        self.data_Xsm = data_dict['X_sm']
+        if self.aggr_feat:
+            self.f = self.data_X.shape[-1]
+        elif args.model not in ['tarnetgru']:
+            self.f = self.data_X.shape[2]*self.data_X.shape[1]
+        else:
+            self.f = self.data_X.shape[-1]
+        self.treatment = data_treat[:,self.treat_idx]
+        print('<<< original treated proportion {:.4f} >>>'.format(self.treatment.mean()))
+        self.data_Y_cf = self.data_Y_cf[:,self.treat_idx]
+        # self.treatment_cf = data_treat_cf[:,self.treat_idx]
+        self.Y1 = self.treatment * self.data_Y + (1-self.treatment) * self.data_Y_cf
+        self.Y0 = (1-self.treatment) * self.data_Y + self.treatment * self.data_Y_cf
+        print('< y_f {:.4f}  y_cf {:.4f} >'.format(self.data_Y.mean(),self.data_Y_cf.mean()))
+        # print('<<< data processed >>>')
+        # self.realization_and_split(args.train,args.val,args.test)
+        # load graph features TODO
+
+    # training data: factual and counterfactual 
+    # test data: only factual
+    # 
+    def realization_and_split(self, train, valid, test):
+        # generate treatments and corresponding outcomes
+        # training using cf data and test using  real data?
+        self.rea_y = torch.tensor(self.data_Y).float()
+        self.rea_y_cf = torch.tensor(self.data_Y_cf).float()
+        idx = list(range(self.n))
+        random.shuffle(idx) 
+        ind_train = int(round(self.n*train)) 
+        ind_test = int(round(self.n*(train+test))) 
+        train_idx = idx[:ind_train]
+        val_idx = idx[ind_train:ind_test]
+        test_idx = idx[ind_test:]
+
+
+        self.rea_treat = torch.tensor(self.treatment).float()
+        train_treat = self.rea_treat[train_idx]
+        val_treat = self.rea_treat[val_idx]
+        test_treat = self.rea_treat[test_idx]
+
+        # train_treat_cf = 1- train_treat
+        # val_treat_cf = 1- val_treat
+        # test_treat_cf = 1- test_treat
+
+        train_y = self.rea_y[train_idx]
+        val_y = self.rea_y[val_idx]
+        test_y = self.rea_y[test_idx]
+
+        train_y_cf = self.rea_y_cf[train_idx]
+        val_y_cf = self.rea_y_cf[val_idx]
+        test_y_cf = self.rea_y_cf[test_idx]
+
+        if self.aggr_feat:
+            self.rea_x = torch.FloatTensor(self.data_X.sum(1)).unsqueeze(1)
+            print('< aggregate event counts in historical days>')
+        else:
+            self.rea_x = torch.FloatTensor(self.data_X)
+ 
+        # normalize
+        train_x = self.rea_x[train_idx]
+        train_x_merge01 = train_x.view(-1,train_x.shape[-1])
+        means = train_x_merge01.mean(dim=0)
+        stds = train_x_merge01.std(dim=0)
+        means_repeated = means.repeat(train_x.shape[0],train_x.shape[1],1)
+        stds_repeated = stds.repeat(train_x.shape[0],train_x.shape[1],1)
+        # print('self.train[2]',self.train[2].shape)
+        # print('means_repeated',means_repeated.shape,stds_repeated.shape)
+        train_x  = (train_x  - means_repeated) / (stds_repeated+1e-12)
+
+        val_x = self.rea_x[val_idx]
+        means_repeated = means.repeat(val_x.shape[0],val_x.shape[1],1)
+        stds_repeated = stds.repeat(val_x.shape[0],val_x.shape[1],1)
+        val_x  = (val_x  - means_repeated) / (stds_repeated+1e-12)
+
+        test_x = self.rea_x[test_idx]
+        means_repeated = means.repeat(test_x.shape[0],test_x.shape[1],1)
+        stds_repeated = stds.repeat(test_x.shape[0],test_x.shape[1],1)
+        test_x  = (test_x  - means_repeated) / (stds_repeated+1e-12)
+ 
+        if torch.any(train_x.isnan()):
+            print('train has nan')
+            exit()
+        if torch.any(test_x.isnan()):
+            print('test has nan')
+            exit()
+
+        
+        # C Y X CF_C, CF_Y
+        self.train = [train_treat, train_y, train_x, 1-train_treat, train_y_cf]
+        self.val =   [val_treat,   val_y,   val_x,   1-val_treat,   val_y_cf]
+        self.test =  [test_treat,  test_y,  test_x,  1-test_treat,  test_y_cf]
+
+        print("<< the proportion of treated units: >>")
+        print("  < train {:.4f} >".format(self.train[0].mean()))
+        print("  < val {:.4f} >".format(self.val[0].mean()))
+        print("  < test {:.4f} >".format(self.test[0].mean()))
+        # print('<< realization, spliting and scaling done >>')
+ 
+
+    def get_batches(self, data, batch_size, shuffle=True):
+        [C, Y, X, CF_C, CF_Y] = data
+        # print(C.shape,Y.shape,X.shape,Y1.shape)
+        # torch.Size([329]) torch.Size([329]) torch.Size([329, 10, 24]) torch.Size([329])
+        length = len(C)
+        if shuffle:
+            index = torch.randperm(length)
+        else:
+            index = torch.LongTensor(range(length))
+        start_idx = 0
+        while (start_idx < length):
+            end_idx = min(length, start_idx + batch_size)
+            excerpt = index[start_idx:end_idx]
+            if len(excerpt) < batch_size:
+                random_pad = torch.randperm(length)[:(batch_size-len(excerpt))]
+                excerpt = torch.cat([excerpt,random_pad])
+            c = C[excerpt]
+            y = Y[excerpt]
+            x = X[excerpt,:]
+            cf_c = CF_C[excerpt]
+            cf_y = CF_Y[excerpt]
+            if self.cuda:  
+                c = c.cuda()
+                y = y.cuda()
+                x = x.cuda()
+                cf_c = cf_c.cuda()
+                cf_y = cf_y.cuda()
+            data = [Variable(c), Variable(y), Variable(x), Variable(cf_c), Variable(cf_y)]
+            yield data
+            start_idx += batch_size
 
 def eval_classifier(y_true, y_pred):
     r = {}
@@ -442,6 +598,21 @@ def pdist(sample_1, sample_2, norm=2, eps=1e-5):
         inner = torch.sum(differences, dim=2, keepdim=False)
         return (eps + inner) ** (1. / norm)
 
+ 
+
+def mmd2_lin(X,t,p=0.5):
+    ''' Linear MMD '''
+
+    it = 1*(t>0).nonzero().view(-1)
+    ic = 1*(t<1).nonzero().view(-1)
+    Xc = X[ic]
+    Xt = X[it]
+
+    mean_control = torch.mean(Xc,dim=0)
+    mean_treated = torch.mean(Xt,dim=0)
+
+    mmd = torch.sum(torch.square(2.0*p*mean_treated - 2.0*(1.0-p)*mean_control))
+    return mmd
 
 def mmd2_rbf(X,t,p=0.5,sig=0.1):
     """ Computes the l2-RBF MMD for X given t """
@@ -454,13 +625,13 @@ def mmd2_rbf(X,t,p=0.5,sig=0.1):
     Ktt = torch.exp(-pdist(Xt,Xt)/(sig**2))
     m = Xc.size(0) 
     n = Xt.size(0) 
-    mmd = (1.0-p)**2/(m*(m-1.0))*(Kcc.sum()-m)
-    mmd = mmd + p**2/(n*(n-1.0))*(Ktt.sum()-n)
+    mmd = torch.square(1.0-p)/(m*(m-1.0))*(Kcc.sum()-m)
+    mmd = mmd + torch.square(p)/(n*(n-1.0))*(Ktt.sum()-n)
     mmd = mmd - 2.0*p*(1.0-p)/(m*n)*Kct.sum()
     mmd = 4.0*mmd
     return mmd
 
-def wasserstein_ht(X,t,p=0.5,lam=10,its=10,sq=False,backpropT=False,device=torch.device('cpu')):
+def wasserstein_ht(X,t,p=0.5,lam=10,its=20,sq=False,backpropT=False,device=torch.device('cpu')):
     """return W dist between x and y"""
     '''distance matrix M'''
     # device = torch.device('cuda' if cuda else 'cpu')
@@ -477,12 +648,8 @@ def wasserstein_ht(X,t,p=0.5,lam=10,its=10,sq=False,backpropT=False,device=torch
     M_mean = torch.mean(M)
     # print('nx=',nx,'ny=',ny,'M_mean',M_mean,'M',M.shape)
 
-    # try:
     M_drop = F.dropout(M,10.0/(nx*ny))
-    # except:
-    #     M_drop = M
-        # M_drop = F.dropout(M,0.01)
-        # return torch.tensor(0.0).to(device)
+   
     # print('M_drop',M_drop.shape)
     delta = torch.max(M_drop).detach()
     eff_lam = (lam/M_mean).detach()
@@ -513,8 +680,6 @@ def wasserstein_ht(X,t,p=0.5,lam=10,its=10,sq=False,backpropT=False,device=torch
     u = a
     for i in range(its):
         u = 1.0/(ainvK.matmul(b/torch.t(torch.t(u).matmul(K)))).to(device)
-        # if cuda:
-        #     u = u.cuda()
     v = b/(torch.t(torch.t(u).matmul(K)))
     v = v.to(device)
 

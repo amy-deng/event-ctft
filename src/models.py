@@ -309,15 +309,15 @@ class TARNet(nn.Module):
         self.hyp_layer_fst0 = nn.Linear(rep_hid, hyp_hid)
         self.hyp_bn_fst0 = nn.BatchNorm1d(hyp_hid)
         if hyp_layer > 2:
-            self.hyp_layers0= nn.ModuleList([nn.Linear(hyp_hid, hyp_hid) for i in range(hyp_layer-1)])
-            self.hyp_bns0 = nn.ModuleList([nn.BatchNorm1d(hyp_hid) for i in range(hyp_layer-1)])
+            self.hyp_layers0= nn.ModuleList([nn.Linear(hyp_hid, hyp_hid) for i in range(hyp_layer-2)])
+            self.hyp_bns0 = nn.ModuleList([nn.BatchNorm1d(hyp_hid) for i in range(hyp_layer-2)])
         self.hyp_out0 = nn.Linear(hyp_hid, 1) 
 
         self.hyp_layer_fst1 = nn.Linear(hyp_hid, hyp_hid)
         self.hyp_bn_fst1 = nn.BatchNorm1d(hyp_hid)
         if hyp_layer > 2:
-            self.hyp_layers1= nn.ModuleList([nn.Linear(hyp_hid, hyp_hid) for i in range(hyp_layer-1)])
-            self.hyp_bns1 = nn.ModuleList([nn.BatchNorm1d(hyp_hid) for i in range(hyp_layer-1)])
+            self.hyp_layers1= nn.ModuleList([nn.Linear(hyp_hid, hyp_hid) for i in range(hyp_layer-2)])
+            self.hyp_bns1 = nn.ModuleList([nn.BatchNorm1d(hyp_hid) for i in range(hyp_layer-2)])
         self.hyp_out1 = nn.Linear(hyp_hid, 1) 
         self.dropout = nn.Dropout(p=dropout)
         self.binary = binary
@@ -372,15 +372,15 @@ class CFR_MMD(nn.Module):
         self.hyp_layer_fst0 = nn.Linear(rep_hid, hyp_hid)
         self.hyp_bn_fst0 = nn.BatchNorm1d(hyp_hid)
         if hyp_layer > 2:
-            self.hyp_layers0= nn.ModuleList([nn.Linear(hyp_hid, hyp_hid) for i in range(hyp_layer-1)])
-            self.hyp_bns0 = nn.ModuleList([nn.BatchNorm1d(hyp_hid) for i in range(hyp_layer-1)])
+            self.hyp_layers0= nn.ModuleList([nn.Linear(hyp_hid, hyp_hid) for i in range(hyp_layer-2)])
+            self.hyp_bns0 = nn.ModuleList([nn.BatchNorm1d(hyp_hid) for i in range(hyp_layer-2)])
         self.hyp_out0 = nn.Linear(hyp_hid, 1) 
 
         self.hyp_layer_fst1 = nn.Linear(rep_hid, hyp_hid)
         self.hyp_bn_fst1 = nn.BatchNorm1d(hyp_hid)
         if hyp_layer > 2:
-            self.hyp_layers1= nn.ModuleList([nn.Linear(hyp_hid, hyp_hid) for i in range(hyp_layer-1)])
-            self.hyp_bns1 = nn.ModuleList([nn.BatchNorm1d(hyp_hid) for i in range(hyp_layer-1)])
+            self.hyp_layers1= nn.ModuleList([nn.Linear(hyp_hid, hyp_hid) for i in range(hyp_layer-2)])
+            self.hyp_bns1 = nn.ModuleList([nn.BatchNorm1d(hyp_hid) for i in range(hyp_layer-2)])
         self.hyp_out1 = nn.Linear(hyp_hid, 1) 
         self.dropout = nn.Dropout(p=dropout)
         self.binary = binary
@@ -444,15 +444,15 @@ class CFR_WASS(nn.Module):
         self.hyp_layer_fst0 = nn.Linear(rep_hid, hyp_hid)
         self.hyp_bn_fst0 = nn.BatchNorm1d(hyp_hid)
         if hyp_layer > 2:
-            self.hyp_layers0= nn.ModuleList([nn.Linear(hyp_hid, hyp_hid) for i in range(hyp_layer-1)])
-            self.hyp_bns0 = nn.ModuleList([nn.BatchNorm1d(hyp_hid) for i in range(hyp_layer-1)])
+            self.hyp_layers0= nn.ModuleList([nn.Linear(hyp_hid, hyp_hid) for i in range(hyp_layer-2)])
+            self.hyp_bns0 = nn.ModuleList([nn.BatchNorm1d(hyp_hid) for i in range(hyp_layer-2)])
         self.hyp_out0 = nn.Linear(hyp_hid, 1) 
 
         self.hyp_layer_fst1 = nn.Linear(rep_hid, hyp_hid)
         self.hyp_bn_fst1 = nn.BatchNorm1d(hyp_hid)
         if hyp_layer > 2:
-            self.hyp_layers1= nn.ModuleList([nn.Linear(hyp_hid, hyp_hid) for i in range(hyp_layer-1)])
-            self.hyp_bns1 = nn.ModuleList([nn.BatchNorm1d(hyp_hid) for i in range(hyp_layer-1)])
+            self.hyp_layers1= nn.ModuleList([nn.Linear(hyp_hid, hyp_hid) for i in range(hyp_layer-2)])
+            self.hyp_bns1 = nn.ModuleList([nn.BatchNorm1d(hyp_hid) for i in range(hyp_layer-2)])
         self.hyp_out1 = nn.Linear(hyp_hid, 1) 
         self.dropout = nn.Dropout(p=dropout)
         self.binary = binary
@@ -552,15 +552,15 @@ class SITE(nn.Module):
         self.hyp_layer_fst0 = nn.Linear(rep_hid, rep_hid)
         self.hyp_bn_fst0 = nn.BatchNorm1d(rep_hid)
         if hyp_layer > 2:
-            self.hyp_layers0= nn.ModuleList([nn.Linear(rep_hid, rep_hid) for i in range(hyp_layer-1)])
-            self.hyp_bns0 = nn.ModuleList([nn.BatchNorm1d(rep_hid) for i in range(hyp_layer-1)])
+            self.hyp_layers0= nn.ModuleList([nn.Linear(rep_hid, rep_hid) for i in range(hyp_layer-2)])
+            self.hyp_bns0 = nn.ModuleList([nn.BatchNorm1d(rep_hid) for i in range(hyp_layer-2)])
         self.hyp_out0 = nn.Linear(rep_hid, 1) 
 
         self.hyp_layer_fst1 = nn.Linear(rep_hid, rep_hid)
         self.hyp_bn_fst1 = nn.BatchNorm1d(rep_hid)
         if hyp_layer > 2:
-            self.hyp_layers1= nn.ModuleList([nn.Linear(rep_hid, rep_hid) for i in range(hyp_layer-1)])
-            self.hyp_bns1 = nn.ModuleList([nn.BatchNorm1d(rep_hid) for i in range(hyp_layer-1)])
+            self.hyp_layers1= nn.ModuleList([nn.Linear(rep_hid, rep_hid) for i in range(hyp_layer-2)])
+            self.hyp_bns1 = nn.ModuleList([nn.BatchNorm1d(rep_hid) for i in range(hyp_layer-2)])
         self.hyp_out1 = nn.Linear(rep_hid, 1) 
         self.dropout = nn.Dropout(p=dropout)
   
@@ -673,15 +673,15 @@ class TARNetGRU(nn.Module):
         self.hyp_layer_fst0 = nn.Linear(rep_hid, hyp_hid)
         self.hyp_bn_fst0 = nn.BatchNorm1d(hyp_hid)
         if hyp_layer > 2:
-            self.hyp_layers0= nn.ModuleList([nn.Linear(hyp_hid, hyp_hid) for i in range(hyp_layer-1)])
-            self.hyp_bns0 = nn.ModuleList([nn.BatchNorm1d(hyp_hid) for i in range(hyp_layer-1)])
+            self.hyp_layers0= nn.ModuleList([nn.Linear(hyp_hid, hyp_hid) for i in range(hyp_layer-2)])
+            self.hyp_bns0 = nn.ModuleList([nn.BatchNorm1d(hyp_hid) for i in range(hyp_layer-2)])
         self.hyp_out0 = nn.Linear(hyp_hid, 1) 
 
         self.hyp_layer_fst1 = nn.Linear(rep_hid, hyp_hid)
         self.hyp_bn_fst1 = nn.BatchNorm1d(hyp_hid)
         if hyp_layer > 2:
-            self.hyp_layers1= nn.ModuleList([nn.Linear(hyp_hid, hyp_hid) for i in range(hyp_layer-1)])
-            self.hyp_bns1 = nn.ModuleList([nn.BatchNorm1d(hyp_hid) for i in range(hyp_layer-1)])
+            self.hyp_layers1= nn.ModuleList([nn.Linear(hyp_hid, hyp_hid) for i in range(hyp_layer-2)])
+            self.hyp_bns1 = nn.ModuleList([nn.BatchNorm1d(hyp_hid) for i in range(hyp_layer-2)])
         self.hyp_out1 = nn.Linear(hyp_hid, 1) 
         self.dropout = nn.Dropout(p=dropout)
         self.binary = binary
@@ -742,8 +742,8 @@ class DNN(nn.Module):
         self.hyp_layer_fst0 = nn.Linear(rep_hid, hyp_hid)
         self.hyp_bn_fst0 = nn.BatchNorm1d(hyp_hid)
         if hyp_layer > 2:
-            self.hyp_layers0= nn.ModuleList([nn.Linear(hyp_hid, hyp_hid) for i in range(hyp_layer-1)])
-            self.hyp_bns0 = nn.ModuleList([nn.BatchNorm1d(hyp_hid) for i in range(hyp_layer-1)])
+            self.hyp_layers0= nn.ModuleList([nn.Linear(hyp_hid, hyp_hid) for i in range(hyp_layer-2)])
+            self.hyp_bns0 = nn.ModuleList([nn.BatchNorm1d(hyp_hid) for i in range(hyp_layer-2)])
         self.hyp_out0 = nn.Linear(hyp_hid, 1) 
 
         self.dropout = nn.Dropout(p=dropout)
@@ -783,4 +783,250 @@ class DNN(nn.Module):
             y = torch.sigmoid(y)
             # y0 = torch.sigmoid(y0)
             # y1 = torch.sigmoid(y1)
+        return loss, y
+
+
+class DnnEncoder(nn.Module):
+    def __init__(self, in_feat, rep_hid, rep_layer=2, dropout=0.2, device=torch.device('cpu')):
+        super().__init__()
+        self.dropout = nn.Dropout(p=dropout)
+        self.rep_layer_fst = nn.Linear(in_feat, rep_hid)
+        self.rep_bn_fst = nn.BatchNorm1d(rep_hid)
+    
+        self.rep_layers = nn.ModuleList([nn.Linear(rep_hid, rep_hid) for i in range(rep_layer-1)])
+        self.rep_bns = nn.ModuleList([nn.BatchNorm1d(rep_hid) for i in range(rep_layer-1)])
+
+    def forward(self, X): 
+        X = X.view(X.size(0), -1)
+        # print(X.shape)
+        h = self.dropout(F.relu(self.rep_bn_fst(self.rep_layer_fst(X))))
+        for fc, bn in zip(self.rep_layers, self.rep_bns):
+            h = self.dropout(F.relu(bn(fc(h))))
+        return h
+
+class RnnEncoder(nn.Module):
+    def __init__(self, in_feat, rep_hid, rep_layer=2, dropout=0.2, device=torch.device('cpu')):
+        super().__init__()
+        self.rep_layer = rep_layer
+        self.rep_gru = nn.GRU(in_feat,rep_hid,rep_layer,batch_first=True,dropout=dropout)
+       
+    def forward(self, X):
+        output, hn = self.rep_gru(X)
+        # print(output.shape,'output')
+        # print(hn.shape,'hn')
+        h = output[:,-1]
+        return h
+
+class Decoder(nn.Module):
+    def __init__(self, rep_hid, hyp_hid, hyp_layer, dropout=0.2, device=torch.device('cpu')):
+        super().__init__()
+        self.hyp_layer = hyp_layer
+        self.hyp_layer_fst0 = nn.Linear(rep_hid, hyp_hid)
+        self.hyp_bn_fst0 = nn.BatchNorm1d(hyp_hid)
+        if hyp_layer > 2:
+            self.hyp_layers0= nn.ModuleList([nn.Linear(hyp_hid, hyp_hid) for i in range(hyp_layer-2)])
+            self.hyp_bns0 = nn.ModuleList([nn.BatchNorm1d(hyp_hid) for i in range(hyp_layer-2)])
+        self.hyp_out0 = nn.Linear(hyp_hid, 1) 
+
+        self.hyp_layer_fst1 = nn.Linear(rep_hid, hyp_hid)
+        self.hyp_bn_fst1 = nn.BatchNorm1d(hyp_hid)
+        if hyp_layer > 2:
+            self.hyp_layers1= nn.ModuleList([nn.Linear(hyp_hid, hyp_hid) for i in range(hyp_layer-2)])
+            self.hyp_bns1 = nn.ModuleList([nn.BatchNorm1d(hyp_hid) for i in range(hyp_layer-2)])
+        self.hyp_out1 = nn.Linear(hyp_hid, 1) 
+        self.dropout = nn.Dropout(p=dropout)
+    
+    def forward(self, h):
+        h0 = self.dropout(F.relu(self.hyp_bn_fst0(self.hyp_layer_fst0(h))))
+        if self.hyp_layer > 2:
+            for fc, bn in zip(self.hyp_layers0, self.hyp_bns0):
+                h0 = self.dropout(F.relu(bn(fc(h0))))
+
+        h1 = self.dropout(F.relu(self.hyp_bn_fst1(self.hyp_layer_fst1(h))))
+        if self.hyp_layer > 2:
+            for fc, bn in zip(self.hyp_layers1, self.hyp_bns1):
+                h1 = self.dropout(F.relu(bn(fc(h1))))
+
+        y0 = self.hyp_out0(h0).view(-1)
+        y1 = self.hyp_out1(h1).view(-1)
+        return y0, y1
+    
+    def reset_parameters(self):
+        self.hyp_layer_fst0.reset_parameters()
+        self.hyp_bn_fst0.reset_parameters()
+        self.hyp_out0.reset_parameters()
+
+        self.hyp_layer_fst1.reset_parameters()
+        self.hyp_bn_fst1.reset_parameters()
+        self.hyp_out1.reset_parameters()
+        try:
+            for i in range(len(self.hyp_layers0)):
+                self.hyp_layers0[i].reset_parameters()
+                self.hyp_bns0[i].reset_parameters()
+                self.hyp_layers1[i].reset_parameters()
+                self.hyp_bns1[i].reset_parameters()
+        except:
+            pass
+
+class CFR_CF(nn.Module): 
+    def __init__(self, args, data_loader): 
+        super().__init__() 
+        # self.p = p
+        in_feat = data_loader.f
+        self.device = args.device
+        self.dropout = args.dropout
+        self.p_alpha = args.p_alpha
+        self.hyp_layer = args.hyp_layer
+        self.rep_layer = args.rep_layer
+        self.rep_dim = args.rep_dim
+        self.hyp_dim = args.hyp_dim
+        self.imb_func = args.imb_func
+        # encoder
+        # self.rep_gru = nn.GRU(in_feat,rep_hid,1,batch_first=True,dropout=dropout)
+        if args.enc == 'gru':
+            self.encoder = RnnEncoder(in_feat, self.rep_dim, self.rep_layer, self.dropout, self.device)
+        elif args.enc == 'dnn':
+            self.encoder = DnnEncoder(in_feat, self.rep_dim, self.rep_layer, self.dropout, self.device)
+        # decoder
+        self.decoder = Decoder(self.rep_dim, self.hyp_dim, self.hyp_layer, self.dropout, self.device)
+        ###########
+        # self.hyp_layer_fst0 = nn.Linear(rep_hid, hyp_hid)
+        # self.hyp_bn_fst0 = nn.BatchNorm1d(hyp_hid)
+        # if hyp_layer > 2:
+        #     self.hyp_layers0= nn.ModuleList([nn.Linear(hyp_hid, hyp_hid) for i in range(hyp_layer-2)])
+        #     self.hyp_bns0 = nn.ModuleList([nn.BatchNorm1d(hyp_hid) for i in range(hyp_layer-2)])
+        # self.hyp_out0 = nn.Linear(hyp_hid, 1) 
+
+        # self.hyp_layer_fst1 = nn.Linear(rep_hid, hyp_hid)
+        # self.hyp_bn_fst1 = nn.BatchNorm1d(hyp_hid)
+        # if hyp_layer > 2:
+        #     self.hyp_layers1= nn.ModuleList([nn.Linear(hyp_hid, hyp_hid) for i in range(hyp_layer-2)])
+        #     self.hyp_bns1 = nn.ModuleList([nn.BatchNorm1d(hyp_hid) for i in range(hyp_layer-2)])
+        # self.hyp_out1 = nn.Linear(hyp_hid, 1) 
+        # self.dropout = nn.Dropout(p=dropout)
+        ##############
+        self.binary = (not args.realy)
+        if self.binary:
+            self.criterion = F.binary_cross_entropy_with_logits
+        else:
+            self.criterion = F.mse_loss
+        self.init_params()
+  
+    def init_params(self):
+        self.decoder.reset_parameters()
+
+    def forward(self, X, C, Y, CF_Y, stage='train'): 
+        # X = X.view(X.size(0), -1)
+        # print(X.shape)
+        Y = Y.view(-1)
+        CF_Y = CF_Y.view(-1)
+        # output, hn = self.rep_gru(X)
+        # h = output[:,-1]
+        if stage == 'tune':
+            with torch.no_grad():
+                h = self.encoder(X)
+        else:
+            h = self.encoder(X)
+        # h = self.dropout(F.relu(self.rep_bn_fst(self.rep_layer_fst(X))))
+        # for fc, bn in zip(self.rep_layers, self.rep_bns):
+        #     h = self.dropout(F.relu(bn(fc(h))))
+        y0, y1 = self.decoder(h)
+        ##############
+        # h0 = self.dropout(F.relu(self.hyp_bn_fst0(self.hyp_layer_fst0(h))))
+        # if self.hyp_layer > 2:
+        #     for fc, bn in zip(self.hyp_layers0, self.hyp_bns0):
+        #         h0 = self.dropout(F.relu(bn(fc(h0))))
+
+        # h1 = self.dropout(F.relu(self.hyp_bn_fst1(self.hyp_layer_fst1(h))))
+        # if self.hyp_layer > 2:
+        #     for fc, bn in zip(self.hyp_layers1, self.hyp_bns1):
+        #         h1 = self.dropout(F.relu(bn(fc(h1))))
+
+        # y0 = self.hyp_out0(h0).view(-1)
+        # y1 = self.hyp_out1(h1).view(-1)
+        ##############
+        C_1d = C.view(-1)
+        p = torch.mean(C_1d)
+        y = torch.where(C_1d > 0, y1, y0)
+        y_cf = torch.where(C_1d < 1, y1, y0)
+        # print('ipm =',self.ipm)
+        if self.imb_func == 'mmd':
+            # imb = mmd2_rbf(h,C_1d,p)
+            imb = mmd2_lin(h,C_1d,p)
+        elif self.imb_func == 'wass':
+            imb, _ = wasserstein_ht(h,C_1d,p,device=self.device)
+        # imb_mmd2_lin = mmd2_lin(h,C_1d,p)
+        # imb_mmd2_rbf = mmd2_rbf(h,C_1d,p)
+        # torch.sqrt(imb_mmd2_rbf + 1e-8)
+        # torch.sqrt(imb_mmd2_lin + 1e-8)
+        # imb_wass, _ = wasserstein_ht(h,C_1d,p,device=self.device)
+        # print('mmd_lin {:.5f} \t mmd_rbf {:.5f} \t wass {:.5f} '.format(imb_mmd2_lin,imb_mmd2_rbf,imb_wass))
+        loss = self.criterion(y, Y, reduction='none')
+        weight = C_1d/(2*p) + (1-C_1d)/(2*(1-p))
+        loss = torch.mean(loss * weight) + self.p_alpha*imb
+        
+        if stage == 'train':
+            CF_C_1d = 1-C_1d
+            loss_cf = self.criterion(y_cf, CF_Y, reduction='none')
+            weight_cf = CF_C_1d/(2*p) + (1-CF_C_1d)/(2*(1-p))
+            loss_cf = torch.mean(loss_cf * weight_cf)
+            loss = loss + loss_cf
+        # print(loss)
+        if self.binary:
+            y = torch.sigmoid(y)
+        return loss, y
+
+class DNN_F(nn.Module): 
+    def __init__(self, args, data_loader): 
+        super().__init__() 
+        # self.p = p
+        in_feat = data_loader.f
+        self.device = args.device
+        # self.dropout = args.dropout
+        # self.p_alpha = args.p_alpha
+        self.hyp_layer = args.hyp_layer
+        self.rep_layer = args.rep_layer
+        self.rep_dim = args.rep_dim
+        self.hyp_dim = args.hyp_dim
+        # encoder
+        # self.rep_gru = nn.GRU(in_feat,rep_hid,1,batch_first=True,dropout=dropout)
+        if args.enc == 'gru':
+            self.encoder = RnnEncoder(in_feat, self.rep_dim, self.rep_layer, args.dropout, self.device)
+        elif args.enc == 'dnn':
+            self.encoder = DnnEncoder(in_feat, self.rep_dim, self.rep_layer, args.dropout, self.device)
+        # decoder
+        self.hyp_layer_fst0 = nn.Linear(self.rep_dim, self.hyp_dim)
+        self.hyp_bn_fst0 = nn.BatchNorm1d(self.hyp_dim)
+        if self.hyp_layer > 2:
+            self.hyp_layers0= nn.ModuleList([nn.Linear(self.hyp_dim, self.hyp_dim) for i in range(self.hyp_layer-2)])
+            self.hyp_bns0 = nn.ModuleList([nn.BatchNorm1d(self.hyp_dim) for i in range(self.hyp_layer-2)])
+        self.hyp_out0 = nn.Linear(self.hyp_dim, 1) 
+ 
+        self.dropout = nn.Dropout(p=args.dropout)
+        # self.decoder = Decoder(self.rep_dim, self.hyp_dim, self.hyp_layer, self.dropout, self.device)
+        self.binary = (not args.realy)
+        if self.binary:
+            self.criterion = F.binary_cross_entropy_with_logits
+        else:
+            self.criterion = F.mse_loss
+
+    def forward(self, X, C, Y, CF_Y): 
+        # X = X.view(X.size(0), -1)
+        # print(X.shape)
+        Y = Y.view(-1)
+        # output, hn = self.rep_gru(X)
+        # h = output[:,-1]
+        h = self.encoder(X)
+        # h = self.dropout(F.relu(self.rep_bn_fst(self.rep_layer_fst(X))))
+        # for fc, bn in zip(self.rep_layers, self.rep_bns):
+        #     h = self.dropout(F.relu(bn(fc(h))))
+        h0 = self.dropout(F.relu(self.hyp_bn_fst0(self.hyp_layer_fst0(h))))
+        if self.hyp_layer > 2:
+            for fc, bn in zip(self.hyp_layers0, self.hyp_bns0):
+                h0 = self.dropout(F.relu(bn(fc(h0))))
+ 
+        y = self.hyp_out0(h0).view(-1)
+        loss = self.criterion(y, Y, reduction='mean')
+        if self.binary:
+            y = torch.sigmoid(y)
         return loss, y
