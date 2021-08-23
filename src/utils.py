@@ -488,9 +488,7 @@ class CountCombineDataLoader(object):
         self.test =  [test_treat,  test_y,  test_x,  1-test_treat,  test_y_cf]
 
         print("<< the proportion of treated units: >>")
-        print("  < train {:.4f} >".format(self.train[0].mean()))
-        print("  < val {:.4f} >".format(self.val[0].mean()))
-        print("  < test {:.4f} >".format(self.test[0].mean()))
+        print("  < train {:.4f} \t val {:.4f} \t test {:.4f} >".format(self.train[0].mean(),self.val[0].mean(),self.test[0].mean()))
         # print('<< realization, spliting and scaling done >>')
  
 
