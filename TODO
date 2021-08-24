@@ -7,11 +7,17 @@
 
 5. overlap of data, window and pred window
 
-positive:
+positive: pred_window=3
 IND:0.8318
 RUS:0.7009
 PAK:0.2895
 TUR:0.2757
+GBR:0.2895
+pred_window=1
+IND: 0.5450
+RUS: 0.3916
+
+
 When learning a causal model, one
 should, thus, require fewer examples to adapt as most
 knowledge, that is, modules, can be reused without further

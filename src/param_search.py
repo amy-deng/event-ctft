@@ -42,7 +42,6 @@ def read_used_cfgs(used_cfg_file):
     with open(used_cfg_file, 'r') as f:
         for l in f:
             used_cfgs.add(l.strip())
-
     return used_cfgs
 
 def save_used_cfg(cfg, used_cfg_file):
@@ -55,7 +54,10 @@ def run(main_file, cfg_file, num_runs):
 
     outdir = configs['outdir'][0]
     dataset = configs['dataset'][0]
-    used_cfg_path = '{}/{}'.format(outdir,dataset)
+    window = configs['window'][0]
+    horizon = configs['horizon'][0]
+    pred_window = configs['pred_window'][0]
+    used_cfg_path = '{}/{}_w{}_h{}_pw{}'.format(outdir,dataset,window,horizon,pred_window)
     os.makedirs(used_cfg_path, exist_ok=True)
     used_cfg_file = '{}/used_configs.txt'.format(used_cfg_path,dataset)
 
@@ -79,7 +81,7 @@ def run(main_file, cfg_file, num_runs):
         flags = ' '.join('--%s %s' % (k,str(v)) for k,v in cfg.items())
         print('python {} {}'.format(main_file,flags))
         call('python {} {}'.format(main_file,flags), shell=True)
-        
+
         save_used_cfg(cfg, used_cfg_file)
 
 if __name__ == "__main__":

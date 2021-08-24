@@ -1,4 +1,5 @@
 import sys
+import time
 import torch
 import numpy as np
 import random
@@ -385,9 +386,7 @@ class CountCombineDataLoader(object):
         data_time = data_dict['TIME'] # n
         self.data_Y = np.array(data_dict['Y']) # n
         self.n = len(self.data_Y)
-        print(self.data_Y.shape,'self.data_Y') # 548 792
         data_treat = data_dict['C'] # n * #c
-        print(data_treat.mean(0))
         # exit()
         self.data_Y_cf = np.array(data_dict['CF_Y']) # n 
         data_treat_cf = data_dict['CF_C'] # n
@@ -406,12 +405,12 @@ class CountCombineDataLoader(object):
             args.aggr_feat = False
             self.f = self.data_X.shape[-1]
         self.treatment = data_treat[:,self.treat_idx]
-        print('<<< original treated proportion {:.4f} >>>'.format(self.treatment.mean()))
+        # print('<<< original treated proportion {:.4f} >>>'.format(self.treatment.mean()))
         self.data_Y_cf = self.data_Y_cf[:,self.treat_idx]
         # self.treatment_cf = data_treat_cf[:,self.treat_idx]
         self.Y1 = self.treatment * self.data_Y + (1-self.treatment) * self.data_Y_cf
         self.Y0 = (1-self.treatment) * self.data_Y + self.treatment * self.data_Y_cf
-        print('< y_f {:.4f}  y_cf {:.4f} >'.format(self.data_Y.mean(),self.data_Y_cf.mean()))
+        print('<<< n = {}\t y_f {:.4f}\t y_cf {:.4f}\t original treated({}) {:.4f} >>>'.format(self.n,self.data_Y.mean(),self.data_Y_cf.mean(),self.treat_idx,self.treatment.mean()))
         # print('<<< data processed >>>')
         # self.realization_and_split(args.train,args.val,args.test)
         # load graph features TODO
@@ -420,6 +419,7 @@ class CountCombineDataLoader(object):
     # test data: only factual
     # 
     def realization_and_split(self, train, valid, test):
+        start = time.time()
         # generate treatments and corresponding outcomes
         # training using cf data and test using  real data?
         self.rea_y = torch.tensor(self.data_Y).float()
@@ -431,7 +431,6 @@ class CountCombineDataLoader(object):
         train_idx = idx[:ind_train]
         val_idx = idx[ind_train:ind_test]
         test_idx = idx[ind_test:]
-
 
         self.rea_treat = torch.tensor(self.treatment).float()
         train_treat = self.rea_treat[train_idx]
@@ -483,16 +482,17 @@ class CountCombineDataLoader(object):
         if torch.any(test_x.isnan()):
             print('test has nan')
             exit()
-
         
         # C Y X CF_C, CF_Y
         self.train = [train_treat, train_y, train_x, 1-train_treat, train_y_cf]
         self.val =   [val_treat,   val_y,   val_x,   1-val_treat,   val_y_cf]
         self.test =  [test_treat,  test_y,  test_x,  1-test_treat,  test_y_cf]
 
-        print("<< the proportion of treated units: >>")
-        print("  < train {:.4f} \t val {:.4f} \t test {:.4f} >".format(self.train[0].mean(),self.val[0].mean(),self.test[0].mean()))
+        # print("<< the proportion of treated units: >>")
+        print("<<< treated \t train {:.4f} \t val {:.4f} \t test {:.4f} >>>".format(self.train[0].mean(),self.val[0].mean(),self.test[0].mean()))
         # print('<< realization, spliting and scaling done >>')
+        print("<<< Runtime of the realization_and_split is {:.6f} >>>".format(time.time() - start))
+
  
 
     def get_batches(self, data, batch_size, shuffle=True):

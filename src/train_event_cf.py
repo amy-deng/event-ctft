@@ -140,7 +140,7 @@ def prepare(args):
     #     + 'b' + str(args.batch) + 'w' + str(args.window) + 'h'+str(args.horizon) + 'pw'+str(args.pred_window) + 'p' + str(args.patience) \
     #     + 'tr'+str(args.train)[1:] + 'va'+str(args.val)[1:] + 'agg'+str(args.aggr_feat) +'treat'+str(args.treat_idx)
     token = args.model + '-lr'+str(args.lr)[1:] +  'w' + str(args.window) + 'h'+str(args.horizon) + 'pw'+str(args.pred_window)  \
-        + 'agg'+str(args.aggr_feat) +'treat'+str(args.treat_idx) + 'rep'+str(args.rep_layer) + '*'+str(args.rep_dim) + 'hyp'+str(args.hyp_layer) +'*'+ str(args.hyp_dim)  \
+        + 'agg'+str(int(args.aggr_feat)) +'treat'+str(args.treat_idx) + 'rep'+str(args.rep_layer) + '*'+str(args.rep_dim) + 'hyp'+str(args.hyp_layer) +'*'+ str(args.hyp_dim)  \
         + 'enc'+str(args.enc)+ args.imb_func + str(args.p_alpha)
     # if args.model == 'cevae':
     #     token += '-z' + str(args.z_dim)
