@@ -99,5 +99,5 @@ if __name__ == "__main__":
     if len(sys.argv) < 9:
         print ('Usage: python param_search.py <main file> <config file> <num runs> <model name> <dataset> <window> <horizon> <pred window>')
     else:
-        print(sys.argv)
+        # print(sys.argv)
         run(sys.argv[1], sys.argv[2], int(sys.argv[3]), sys.argv[4], sys.argv[5], sys.argv[6], sys.argv[7], sys.argv[8])

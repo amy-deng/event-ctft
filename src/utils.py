@@ -410,7 +410,11 @@ class CountCombineDataLoader(object):
         # self.treatment_cf = data_treat_cf[:,self.treat_idx]
         self.Y1 = self.treatment * self.data_Y + (1-self.treatment) * self.data_Y_cf
         self.Y0 = (1-self.treatment) * self.data_Y + self.treatment * self.data_Y_cf
-        print('<<< n = {}\t y_f {:.4f}\t y_cf {:.4f}\t original treated({}) {:.4f} >>>'.format(self.n,self.data_Y.mean(),self.data_Y_cf.mean(),self.treat_idx,self.treatment.mean()))
+        ate = self.Y1 - self.Y0
+        print(ate.shape,'ate',ate.mean())
+        # exit()
+        print('<<< n = {}\t y_f {:.4f}\t y_cf {:.4f}\t original treated({}) {:.4f} ATE {:.4f} >>>'.format(self.n,self.data_Y.mean(),self.data_Y_cf.mean(),self.treat_idx,self.treatment.mean(),ate.mean()))
+        exit()
         # print('<<< data processed >>>')
         # self.realization_and_split(args.train,args.val,args.test)
         # load graph features TODO
