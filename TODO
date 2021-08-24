@@ -7,13 +7,18 @@
 
 5. overlap of data, window and pred window
 
+positive:
+IND:0.8318
+RUS:0.7009
+PAK:0.2895
+TUR:0.2757
 When learning a causal model, one
 should, thus, require fewer examples to adapt as most
 knowledge, that is, modules, can be reused without further
 training.
 
 
- discovering
+ discovering 
 causal relations means acquiring robust knowledge that
 holds beyond the support of observed data distribution
 and a set of training tasks, and it extends to situations

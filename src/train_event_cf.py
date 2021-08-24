@@ -83,7 +83,8 @@ LongTensor = torch.cuda.LongTensor if args.cuda else torch.LongTensor
 np.random.seed(args.seed)
 random.seed(args.seed)
 torch.manual_seed(args.seed)
-
+torch.cuda.manual_seed(args.seed)
+torch.cuda.manual_seed_all(args.seed)
 if args.cuda:
     torch.cuda.manual_seed(args.seed)
     # alpha = alpha.cuda()

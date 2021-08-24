@@ -35,8 +35,8 @@ parser.add_argument('--test', type=float, default=0.2)
 # parser.add_argument('--p_alpha', type=float, default=0.01)
 parser.add_argument('--rep_layer', type=int, default=2)
 parser.add_argument('--hyp_layer', type=int, default=2)
-parser.add_argument('--rep_dim', type=int, default=129)
-parser.add_argument('--hyp_dim', type=int, default=128)
+parser.add_argument('--rep_dim', type=int, default=100)
+parser.add_argument('--hyp_dim', type=int, default=100)
 # parser.add_argument('--imb_func', type=str, default='mmd')
 
 parser.add_argument('-w','--window', type=int, default=10)
@@ -77,7 +77,8 @@ LongTensor = torch.cuda.LongTensor if args.cuda else torch.LongTensor
 np.random.seed(args.seed)
 random.seed(args.seed)
 torch.manual_seed(args.seed)
-
+torch.cuda.manual_seed(args.seed)
+torch.cuda.manual_seed_all(args.seed)
 if args.cuda:
     torch.cuda.manual_seed(args.seed)
     # alpha = alpha.cuda()
