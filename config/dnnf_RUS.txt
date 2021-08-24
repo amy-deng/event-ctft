@@ -2,6 +2,7 @@ dataset='RUS'
 outdir='search_results/dnnf'
 data_path="../data"
 model='dnnf'
+gpu=2
 loop=5
 seed=42
 epochs=100

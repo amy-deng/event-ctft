@@ -2,6 +2,7 @@ dataset='RUS'
 outdir='search_results/cfrcf'
 data_path="../data"
 model='cfrcf'
+gpu=2
 loop=5
 seed=42
 epochs=100
