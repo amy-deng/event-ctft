@@ -100,7 +100,7 @@ data_Y_cf_all = np.array(data_Y_cf_all)
 data_Y_cf_all = np.swapaxes(data_Y_cf_all, 0,1)
 print('data_Y_cf_all',data_Y_cf_all.shape, 'data_treat_cf',data_treat_cf.shape)
 
-with open(path+'cf_data.pkl','wb') as f:
+with open(path+'cf_data_w{}_h{}_p{}.pkl'.format(WINDOW,HORIZON,PREWINDOW),'wb') as f:
     pickle.dump({'TIME':data_time,'Y':data_Y,'X':data_X,'X_sm':data_X_smooth,'C':data_treat,'CF_Y':data_Y_cf_all, 'CF_C':data_treat_cf},f)
 print(path+'cf_data.pkl', 'saved!')
 

@@ -69,7 +69,7 @@ def run(main_file, cfg_file, num_runs):
             print ('Configuration used, skipping')
             continue
 
-        save_used_cfg(cfg, used_cfg_file)
+        # save_used_cfg(cfg, used_cfg_file)
 
         print ('------------------------------')
         print ('Run %d of %d:' % (i+1, num_runs))
@@ -79,6 +79,8 @@ def run(main_file, cfg_file, num_runs):
         flags = ' '.join('--%s %s' % (k,str(v)) for k,v in cfg.items())
         print('python {} {}'.format(main_file,flags))
         call('python {} {}'.format(main_file,flags), shell=True)
+        
+        save_used_cfg(cfg, used_cfg_file)
 
 if __name__ == "__main__":
     if len(sys.argv) < 4:

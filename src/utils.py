@@ -219,6 +219,7 @@ class CountFactDataLoader(object):
         self.aggr_feat = args.aggr_feat
 
         # load labels: Y treatments X
+        
         with open('{}/{}/cf_data.pkl'.format(args.data_path, self.dataset),'rb') as f:
             data_dict = pickle.load(f)
         data_time = data_dict['TIME'] # n
@@ -379,7 +380,7 @@ class CountCombineDataLoader(object):
         self.aggr_feat = args.aggr_feat
 
         # load labels: Y treatments X
-        with open('{}/{}/cf_data.pkl'.format(args.data_path, self.dataset),'rb') as f:
+        with open('{}/{}/cf_data_w{}_h{}_p{}.pkl'.format(args.data_path, self.dataset,self.window,self.horizon,self.pred_window),'rb') as f:
             data_dict = pickle.load(f)
         data_time = data_dict['TIME'] # n
         self.data_Y = np.array(data_dict['Y']) # n
@@ -397,10 +398,12 @@ class CountCombineDataLoader(object):
         self.data_Xsm = data_dict['X_sm']
         if args.enc == 'dnn':
             self.aggr_feat = True
+            args.aggr_feat = True
             self.f = self.data_X.shape[-1]
             # self.f = self.data_X.shape[2]*self.data_X.shape[1]
         else:
             self.aggr_feat = False
+            args.aggr_feat = False
             self.f = self.data_X.shape[-1]
         self.treatment = data_treat[:,self.treat_idx]
         print('<<< original treated proportion {:.4f} >>>'.format(self.treatment.mean()))
