@@ -49,7 +49,7 @@ def save_used_cfg(cfg, used_cfg_file):
         cfg_str = cfg_string(cfg)
         f.write('%s\n' % cfg_str)
 
-def run(main_file, cfg_file, num_runs, model, dataset, window, horizon, pred_window):
+def run(main_file, cfg_file, num_runs, model, dataset, window, horizon, pred_window, gpu):
     configs = load_config(cfg_file)
     
     """ add configs """
@@ -60,7 +60,7 @@ def run(main_file, cfg_file, num_runs, model, dataset, window, horizon, pred_win
     # configs['window'] = window
     # configs['horizon'] = horizon
     # configs['pred_window'] = pred_window
-    append_config = " -m {} -d {} --window {} --horizon {} --pred_window {} ".format(model,dataset,window,horizon,pred_window)
+    append_config = " -m {} -d {} --window {} --horizon {} --pred_window {} --gpu {} ".format(model,dataset,window,horizon,pred_window,gpu)
     # print(configs)
     # model = configs['model'][0]
     # dataset = configs['dataset'][0]
@@ -96,8 +96,8 @@ def run(main_file, cfg_file, num_runs, model, dataset, window, horizon, pred_win
         save_used_cfg(cfg, used_cfg_file)
 
 if __name__ == "__main__":
-    if len(sys.argv) < 9:
-        print ('Usage: python param_search.py <main file> <config file> <num runs> <model name> <dataset> <window> <horizon> <pred window>')
+    if len(sys.argv) < 10:
+        print ('Usage: python param_search.py <main file> <config file> <num runs> <model name> <dataset> <window> <horizon> <pred window> <gpu>')
     else:
         # print(sys.argv)
-        run(sys.argv[1], sys.argv[2], int(sys.argv[3]), sys.argv[4], sys.argv[5], sys.argv[6], sys.argv[7], sys.argv[8])
+        run(sys.argv[1], sys.argv[2], int(sys.argv[3]), sys.argv[4], sys.argv[5], sys.argv[6], sys.argv[7], sys.argv[8], sys.argv[9])
