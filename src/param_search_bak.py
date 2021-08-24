@@ -49,25 +49,15 @@ def save_used_cfg(cfg, used_cfg_file):
         cfg_str = cfg_string(cfg)
         f.write('%s\n' % cfg_str)
 
-def run(main_file, cfg_file, num_runs, model, dataset, window, horizon, pred_window):
+def run(main_file, cfg_file, num_runs):
     configs = load_config(cfg_file)
-    
-    """ add configs """
-    # define path
+
     outdir = configs['outdir'][0]
-    # configs['model'] = str(model)
-    # configs['dataset'] = str(dataset)
-    # configs['window'] = window
-    # configs['horizon'] = horizon
-    # configs['pred_window'] = pred_window
-    append_config = " -m {} -d {} --window {} --horizon {} --pred_window {} ".format(model,dataset,window,horizon,pred_window)
-    # print(configs)
-    # model = configs['model'][0]
-    # dataset = configs['dataset'][0]
-    # window = configs['window'][0]
-    # horizon = configs['horizon'][0]
-    # pred_window = configs['pred_window'][0]
-    used_cfg_path = '{}/{}/{}_w{}h{}p{}'.format(outdir,dataset,model,window,horizon,pred_window)
+    dataset = configs['dataset'][0]
+    window = configs['window'][0]
+    horizon = configs['horizon'][0]
+    pred_window = configs['pred_window'][0]
+    used_cfg_path = '{}/{}_w{}h{}p{}'.format(outdir,dataset,window,horizon,pred_window)
     os.makedirs(used_cfg_path, exist_ok=True)
     used_cfg_file = '{}/used_configs.txt'.format(used_cfg_path,dataset)
 
@@ -89,15 +79,13 @@ def run(main_file, cfg_file, num_runs, model, dataset, window, horizon, pred_win
         print ('\n'.join(['%s: %s' % (str(k), str(v)) for k,v in cfg.items() if len(configs[k])>1]))
 
         flags = ' '.join('--%s %s' % (k,str(v)) for k,v in cfg.items())
-        flags += append_config
         print('python {} {}'.format(main_file,flags))
         call('python {} {}'.format(main_file,flags), shell=True)
 
         save_used_cfg(cfg, used_cfg_file)
 
 if __name__ == "__main__":
-    if len(sys.argv) < 9:
-        print ('Usage: python param_search.py <main file> <config file> <num runs> <model name> <dataset> <window> <horizon> <pred window>')
+    if len(sys.argv) < 4:
+        print ('Usage: python param_search.py <main file> <config file> <num runs>')
     else:
-        print(sys.argv)
-        run(sys.argv[1], sys.argv[2], int(sys.argv[3]), sys.argv[4], sys.argv[5], sys.argv[6], sys.argv[7], sys.argv[8])
+        run(sys.argv[1], sys.argv[2], int(sys.argv[3]))

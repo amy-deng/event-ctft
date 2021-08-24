@@ -46,7 +46,6 @@ parser.add_argument('--pred_window', type=int, default=3)
 parser.add_argument('--enc', type=str, default='dnn') # or gru
 
 
-
 parser.add_argument('--realy', action="store_true", help='real value comes with normalization')
 parser.add_argument('--shuffle', action="store_false")
 
@@ -96,19 +95,23 @@ os.makedirs('results', exist_ok=True)
 os.makedirs('results/' + args.dataset, exist_ok=True)
 
 os.makedirs(args.outdir, exist_ok=True)
-os.makedirs(args.outdir+'/' + args.dataset, exist_ok=True)
-
+search_path = "{}/{}/{}_w{}h{}p{}".format(args.outdir,args.dataset,args.model,args.window,args.horizon,args.pred_window)
+os.makedirs(search_path, exist_ok=True)
 
 def prepare(args): 
     if args.model == 'dnnf':
+        args.enc = 'dnn'
+        model = DNN_F(args, data_loader)
+    elif args.model == 'gruf':
+        args.enc = 'gru'
         model = DNN_F(args, data_loader)
     else: 
         raise LookupError('can not find the model')
     model_name = model.__class__.__name__
     # print(model)
     token = args.model + '-lr'+str(args.lr)[1:] +  'w' + str(args.window) + 'h'+str(args.horizon) + 'pw'+str(args.pred_window)  \
-        + 'agg'+str(int(args.aggr_feat)) + 'rep'+str(args.rep_layer) + '*'+str(args.rep_dim) + 'hyp'+str(args.hyp_layer) +'*'+ str(args.hyp_dim) \
-        + 'enc'+str(args.enc) 
+        + 'agg'+str(int(args.aggr_feat)) + 'rep'+str(args.rep_layer) + '*'+str(args.rep_dim) + 'hyp'+str(args.hyp_layer) +'*'+ str(args.hyp_dim) 
+        # + 'enc'+str(args.enc) 
  
     os.makedirs('models/{}/{}'.format(args.dataset, token), exist_ok=True)
     result_file = 'results/{}/{}.csv'.format(args.dataset,token)
@@ -131,8 +134,8 @@ def eval(data_loader, data, tag='val'):
     y_true, y_pred = [], []
     for inputs in data_loader.get_batches(data, args.batch, False):
         [C, Y, X, CF_C, CF_Y] = inputs 
-        if args.model in ['dnnf']:
-            loss, y  = model(X, C, Y, CF_Y) 
+        # if args.model in ['dnnf']:
+        loss, y  = model(X, C, Y, CF_Y) 
         total_loss += loss.item()
         y_true.append(Y)
         y_pred.append(y)
@@ -150,8 +153,8 @@ def train(data_loader, data, epoch, tag='train'):
     n_samples = 0.
     for inputs in data_loader.get_batches(data, args.batch, True):
         [C, Y, X, CF_C, CF_Y]   = inputs
-        if args.model in ['dnnf']:
-            loss, y  = model(X, C, Y, CF_Y) 
+        # if args.model in ['dnnf']:
+        loss, y  = model(X, C, Y, CF_Y) 
         total_loss += loss.item()
         optimizer.zero_grad()
         loss.backward() 
@@ -222,7 +225,7 @@ print(res)
 
 # os.remove(result_file)
 
-all_res_file = '{}/{}/search_{}_{}.csv'.format(args.outdir,args.dataset,args.dataset,args.model)
+all_res_file = '{}/search_{}_{}.csv'.format(search_path,args.dataset,args.model)
 f = open(all_res_file,'a')
 wrt = csv.writer(f)
 wrt.writerow([token] + [line_count] + res)

@@ -46,7 +46,6 @@ parser.add_argument('--pred_window', type=int, default=3)
 parser.add_argument('--enc', type=str, default='dnn') # or gru
 
 
-
 parser.add_argument('--realy', action="store_true", help='real value comes with normalization')
 # parser.add_argument('--normy', action="store_false")
 parser.add_argument('--shuffle', action="store_false")
@@ -108,7 +107,8 @@ os.makedirs('results', exist_ok=True)
 os.makedirs('results/' + args.dataset, exist_ok=True)
 
 os.makedirs(args.outdir, exist_ok=True)
-os.makedirs(args.outdir+'/' + args.dataset, exist_ok=True)
+search_path = "{}/{}/{}_w{}h{}p{}".format(args.outdir,args.dataset,args.model,args.window,args.horizon,args.pred_window)
+os.makedirs(search_path, exist_ok=True)
 
 
 def prepare(args):
@@ -129,7 +129,11 @@ def prepare(args):
     # elif args.model == 'site':
     #     model = SITE(data_loader.f, rep_hid=args.rep_dim, hyp_hid=args.hyp_dim, rep_layer=args.rep_layer, hyp_layer=args.hyp_layer, binary=(not args.realy), dropout=args.dropout, balance1=args.balance1, balance2=args.balance2)
     # el
-    if args.model == 'cfrcf':
+    if args.model == 'dnncf':
+        args.enc = 'dnn'
+        model = CFR_CF(args, data_loader)
+    elif args.model == 'grucf':
+        args.enc = 'gru'
         model = CFR_CF(args, data_loader)
     else: 
         raise LookupError('can not find the model')
@@ -141,7 +145,8 @@ def prepare(args):
     #     + 'tr'+str(args.train)[1:] + 'va'+str(args.val)[1:] + 'agg'+str(args.aggr_feat) +'treat'+str(args.treat_idx)
     token = args.model + '-lr'+str(args.lr)[1:] +  'w' + str(args.window) + 'h'+str(args.horizon) + 'pw'+str(args.pred_window)  \
         + 'agg'+str(int(args.aggr_feat)) +'treat'+str(args.treat_idx) + 'rep'+str(args.rep_layer) + '*'+str(args.rep_dim) + 'hyp'+str(args.hyp_layer) +'*'+ str(args.hyp_dim)  \
-        + 'enc'+str(args.enc)+ args.imb_func + str(args.p_alpha)
+        +  'alpha'+str(args.p_alpha)
+        # 'enc'+str(args.enc)+ args.imb_func +
     # if args.model == 'cevae':
     #     token += '-z' + str(args.z_dim)
 
@@ -179,8 +184,8 @@ def eval(data_loader, data, tag='val', stage='train'):
     y_true, y_pred = [], []
     for inputs in data_loader.get_batches(data, args.batch, False):
         [C, Y, X, CF_C, CF_Y] = inputs 
-        if args.model in ['cfrcf']:
-            loss, y  = model(X, C, Y, CF_Y, stage) 
+        # if args.model in ['cfrcf']:
+        loss, y  = model(X, C, Y, CF_Y, stage) 
         total_loss += loss.item()
         # n_samples += (Y.view(-1).size(0))
         y_true.append(Y)
@@ -202,8 +207,8 @@ def train(data_loader, data, epoch, tag='train', stage='train'):
     n_samples = 0.
     for inputs in data_loader.get_batches(data, args.batch, True):
         [C, Y, X, CF_C, CF_Y]   = inputs
-        if args.model in ['cfrcf']:
-            loss, y  = model(X, C, Y, CF_Y, stage) 
+        # if args.model in ['cfrcf']:
+        loss, y  = model(X, C, Y, CF_Y, stage) 
         total_loss += loss.item()
         optimizer.zero_grad()
         loss.backward() 
@@ -308,7 +313,7 @@ print(res)
 
 # os.remove(result_file)
 
-all_res_file = '{}/{}/search_{}_{}.csv'.format(args.outdir,args.dataset,args.dataset,args.model)
+all_res_file = '{}/search_{}_{}.csv'.format(search_path,args.dataset,args.model)
 f = open(all_res_file,'a')
 wrt = csv.writer(f)
 wrt.writerow([token] + [line_count] + res)
