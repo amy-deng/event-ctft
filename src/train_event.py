@@ -27,7 +27,7 @@ parser.add_argument('--weight_decay', type=float, default=1e-5, help='Weight dec
 parser.add_argument('--dropout', type=float, default=0.5, help='Dropout rate (1 - keep probability)')
 # parser.add_argument('--alpha', type=float, default=1e-4, help='trade-off of representation balancing')
 # parser.add_argument('--clip', type=float, default=100., help='gradient clipping')
-parser.add_argument("-b",'--batch', type=int, default=50)
+parser.add_argument("-b",'--batch', type=int, default=64)
 parser.add_argument('-p','--patience', type=int, default=25)
 parser.add_argument('--train', type=float, default=0.6)
 parser.add_argument('--val', type=float, default=0.2)
