@@ -94,8 +94,9 @@ os.makedirs('models/' + args.dataset, exist_ok=True)
 os.makedirs('results', exist_ok=True)
 os.makedirs('results/' + args.dataset, exist_ok=True)
 
+args.treat_idx = 0
 os.makedirs(args.outdir, exist_ok=True)
-search_path = "{}/{}/{}_w{}h{}p{}".format(args.outdir,args.dataset,args.model,args.window,args.horizon,args.pred_window)
+search_path = "{}/{}/{}_w{}h{}p{}_treat{}".format(args.outdir,args.dataset,args.model,args.window,args.horizon,args.pred_window,args.treat_idx)
 os.makedirs(search_path, exist_ok=True)
 
 def prepare(args): 

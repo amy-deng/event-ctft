@@ -92,11 +92,7 @@ args.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print('args.device:',args.device,' args.cuda:',args.cuda)
  
 
-# if args.model == 'site':
-#     print('dataloader for SITE TODO')
-#     pass
-#     # data_loader = EventDataSITEBasicLoader(args)
-# else:
+ 
 data_loader = CountCombineDataLoader(args)
 
 
@@ -107,7 +103,7 @@ os.makedirs('results', exist_ok=True)
 os.makedirs('results/' + args.dataset, exist_ok=True)
 
 os.makedirs(args.outdir, exist_ok=True)
-search_path = "{}/{}/{}_w{}h{}p{}".format(args.outdir,args.dataset,args.model,args.window,args.horizon,args.pred_window)
+search_path = "{}/{}/{}_w{}h{}p{}_treat{}".format(args.outdir,args.dataset,args.model,args.window,args.horizon,args.pred_window,args.treat_idx)
 os.makedirs(search_path, exist_ok=True)
 
 
