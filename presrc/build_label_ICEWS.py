@@ -284,7 +284,7 @@ for sentences in data_text:
     tokens = get_lem_token_list(sentences)
     all_tokens.append(tokens)
     if k % 100 == 0:
-        print('processing k = {}'.format(k))
+        print('processing text k = {}'.format(k))
     k+=1
 
 vectorizer = TfidfVectorizer(tokenizer=(lambda x:x), lowercase=False, stop_words=stop_words,min_df=5,max_df=0.99)#token_pattern=r'(?u)\b\w*[a-zA-Z]\w*\b') # stopwords='english' u'(?u)\b\w*[a-zA-Z]\w*\b
