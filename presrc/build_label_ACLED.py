@@ -143,7 +143,7 @@ for i in range(WINDOW,len(date_ids),PREDWINDOW): # no overlap of pre_window
     data_time.append(date_ids[i+WINDOW])
     # text
     date_list = [date_table_rev[j] for j in range(i,i+WINDOW)]
-    df_window = df.loc[df['event_date'].isin(date_list)]['Event Sentence']
+    df_window = df.loc[df['event_date'].isin(date_list)]['notes']
     data_text.append(' '.join(df_window.values))
 
 
