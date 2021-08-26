@@ -123,26 +123,51 @@ data_Y = []
 data_treat = []
 data_X = []
 data_text = []
-for i in range(WINDOW,len(date_ids),HORIZON+PREDWINDOW-1): # no overlap of pre_window
-    if i+WINDOW >=len(date_ids) or i+WINDOW+PREDWINDOW-1 >= len(date_ids):
+
+for i in range(WINDOW,len(date_ids),PREDWINDOW): # no overlap of pre_window
+    y_start = i+WINDOW+HORIZON-1
+    y_end = i+WINDOW+PREDWINDOW+HORIZON-1
+    if y_start >=len(date_ids):
         break
     # treat
     last = subevent_count_seq[i-WINDOW:i]
-#     print(i-WINDOW,i,'---',i,i+WINDOW,'   yyy',i+WINDOW,i+WINDOW+PREDWINDOW-1)
     curr = subevent_count_seq[i:i+WINDOW]
     data_X.append(curr)
     treat = curr.sum(0) - last.sum(0)
     data_treat.append(list(np.where(treat>0,1,0)))
+    
     # label
-    # print(i+WINDOW,i+WINDOW+PREDWINDOW-1)
-    protest = Protests_count[i+WINDOW:i+WINDOW+PREDWINDOW].sum()
+    protest = Protests_count[y_start:y_end].sum()
     data_Y.append(1 if protest > 0 else 0)
     # time
     data_time.append(date_ids[i+WINDOW])
     # text
     date_list = [date_table_rev[j] for j in range(i,i+WINDOW)]
-    df_window = df.loc[df['event_date'].isin(date_list)]['notes']
+    df_window = df.loc[df['event_date'].isin(date_list)]['Event Sentence']
     data_text.append(' '.join(df_window.values))
+
+
+
+# for i in range(WINDOW,len(date_ids),HORIZON+PREDWINDOW-1): # no overlap of pre_window
+#     if i+WINDOW >=len(date_ids) or i+WINDOW+PREDWINDOW-1 >= len(date_ids):
+#         break
+#     # treat
+#     last = subevent_count_seq[i-WINDOW:i]
+# #     print(i-WINDOW,i,'---',i,i+WINDOW,'   yyy',i+WINDOW,i+WINDOW+PREDWINDOW-1)
+#     curr = subevent_count_seq[i:i+WINDOW]
+#     data_X.append(curr)
+#     treat = curr.sum(0) - last.sum(0)
+#     data_treat.append(list(np.where(treat>0,1,0)))
+#     # label
+#     # print(i+WINDOW,i+WINDOW+PREDWINDOW-1)
+#     protest = Protests_count[i+WINDOW:i+WINDOW+PREDWINDOW].sum()
+#     data_Y.append(1 if protest > 0 else 0)
+#     # time
+#     data_time.append(date_ids[i+WINDOW])
+#     # text
+#     date_list = [date_table_rev[j] for j in range(i,i+WINDOW)]
+#     df_window = df.loc[df['event_date'].isin(date_list)]['notes']
+#     data_text.append(' '.join(df_window.values))
 
     
 

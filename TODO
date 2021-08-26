@@ -17,6 +17,15 @@ pred_window=1
 IND: 0.5450
 RUS: 0.3916
 
+average daily events:
+IND 44.97875569044006
+RUS 66.62229806598407
+
+afg 33.56610576923077
+syria 54.60900900900901
+yemen 27.45158597662771
+
+
 
 When learning a causal model, one
 should, thus, require fewer examples to adapt as most
