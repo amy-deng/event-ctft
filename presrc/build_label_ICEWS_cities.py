@@ -316,7 +316,7 @@ feature_names = vectorizer.get_feature_names()
 tfidf_vocab = path + 'tfidf_vocab.txt'
 tfidf_vocab_f = open(tfidf_vocab, 'w')
 for i in range(len(feature_names)):
-    if i % 500 == 0:
+    if i % 5000 == 0:
         print('i =',i)
     tfidf_vocab_f.write("{}\n".format(feature_names[i]))
 tfidf_vocab_f.close()
