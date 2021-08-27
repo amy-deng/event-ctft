@@ -198,7 +198,7 @@ for location in locations:
 # to build counter factual data
 data_X = np.stack(data_X) # t,window,#subevent
 data_treat = np.array(data_treat)
-
+data_location = np.array(data_location)
 print('data_time',len(data_time),'data_Y',len(data_Y),data_X.shape,data_treat.shape, len(data_text),len(data_location))
 
 

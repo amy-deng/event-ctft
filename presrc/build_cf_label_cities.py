@@ -62,7 +62,7 @@ print('data_X_smooth',type(data_X_smooth),data_X_smooth.shape)
 print('data_treat',type(data_treat),data_treat.shape)
 print('tfidf',type(tfidf),tfidf.shape)
 print('data_location',type(data_location),len(data_location))
-
+data_location = np.array(data_location)
 tfidf = tfidf.toarray()
 
 # TODO assume it is not biased
@@ -77,12 +77,12 @@ for treat_id in range(2):
     for i in range(len(data_Y)):
         y = data_Y[i]
         t = treatment[i]
-        location = data_location[i]
+        loc = data_location[i]
         x = data_X_smooth_flat[i] 
         s = tfidf[i]
         # find samples with treatment 1-t
         sel_idx_list1 = (treatment!=t).nonzero()[0]
-        sel_idx_list2 = (data_location==location).nonzero()[0]
+        sel_idx_list2 = (data_location==loc).nonzero()[0]
         sel_idx_list = np.intersect1d(sel_idx_list1,sel_idx_list2)
         if len(sel_idx_list) < 1:
 
