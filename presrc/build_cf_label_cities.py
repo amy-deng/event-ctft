@@ -69,7 +69,7 @@ tfidf = tfidf.toarray()
 # for each sample, find a cf sample, different treatment, see what is the outcome
 data_Y_cf_all = []
 # for treat_id in range(data_treat.shape[-1]-1):
-for treat_id in range(2):
+for treat_id in range(TREAT+1):
     print('treat_id',treat_id)
     treatment = data_treat[:,treat_id] 
     data_X_smooth_flat = data_X_smooth.reshape(data_X_smooth.shape[0],-1)
