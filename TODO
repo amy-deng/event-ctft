@@ -25,8 +25,13 @@ afg 33.56610576923077
 syria 54.60900900900901
 yemen 27.45158597662771
 
-
+conda activate ctft
+python build_label_ICEWS.py RUS 7 4 1
+python build_label_ICEWS.py IND 10 3 1
 Syria 7 4 2
+python build_label_ACLED.py ~/data/ACLED/country-jul23/2015-01-01-2021-07-23-Yemen.csv 10 3 1
+
+generate all data .... 
 
 When learning a causal model, one
 should, thus, require fewer examples to adapt as most
