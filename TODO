@@ -28,8 +28,10 @@ yemen 27.45158597662771
 conda activate ctft
 python build_label_ICEWS.py RUS 7 4 1
 python build_label_ICEWS.py IND 10 3 1
-Syria 7 4 2
-python build_label_ACLED.py ~/data/ACLED/country-jul23/2015-01-01-2021-07-23-Yemen.csv 10 3 1
+
+python build_label_ACLED.py /home/sdeng/data/ACLED/country-jul23/2015-01-01-2021-07-23-Yemen.csv 10 2 3
+Syria 7 2 3
+python build_label_ACLED.py /home/sdeng/data/ACLED/country-jul23/2017-01-01-2021-07-23-Syria.csv 7 2 3
 
 3 top cities (data sparsity of some cities) 
 window 7 1 3 
