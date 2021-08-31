@@ -269,6 +269,7 @@ def get_lem_token_list(sentences):
 with open('/home/sdeng/data/stopwords-en-basic.txt','r') as f:
     stop_words = f.read().splitlines()
 stop_words += ['aren', 'can', 'couldn', 'didn', 'doesn', 'don', 'hadn', 'hasn', 'haven', 'isn', 'let', 'll', 'mustn', 'placeholder', 're', 'shan', 'shouldn', 've', 'wasn', 'weren', 'won', 'wouldn']
+"""
 all_tokens = []
 k = 0
 for sentences in data_text:
@@ -280,17 +281,23 @@ for sentences in data_text:
 
 vectorizer = TfidfVectorizer(tokenizer=(lambda x:x), lowercase=False, stop_words=stop_words,min_df=5,max_df=0.99)#token_pattern=r'(?u)\b\w*[a-zA-Z]\w*\b') # stopwords='english' u'(?u)\b\w*[a-zA-Z]\w*\b
 tfidf = vectorizer.fit_transform(all_tokens)
+"""
+vectorizer = TfidfVectorizer(lowercase=True, stop_words=stop_words,min_df=5,max_df=0.995)#token_pattern=r'(?u)\b\w*[a-zA-Z]\w*\b') # stopwords='english' u'(?u)\b\w*[a-zA-Z]\w*\b
+tfidf = vectorizer.fit_transform(data_text)
 print('tfidf',tfidf.shape)
 
 feature_names = vectorizer.get_feature_names()
 tfidf_vocab = path + 'tfidf_vocab.txt'
 tfidf_vocab_f = open(tfidf_vocab, 'w')
 for i in range(len(feature_names)):
+    if i % 5000 == 0:
+        print('i =',i)
     tfidf_vocab_f.write("{}\n".format(feature_names[i]))
 tfidf_vocab_f.close()
 
 
-with open(path+'tmp_label_w{}_h{}_p{}.pkl'.format(WINDOW,HORIZON,PREDWINDOW),'wb') as f:
+# with open(path+'tmp_label_w{}_h{}_p{}.pkl'.format(WINDOW,HORIZON,PREDWINDOW),'wb') as f:
+with open(path+'basic_data_w{}_h{}_p{}.pkl'.format(WINDOW,HORIZON,PREDWINDOW),'wb') as f:
     pickle.dump([data_time,data_Y,data_X,data_X_smooth,data_treat,tfidf],f)
 print('tmp data saved')
 
