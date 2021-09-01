@@ -1084,10 +1084,12 @@ class Joint_CF(nn.Module):
         if args.enc == 'gru':
             self.encoder = RnnEncoder(in_feat, self.rep_dim, self.rep_layer, self.dropout, self.device)
             self.classifier = RnnEncoder(in_feat, self.rep_dim, self.rep_layer, self.dropout, self.device)
+            self.linear = nn.Linear(self.rep_dim,self.rep_dim)
+
         elif args.enc == 'dnn':
             self.encoder = DnnEncoder(in_feat, self.rep_dim, self.rep_layer, self.dropout, self.device)
             self.classifier = DnnEncoder(in_feat*2, self.rep_dim, self.rep_layer, self.dropout, self.device)
-        self.linear = nn.Linear(self.rep_dim,in_feat)
+            self.linear = nn.Linear(self.rep_dim,in_feat)
         self.out = nn.Linear(self.rep_dim,1)
 
         # decoder
@@ -1144,6 +1146,8 @@ class Joint_CF(nn.Module):
 
         # print(h.shape,'h', X.shape,'X')
         if self.enc == 'gru':
+            confounder = confounder.unsqueeze(0)
+            confounder = confounder.repeat(self.rep_layer,1,1)
             hid = self.classifier(X, confounder)
         elif self.enc == 'dnn':
             X = X.squeeze(1)
