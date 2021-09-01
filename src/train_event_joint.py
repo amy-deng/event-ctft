@@ -11,7 +11,7 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('--gpu', type=int, default=0, help='')
 parser.add_argument('-d','--dataset', type=str, default='Afghanistan')
-parser.add_argument('-m','--model', type=str, default='dnncf', help='')
+parser.add_argument('-m','--model', type=str, default='dnnjo', help='')
 parser.add_argument('--loop', type=int, default=10)
 parser.add_argument('--aggr_feat', action="store_true")
 parser.add_argument('--treat_idx', type=int, default=0, help='index of treatment')
@@ -52,6 +52,7 @@ parser.add_argument('--shuffle', action="store_false")
 
 # parser.add_argument('--balance2', type=float, default=0.001)
 
+parser.add_argument('--p_beta', type=float, default=0.1)
 
 # parser.add_argument('--z_dim', type=int, default=32)
 
@@ -125,12 +126,12 @@ def prepare(args):
     # elif args.model == 'site':
     #     model = SITE(data_loader.f, rep_hid=args.rep_dim, hyp_hid=args.hyp_dim, rep_layer=args.rep_layer, hyp_layer=args.hyp_layer, binary=(not args.realy), dropout=args.dropout, balance1=args.balance1, balance2=args.balance2)
     # el
-    if args.model == 'dnncf':
+    if args.model == 'dnnjo':
         args.enc = 'dnn'
-        model = CFR_CF(args, data_loader)
-    elif args.model == 'grucf':
+        model = Joint_CF(args, data_loader)
+    elif args.model == 'grujo':
         args.enc = 'gru'
-        model = CFR_CF(args, data_loader)
+        model = Joint_CF(args, data_loader)
     else: 
         raise LookupError('can not find the model')
     model_name = model.__class__.__name__
@@ -246,37 +247,6 @@ for i in range(args.loop):
     checkpoint = torch.load(model_state_file, map_location=lambda storage, loc: storage)
     model.load_state_dict(checkpoint['state_dict'])
 
-    """Fine-tuning"""
-    print("Fine-tuning using best epoch: {}".format(checkpoint['epoch']))
-    # for name, param in model.decoder.named_parameters():
-    #     if param.requires_grad:
-    #         print(name, param.data)
-    model.decoder.reset_parameters() # remove this and test
-    # print and check params TODO
-    # print('++++++++++ reseted +++++++++')
-    # for name, param in model.decoder.named_parameters():
-    #     if param.requires_grad:
-    #         print(name, param.data)
-    bad_counter = 0
-    stop_criteria = float('inf') # loss as criteria for early stop
-    for epoch in range(0, args.epochs_ft):
-        train_loss = train(data_loader, data_loader.train, epoch, stage='tune')
-        valid_loss, eval_dict = eval(data_loader, data_loader.val, tag='val', stage='tune')
-        if valid_loss < stop_criteria:
-            stop_criteria = valid_loss
-        # if abs(valid_loss) < stop_criteria:
-        #     stop_criteria = abs(valid_loss)
-            bad_counter = 0
-            torch.save({'state_dict_tune': model.state_dict(), 'epoch': epoch}, model_state_file)
-            print('Epo {} tr_los:{:.5f} val_los:{:.5f} '.format(epoch, train_loss, valid_loss),'\t'.join(['{}:{:.4f}'.format(k, eval_dict[k]) for k in eval_dict]))
-        else:
-            bad_counter += 1
-        if bad_counter == args.patience:
-            break
-    # print("fine-tuning done")
-    checkpoint = torch.load(model_state_file, map_location=lambda storage, loc: storage)
-    model.load_state_dict(checkpoint['state_dict_tune'])
-
     """Testing"""
     print('Begin testing...')
 
@@ -284,10 +254,10 @@ for i in range(args.loop):
     wrt = csv.writer(f)
     print("Test using best epoch: {}".format(checkpoint['epoch']))
 
-    val_loss, eval_dict = eval(data_loader, data_loader.val, 'val', stage='test')
+    val_loss, eval_dict = eval(data_loader, data_loader.val, 'val')
     print('Val      ','\t'.join(['{}:{:.4f}'.format(k, eval_dict[k]) for k in eval_dict]))
 
-    _, eval_dict = eval(data_loader, data_loader.test, 'test', stage='test')
+    _, eval_dict = eval(data_loader, data_loader.test, 'test')
     print('Test     ','\t'.join(['{}:{:.4f}'.format(k, eval_dict[k]) for k in eval_dict]))
     test_res = [eval_dict[k] for k in eval_dict]
     wrt.writerow([val_loss] + [0] + test_res)
