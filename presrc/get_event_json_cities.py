@@ -36,8 +36,9 @@ try:
     start_year = sys.argv[2]
     end_year = sys.argv[3]
     outf = sys.argv[4]
+    n_city = int(sys.argv[5])
 except:
-    print("Usage: <country_code> <start_year> <end_year> <out_path>")
+    print("Usage: <country_code> <start_year> <end_year> <out_path> <n_city>")
     exit()
 
 # country_name = 'RUS'
@@ -58,7 +59,7 @@ print('# events = {} \t remove duplicates'.format(len(df2)))
 df2.sort_values(by=['Event Date','Event ID'],inplace=True)
 
 # fill data
-n_cities = 101
+n_cities = n_city + 1
 cities = df2['City'].value_counts()[:n_cities].index.tolist()
 cities = np.array([v for v in cities if v != ''])
 # get lon and lat
