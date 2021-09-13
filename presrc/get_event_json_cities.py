@@ -38,12 +38,13 @@ try:
     outf = sys.argv[4]
 except:
     print("Usage: <country_code> <start_year> <end_year> <out_path>")
+    exit()
 
-country_name = 'RUS'
+# country_name = 'RUS'
 # country_name = 'GBR'
 # country_name = 'TUR'
 # country_name = 'PAK'
-country_name = 'IND'
+# country_name = 'IND'
 
 event_file = '~/data/icews/events.sent.new.1991.201703.country/icews_events_{}.json'.format(country_name)
 df = pd.read_json(event_file,lines=True)
