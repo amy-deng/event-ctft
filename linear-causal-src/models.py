@@ -55,7 +55,7 @@ class RnnEncoder(nn.Module):
         self.rep_gru = nn.GRU(in_feat,rep_hid,rep_layer,batch_first=True,dropout=dropout)
        
     def forward(self, X, h_0=None):
-        output, hn = self.rep_gru(X.double(),h_0)
+        output, hn = self.rep_gru(X,h_0)
         # print(output.shape,'output')
         # print(hn.shape,'hn')
         h = output[:,-1]
