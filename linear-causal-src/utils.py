@@ -39,7 +39,11 @@ class DataLoaderFreq(object):
         # self.data = self.data[:6]
         self.m, self.t, self.f = self.data.shape
         print("m = {} \t t = {} \t f = {}".format(self.m, self.t, self.f))
-        self.y = self.data[:,:,13]
+        if len(self.dataset) > 3:
+            print(' ------   18  --------')
+            self.y = self.data[:,:,18]
+        else:
+            self.y = self.data[:,:,13]
         self.y = np.where(self.y > 0., 1., 0.)
         print("data {} \t y {}".format(self.data.shape, self.y.shape))
         print(self.y.mean(1))
@@ -126,7 +130,7 @@ class DataLoaderFreq(object):
         # p_pos = Y[:,0].mean()
         p_pos = Y.mean(0)
         print(Y.shape,'Y')
-        print('------ p_pos =',p_pos)
+        print('------ p_pos =',p_pos, 'Y',Y.shape)
         # exit()
 
         idx = list(range(Y.size(0)))
@@ -155,7 +159,10 @@ def eval_classifier(y_true, y_pred):
     # print(y_true.shape, y_pred.shape)
     r = {}
     r['auc'] = metrics.roc_auc_score(y_true, y_pred)
-    r['aupr'] = metrics.average_precision_score(y_true, y_pred)
+    # r['aupr'] = metrics.average_precision_score(y_true, y_pred)
+    precision, recall, _ = metrics.precision_recall_curve(y_true, y_pred)
+    auc_score = metrics.auc(recall, precision)
+    r['aupr'] = auc_score
     y_bi = np.where(y_pred>0.5, 1, 0)
     r['bacc'] = metrics.balanced_accuracy_score(y_true, y_bi)
     r['prec'] = metrics.precision_score(y_true, y_bi)

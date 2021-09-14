@@ -31,7 +31,8 @@ generate dict for each city
 }
 '''
 # path = '~/data/ACLED/country-jul23/2015-01-01-2021-07-23-Yemen.csv'
-
+# ~/data/ACLED/country-jul23/2017-01-01-2021-07-23-Syria.csv
+# python get_event_json_cities_acled.py /home/sdeng//data/ACLED/country-jul23/2017-01-01-2021-07-23-Syria.csv ../data/Syria.top10.2017-2021.event-stat.json 10
 try:
     path = sys.argv[1]
     # country_name = sys.argv[1]
