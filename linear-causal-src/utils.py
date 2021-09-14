@@ -110,6 +110,7 @@ class DataLoaderFreq(object):
             yy = Y[excerpt]
             xx = X[excerpt]
             if (self.cuda):  
+                xx = xx.cuda()
                 yy = yy.cuda()
             data = [xx, Variable(yy)]
             yield data
