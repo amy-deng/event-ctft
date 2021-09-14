@@ -76,7 +76,8 @@ class DataLoaderFreq(object):
         X = torch.zeros((n, self.m,  self.w, self.f)) 
         Y = torch.zeros((n, self.m))
         n_valid = 0
-        for i in range(0,n,self.hw):
+        # for i in range(0,n,self.hw):
+        for i in range(0,n):
             end = idx_set[i] - self.h + 1
             start = end - self.w 
             start_y = end  + self.h -1
