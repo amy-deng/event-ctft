@@ -16,17 +16,30 @@ python get_propensity.py THA ../data/THA.top10cities.2010-2017.event-stat.json 1
 python get_propensity.py IND ../data/IND.top15cities.2010-2017.event-stat.json 15
 python get_propensity.py RUS ../data/RUS.top10cities.2010-2017.event-stat.json 10
 python get_propensity.py EGY ../data/EGY.top10cities.2010-2017.event-stat.json 10
+python get_propensity.py Syria ../data/Syria.top10.2017-2021.event-stat.json 2017-01-01-2021-07-23-Syria.csv 
+python get_propensity.py Yemen ../data/Yemen.top15.2015-2021.event-stat.json 2015-01-01-2021-07-23-Yemen.csv
 
 '''
 
 try:
     country_name = sys.argv[1]
     json_path = sys.argv[2]
-    # outf = sys.argv[4]
-    n_city = int(sys.argv[3])
+    event_file = sys.argv[3]
 except:
-    print("Usage: <country_code>  <json_path> <n_city>")
+    print("Usage: <country_code>  <json_path> <event_file>")
     exit()
+
+
+
+filename = event_file
+print('filename',filename)
+start_year = int(filename.split('-')[0])
+start_month = int(filename.split('-')[1])
+start_day = int(filename.split('-')[2])
+end_year = int(filename.split('-')[3])
+end_month = int(filename.split('-')[4])
+end_day = int(filename.split('-')[5])
+
 
 # country_name = 'RUS'
 # country_name = 'GBR'
@@ -49,7 +62,7 @@ except:
 cities = open('../data/{}/cities.txt'.format(country_name)).read().splitlines()
 print(len(cities),cities)
 
-s_df = pd.read_json("/home/sdeng/data/icews/news.1991.201703.country/icews_news_{}.json".format(country_name), lines=True)
+s_df = pd.read_csv("/home/sdeng/data/ACLED/country-jul23/{}".format(event_file), sep=';')
 
 event_df = pd.read_json(json_path, lines=True)
 
@@ -86,8 +99,8 @@ event_df = pd.read_json(json_path, lines=True)
 
 # vectorizer = get_tfidf_transformer(event_df,s_df)
 
-start = '2010-01-01'
-end = '2017-03-26'
+start = '{}-{}-{}'.format(start_year, start_month, start_day)
+end = '{}-{}-{}'.format(end_year, end_month, end_day)
 # target_city = cities[0]
 print('from {} to {}'.format(start,end))
 n_days = 0
@@ -101,9 +114,9 @@ for city in cities:
         if filter_events.empty:
             text = ''
         else:
-            story_ids = filter_events['story_ids'].values.tolist()
+            story_ids = filter_events['event_ids'].values.tolist()
             story_ids = list(set(itertools.chain(*story_ids)))
-            texts_all = list(s_df.loc[s_df['StoryID'].isin(story_ids)]['Text'])
+            texts_all = list(s_df.loc[s_df['data_id'].isin(story_ids)]['notes'])
             text = ' '.join(texts_all)
         text_city.append(text)
     print(len(text_city),city)
