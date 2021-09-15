@@ -42,6 +42,15 @@ class DataLoaderFreq(object):
         if len(self.dataset) > 3:
             print(' ------   18  --------')
             self.y = self.data[:,:,18]
+            # self.y = self.data[:,:,[9,18,19]].sum(-1) 
+            '''
+            ['Abduction/forced disappearance', 'Agreement', 'Air/drone strike', 'Armed clash', 'Arrests', 'Attack', 
+            'Change to group/activity', 'Chemical weapon', 'Disrupted weapons use', 'Excessive force against protesters', 
+            'Government regains territory', 'Grenade', 'Headquarters or base established', 'Looting/property destruction', 
+            'Mob violence', 'Non-state actor overtakes territory', 'Non-violent transfer of territory', 'Other', 
+            'Peaceful protest', 'Protest with intervention', 'Remote explosive/landmine/IED', 'Sexual violence', 
+            'Shelling/artillery/missile attack', 'Suicide bomb', 'Violent demonstration']
+            '''
         else:
             self.y = self.data[:,:,13]
         self.y = np.where(self.y > 0., 1., 0.)
