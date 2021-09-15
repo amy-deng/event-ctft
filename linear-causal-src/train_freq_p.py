@@ -12,7 +12,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--gpu', type=int, default=0, help='')
 parser.add_argument('-d','--dataset', type=str, default='THA')
 parser.add_argument('--datafile', type=str, default='collab-t10-2010-freq.pkl')
-parser.add_argument('-m','--model', type=str, default='gruf', help='')
+parser.add_argument('-m','--model', type=str, default='nei_p', help='')
 parser.add_argument('--loop', type=int, default=10)
 parser.add_argument('--aggr_feat', action="store_true")
 # parser.add_argument('--treat_idx', type=int, default=0, help='not used')
@@ -85,9 +85,9 @@ if args.cuda:
 args.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print('args.device:',args.device,' args.cuda:',args.cuda)
  
-data_loader = DataLoaderFreq(args)
-# data_loader = DataLoaderFreqPropensity(args)
-# print('check data. exit()')
+# data_loader = DataLoaderFreq(args)
+data_loader = DataLoaderFreqPropensity(args)
+print('check data. exit()')
 # exit()
 os.makedirs('models', exist_ok=True)
 os.makedirs('models/' + args.dataset, exist_ok=True)
@@ -108,8 +108,8 @@ def prepare(args):
         model = Nei_mean(args, data_loader)
     elif args.model == 'nei_weight':
         model = Nei_weight(args, data_loader)
-    # elif args.model == 'nei_p':
-    #     model = Nei_p(args, data_loader)
+    elif args.model == 'nei_p':
+        model = Nei_p(args, data_loader)
     else: 
         raise LookupError('can not find the model')
     model_name = model.__class__.__name__
@@ -139,9 +139,9 @@ def eval(data_loader, data, tag='val'):
     total_loss = 0.  
     y_true, y_pred = [], []
     for inputs in data_loader.get_batches(data, args.batch, False):
-        [X, Y] = inputs 
+        [X, Y, C] = inputs 
         # if args.model in ['dnnf']:
-        loss, y  = model(X, Y) 
+        loss, y  = model(X, Y, C) 
         total_loss += loss.item()
         y_true.append(Y[:,0])
         y_pred.append(y)
@@ -158,9 +158,9 @@ def train(data_loader, data, epoch, tag='train'):
     total_loss = 0.
     n_samples = 0.
     for inputs in data_loader.get_batches(data, args.batch, True):
-        [X, Y]   = inputs
+        [X, Y, C]   = inputs
         # if args.model in ['dnnf']:
-        loss, y  = model(X, Y) 
+        loss, y  = model(X, Y, C) 
         total_loss += loss.item()
         optimizer.zero_grad()
         loss.backward() 
