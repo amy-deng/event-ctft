@@ -98,7 +98,7 @@ event_df = pd.read_json(json_path, lines=True)
 # vectorizer = get_tfidf_transformer(event_df,s_df)
 
 start = '2010-01-01'
-end = '2010-03-26'
+end = '2017-03-26'
 # target_city = cities[0]
 print('from {} to {}'.format(start,end))
 n_days = 0
