@@ -12,13 +12,8 @@ import sys, time, json, re, itertools, pickle
 from sklearn.feature_extraction.text import CountVectorizer,TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 '''
-python get_propensity.py THA ../data/THA.top10cities.2010-2017.event-stat.json 10
-python get_propensity.py IND ../data/IND.top15cities.2010-2017.event-stat.json 15
-python get_propensity.py RUS ../data/RUS.top10cities.2010-2017.event-stat.json 10
-python get_propensity.py EGY ../data/EGY.top10cities.2010-2017.event-stat.json 10
-python get_propensity.py Syria ../data/Syria.top10.2017-2021.event-stat.json 2017-01-01-2021-07-23-Syria.csv 
-python get_propensity.py Yemen ../data/Yemen.top15.2015-2021.event-stat.json 2015-01-01-2021-07-23-Yemen.csv
-
+python get_propensity_acled.py Syria ../data/Syria.top10.2017-2021.event-stat.json 2017-01-01-2021-07-23-Syria.csv 
+python get_propensity_acled.py Yemen ../data/Yemen.top15.2015-2021.event-stat.json 2015-01-01-2021-07-23-Yemen.csv
 '''
 
 try:

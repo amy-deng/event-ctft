@@ -3,6 +3,12 @@ import os
 import numpy as np
 from subprocess import call
 
+'''
+python search_train_event_p.py ../config/gru_nei_thai.txt 100 nei_p THA collab-t10-2010-freq.pkl 4
+python search_train_event_p.py ../config/gru_nei.txt 100 nei_p RUS collab-t10-2010-freq.pkl 1
+python search_train_event_p.py ../config/gru_nei.txt 100 nei_p IND collab-t15-2010-freq.pkl 2
+python search_train_event_p.py ../config/gru_nei.txt 100 nei_p EGY collab-t10-2010-freq.pkl 3
+'''
 def load_config(cfg_file):
     cfg = {}
 

@@ -108,8 +108,10 @@ def prepare(args):
         model = Nei_mean(args, data_loader)
     elif args.model == 'nei_weight':
         model = Nei_weight(args, data_loader)
-    elif args.model == 'nei_p':
+    elif args.model == 'nei_p2':
         model = Nei_p(args, data_loader)
+    elif args.model == 'nei_wp':
+        model = Nei_wp(args, data_loader)
     else: 
         raise LookupError('can not find the model')
     model_name = model.__class__.__name__

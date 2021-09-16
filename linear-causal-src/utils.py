@@ -40,10 +40,10 @@ class DataLoaderFreq(object):
         self.m, self.t, self.f = self.data.shape
         print("m = {} \t t = {} \t f = {}".format(self.m, self.t, self.f))
         if len(self.dataset) > 3:
-            print(' ------   18  --------')
+            print(' ------    9,18,19,14,24  --------')
             # self.y = self.data[:,:,18]
             self.y = self.data[:,:,[9,18,19,14,24]].sum(-1) 
-            print(self.y)
+            # print(self.y)
             print(self.y.shape,'===========')
             '''
             ['Abduction/forced disappearance', 'Agreement', 'Air/drone strike', 'Armed clash', 'Arrests', 'Attack', 
@@ -169,10 +169,13 @@ class DataLoaderFreqPropensity(object):
         with open('../data/{}/propensity.pkl'.format(self.dataset),'rb') as f:
             self.connection = pkl.load(f) #(n,m)
         
-        with open('../data/{}/geo_dis.pkl'.format(self.dataset),'rb') as f:
+        with open('../data/{}/geo_raw.pkl'.format(self.dataset),'rb') as f:
             self.distance = pkl.load(f) #(m,)
-        self.distance = self.distance + 1e-6
-        self.connection = self.connection/self.distance
+        # self.distance = self.distance + 1e-2
+        # print((1-self.distance)**0.5+1e-12,'~~~~~~~~')
+        # print(self.distance,'~~~~~~~~')
+        self.distance = self.distance / (self.distance.max() + 100)
+        self.connection = self.connection/(1-self.distance)  # **0.5
         self.connection = np.swapaxes(self.connection,0,1)
         print(self.distance,'self.distance',self.connection.max(),self.connection.min())
         with open('../data/{}/{}'.format(self.dataset,self.datafile),'rb') as f:
@@ -182,9 +185,11 @@ class DataLoaderFreqPropensity(object):
         self.m, self.t, self.f = self.data.shape
         print("m = {} \t t = {} \t f = {}".format(self.m, self.t, self.f))
         if len(self.dataset) > 3:
-            print(' ------   18  --------')
-            self.y = self.data[:,:,18]
-            # self.y = self.data[:,:,[9,18,19]].sum(-1) 
+            print(' ------    9,18,19,14,24  --------')
+            # self.y = self.data[:,:,18]
+            self.y = self.data[:,:,[9,18,19,14,24]].sum(-1) 
+            # print(self.y)
+            print(self.y.shape,'===========')
             '''
             ['Abduction/forced disappearance', 'Agreement', 'Air/drone strike', 'Armed clash', 'Arrests', 'Attack', 
             'Change to group/activity', 'Chemical weapon', 'Disrupted weapons use', 'Excessive force against protesters', 
@@ -243,7 +248,7 @@ class DataLoaderFreqPropensity(object):
             # print('i =',i,start, end, start_y,end_y)
             # print(X[i,:,:,:].shape, Y[i,:,:].shape)
             X[i,:,:,:]  = torch.from_numpy(self.data[:,start:end, :]) 
-            C[i,:,:]  = torch.sigmoid(torch.from_numpy(self.connection[:,start:end])) 
+            C[i,:,:]  = torch.from_numpy(self.connection[:,start:end])
             tmp_y = self.y[:,start_y:end_y].sum(-1)
             # print(tmp_y.shape,'tmp_y')
             tmp_y = np.where(tmp_y > 0, 1., 0.)
@@ -255,8 +260,11 @@ class DataLoaderFreqPropensity(object):
         Y = Y[:n_valid]
         C = C[:n_valid]
         print('X',X.shape, 'Y',Y.shape, 'C',C.shape)
+        print(C.max(),C.min(),C.mean(),C.std(),'C - max - min - mean - std')
+        # print(C)
+        # exit()
         return [X, Y, C] 
-
+# 
     def get_batches(self, data, batch_size, shuffle=True):
         [X, Y, C] = data
         length = len(X)
