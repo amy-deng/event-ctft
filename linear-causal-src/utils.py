@@ -208,7 +208,10 @@ class DataLoaderFreqPropensity(object):
         # distance_repreat = 
         # propensity p(i affected by j) = p(i connect j)/p(i observe j) = similarity [0-1] / distance [0-1]
         self._split(int(self.train * self.t), int((self.train + self.val) * self.t), self.t)
+        
         self.distance = torch.from_numpy(self.distance)
+        if (self.cuda):  
+            self.distance = self.distance.cuda()
 
     def _split(self, train, val, test):
         self.train_set = range(self.w+self.h-1, train)
