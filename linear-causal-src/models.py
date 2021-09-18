@@ -133,6 +133,47 @@ class message_weight_p(nn.Module):
         output, hn = self.rep_gru(h)
         return output
 
+
+class message_mlp(nn.Module):
+    def __init__(self, in_feat, rep_hid, m, rep_layer=2, dropout=0.2, device=torch.device('cpu')):
+        super().__init__()
+        self.rep_layer = rep_layer
+        self.linear = nn.Linear(in_feat, rep_hid)
+        self.rep_gru = nn.GRU(rep_hid,rep_hid,rep_layer,batch_first=True,dropout=dropout)
+        # self.w = nn.Parameter(torch.Tensor(m-1))
+        # torch.nn.init.ones_(self.w)
+        self.mlp = nn.Sequential(
+            nn.Linear(rep_hid*2, rep_hid),
+            nn.ReLU(),
+             nn.Linear(rep_hid, 1) # x_target + 
+        )
+        self.linear2 =  nn.Linear(3, 1)
+    def forward(self, X, C, h_target,distance):
+        h = self.linear(X)
+        # print(h.shape,'h ',C.shape,'x c',self.w.shape,'w')
+        h_target_repeat = h_target.unsqueeze(1).repeat(1,h.size(1),1,1)
+        # print(C.shape,'C',h_target.shape,'h_target',h_target_repeat.shape,'h_target_repeat',h.shape,'h')
+        w = self.mlp(torch.cat((h_target_repeat,h),dim=-1))
+        # print(w.shape,'w',distance.shape,'distance')
+        distance_repeat = distance.view(1,-1,1,1).repeat(w.size(0),1,w.size(2),1)
+        c = C.unsqueeze(-1)
+        # print(c.shape,distance_repeat.shape,w.shape)
+        coef = torch.cat((c,distance_repeat,w),dim=-1)
+        learned_w = self.linear2(coef)
+        # print(learned_w.shape,'learned_w')
+        learned_w = learned_w.repeat(1,1,1,h.size(-1))
+        # exit()
+        # w_repeat = self.w.view(1,-1,1)
+        # w_repeat = w_repeat.repeat(C.size(0),1,C.size(2))
+        # c = C*w_repeat
+        # c_repeat = c.unsqueeze(-1).repeat(1,1,1,h.size(-1))
+        # h = h.permute(0,2,3,1).contiguous()
+        # print(h.shape,'h ',C.shape,'x c')
+        h = (h * learned_w).sum(1)
+        # print(h)
+        output, hn = self.rep_gru(h)
+        return output
+
 class DNN_F(nn.Module): 
     def __init__(self, args, data_loader): 
         super().__init__() 
@@ -530,9 +571,76 @@ class Nei_wp(nn.Module):
         neighbor_X = X[:,1:] # n, m, w, f 
         neighbor_Y = Y[:,1:]
         neighbor_P = C[:,1:]
+        h_self = self.linear(target_X)
         h_nei = self.message(neighbor_X, neighbor_P)
         # print(h_nei.shape,'h_nei')
+         
+        hx = torch.cat((torch.zeros(h_nei[:,0].shape).to(self.device),h_nei[:,0]),dim=-1)
+        hx = torch.tanh(self.linear2(hx))
+        hx = self.rnncell(h_self[:,0], hx)
+        for i in range(1,7):
+            hx = torch.tanh(self.linear2(torch.cat((hx,h_nei[:,i]),dim=-1)))
+            hx = self.rnncell(h_self[:,i], hx)
+        h = hx
+        
+        h0 = self.dropout(F.relu(self.hyp_bn_fst0(self.hyp_layer_fst0(h))))
+        if self.hyp_layer > 2:
+            for fc, bn in zip(self.hyp_layers0, self.hyp_bns0):
+                h0 = self.dropout(F.relu(bn(fc(h0))))
+ 
+        y = self.hyp_out0(h0).view(-1)
+        loss = self.criterion(y, target_Y, reduction='mean')
+        if self.binary:
+            y = torch.sigmoid(y)
+        return loss, y
+ 
+class Nei_mlp(nn.Module): 
+    def __init__(self, args, data_loader): 
+        super().__init__() 
+        # self.p = p
+        in_feat = data_loader.f
+        self.device = args.device
+        # self.dropout = args.dropout
+        # self.p_alpha = args.p_alpha
+        self.hyp_layer = args.hyp_layer
+        self.rep_layer = args.rep_layer
+        self.rep_dim = args.rep_dim
+        self.hyp_dim = args.hyp_dim
+        self.device = args.device 
+        self.distance = data_loader.distance
+        # encoder
+        # self.rep_gru = nn.GRU(in_feat,rep_hid,1,batch_first=True,dropout=dropout)
+        self.message = message_mlp(in_feat, self.rep_dim, data_loader.m, self.rep_layer, args.dropout, self.device)
+        self.linear = nn.Linear(in_feat, self.rep_dim)
+        self.linear2 = nn.Linear(self.rep_dim*2, self.rep_dim)
+
+        self.rnncell = nn.GRUCell(self.rep_dim, self.rep_dim) 
+        # decoder
+        self.hyp_layer_fst0 = nn.Linear(self.rep_dim, self.hyp_dim)
+        self.hyp_bn_fst0 = nn.BatchNorm1d(self.hyp_dim)
+        if self.hyp_layer > 2:
+            self.hyp_layers0= nn.ModuleList([nn.Linear(self.hyp_dim, self.hyp_dim) for i in range(self.hyp_layer-2)])
+            self.hyp_bns0 = nn.ModuleList([nn.BatchNorm1d(self.hyp_dim) for i in range(self.hyp_layer-2)])
+        self.hyp_out0 = nn.Linear(self.hyp_dim, 1) 
+ 
+        self.dropout = nn.Dropout(p=args.dropout)
+        # self.decoder = Decoder(self.rep_dim, self.hyp_dim, self.hyp_layer, self.dropout, self.device)
+        self.binary = (not args.realy)
+        if self.binary:
+            self.criterion = F.binary_cross_entropy_with_logits
+        else:
+            self.criterion = F.mse_loss
+
+    def forward(self, X, Y, C): 
+        n, m, w, f = X.shape
+        target_X = X[:,0]
+        target_Y = Y[:,0]
+        neighbor_X = X[:,1:] # n, m, w, f 
+        neighbor_Y = Y[:,1:]
+        neighbor_P = C[:,1:]
         h_self = self.linear(target_X)
+        h_nei = self.message(neighbor_X, neighbor_P, h_self, self.distance[1:])
+        # print(h_nei.shape,'h_nei')
          
         hx = torch.cat((torch.zeros(h_nei[:,0].shape).to(self.device),h_nei[:,0]),dim=-1)
         hx = torch.tanh(self.linear2(hx))

@@ -112,6 +112,8 @@ def prepare(args):
         model = Nei_p(args, data_loader)
     elif args.model == 'nei_wp':
         model = Nei_wp(args, data_loader)
+    elif args.model == 'nei_mlp':
+        model = Nei_mlp(args, data_loader)
     else: 
         raise LookupError('can not find the model')
     model_name = model.__class__.__name__

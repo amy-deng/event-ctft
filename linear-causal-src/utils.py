@@ -174,8 +174,10 @@ class DataLoaderFreqPropensity(object):
         # self.distance = self.distance + 1e-2
         # print((1-self.distance)**0.5+1e-12,'~~~~~~~~')
         # print(self.distance,'~~~~~~~~')
-        self.distance = self.distance / (self.distance.max() + 100)
-        self.connection = self.connection/(1-self.distance)  # **0.5
+        if args.model in ['nei_p2','nei_p2']:
+            print('calculate p')
+            self.distance = self.distance / (self.distance.max() + 100)
+            self.connection = self.connection/(1-self.distance)  # **0.5
         self.connection = np.swapaxes(self.connection,0,1)
         print(self.distance,'self.distance',self.connection.max(),self.connection.min())
         with open('../data/{}/{}'.format(self.dataset,self.datafile),'rb') as f:
@@ -206,6 +208,7 @@ class DataLoaderFreqPropensity(object):
         # distance_repreat = 
         # propensity p(i affected by j) = p(i connect j)/p(i observe j) = similarity [0-1] / distance [0-1]
         self._split(int(self.train * self.t), int((self.train + self.val) * self.t), self.t)
+        self.distance = torch.from_numpy(self.distance)
 
     def _split(self, train, val, test):
         self.train_set = range(self.w+self.h-1, train)
