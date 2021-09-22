@@ -87,7 +87,7 @@ if args.cuda:
 args.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print('args.device:',args.device,' args.cuda:',args.cuda)
  
-data_loader = DataLoaderFreq(args)
+data_loader = DataLoaderLinearCausal(args)
 # data_loader = DataLoaderFreqPropensity(args)
 # print('check data. exit()')
 # exit()
@@ -103,17 +103,21 @@ search_path = "{}/{}/{}_w{}h{}p{}".format(args.outdir,args.dataset,args.model,ar
 os.makedirs(search_path, exist_ok=True)
 
 def prepare(args): 
-    if args.model == 'gruf':
-        args.enc = 'gru'
-        model = DNN_F(args, data_loader)
-    elif args.model == 'nei_mean':
-        model = Nei_mean(args, data_loader)
-    elif args.model == 'nei_weight':
-        model = Nei_weight(args, data_loader)
+    if args.model == 'learned':
+        model = LinearCausalLearned(args, data_loader)
+    elif args.model == 'raw':
+        model = LinearCausalRaw(args, data_loader)
+    # if args.model == 'gruf':
+    #     args.enc = 'gru'
+    #     model = DNN_F(args, data_loader)
+    # elif args.model == 'nei_mean':
+    #     model = Nei_mean(args, data_loader)
+    # elif args.model == 'nei_weight':
+    #     model = Nei_weight(args, data_loader)
     # elif args.model == 'nei_p':
     #     model = Nei_p(args, data_loader)
-    else: 
-        raise LookupError('can not find the model')
+    # else: 
+    #     raise LookupError('can not find the model')
     model_name = model.__class__.__name__
     # print(model)
     token = args.model + '-lr'+str(args.lr)[1:] +  'w' + str(args.window) + 'h'+str(args.horizon) + 'pw'+str(args.pred_window)  \
@@ -141,16 +145,16 @@ def eval(data_loader, data, tag='val'):
     total_loss = 0.  
     y_true, y_pred = [], []
     for inputs in data_loader.get_batches(data, args.batch, False):
-        [X, Y] = inputs 
+        [X, Y, C] = inputs 
         # if args.model in ['dnnf']:
-        loss, y  = model(X, Y) 
+        loss, y  = model(X, Y, C) 
         total_loss += loss.item()
         y_true.append(Y[:,0])
         y_pred.append(y)
         n_samples += 1
     y_true = torch.cat(y_true).cpu().detach().numpy() 
     y_pred = torch.cat(y_pred).cpu().detach().numpy() 
-    eval_dict = eval_classifier(y_true, y_pred)
+    eval_dict = eval_regression(y_true, y_pred)
     return float(total_loss / n_samples), eval_dict
 
 
@@ -160,9 +164,9 @@ def train(data_loader, data, epoch, tag='train'):
     total_loss = 0.
     n_samples = 0.
     for inputs in data_loader.get_batches(data, args.batch, True):
-        [X, Y]   = inputs
+        [X, Y, C]   = inputs
         # if args.model in ['dnnf']:
-        loss, y  = model(X, Y) 
+        loss, y  = model(X, Y, C) 
         total_loss += loss.item()
         optimizer.zero_grad()
         loss.backward() 
@@ -217,6 +221,10 @@ for i in range(args.loop):
     wrt.writerow([val_loss] + [0] + test_res)
     f.close()
 
+# for name, param in model.named_parameters():
+#     if param.requires_grad:
+#         print(name, param.data,param.data.shape)
+print(model.linear.weight[0,:20])
 # cauculate mean and std, and save it to res_stat
 with open(result_file, 'r') as csv_file:
     csv_reader = csv.reader(csv_file, delimiter=',')

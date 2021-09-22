@@ -433,6 +433,13 @@ class Nei_weight(nn.Module):
         else:
             self.criterion = F.mse_loss
 
+    def getConfounder(self, X):
+        neighbor_X = X[:,1:] # n, m, w, f 
+        h_nei = self.message(neighbor_X)
+        # print(h_nei.shape,'==')
+        return h_nei[:,-1]
+        # return h_nei.reshape(h_nei.size(0),-1)
+
     def forward(self, X, Y): 
         n, m, w, f = X.shape
         target_X = X[:,0]
@@ -440,9 +447,11 @@ class Nei_weight(nn.Module):
         neighbor_X = X[:,1:] # n, m, w, f 
         neighbor_Y = Y[:,1:]
         h_nei = self.message(neighbor_X)
-        # print(h_nei.shape,'h_nei')
+        # print(h_nei.shape,'h_nei') 
+        # print(h_nei[:,-1])
+        # -1 is the external influence/ get this and estimate 
         h_self = self.linear(target_X)
-         
+        
         hx = torch.cat((torch.zeros(h_nei[:,0].shape).to(self.device),h_nei[:,0]),dim=-1)
         hx = torch.tanh(self.linear2(hx))
         hx = self.rnncell(h_self[:,0], hx)
@@ -661,6 +670,91 @@ class Nei_mlp(nn.Module):
             y = torch.sigmoid(y)
         return loss, y
  
+
+class LinearCausalLearned(nn.Module): 
+    def __init__(self, args, data_loader): 
+        super().__init__() 
+        # self.p = p
+        in_feat = data_loader.f
+        self.device = args.device 
+        self.device = args.device 
+        self.linear = nn.Linear(in_feat+(args.window)*64, 1, bias=False)
+        self.criterion = nn.L1Loss()# F.mse_loss
+        self.noise = GaussianNoise()
+
+    def forward(self, X, Y, C):
+        batch_size, n_loc, n_feat = X.size()
+        # print(X.shape,'X',Y.shape,'Y',C.shape,'C')
+        # sum up all time steps
+        inp = torch.cat((X[:,0],C),dim=-1)
+        # inp = torch.cat((X.view(batch_size,-1),C),dim=-1)
+
+        
+        # print(inp.shape,'inp')
+        outputs = self.noise(self.linear(inp)).squeeze(1)
+        # print(outputs.shape,'output')
+        loss = self.criterion(outputs,Y[:,0])
+        return loss, outputs
+# ['0.148 0.042', '0.0 0.0', '0.141 0.02', '0.088 0.015']  raw and learned
+
+# ['0.161 0.035', '0.0 0.0', '0.16 0.029', '0.102 0.025'] learned
+
+class LinearCausalRaw(nn.Module): 
+    def __init__(self, args, data_loader): 
+        super().__init__() 
+        # self.p = p
+        in_feat = data_loader.f
+        self.device = args.device 
+        self.device = args.device 
+        # self.linear = nn.Linear(in_feat, 1) 
+        self.linear = nn.Linear(in_feat*data_loader.m, 1, bias=False) 
+        self.criterion = nn.L1Loss()# F.mse_loss
+        self.noise = GaussianNoise()
+    def forward(self, X, Y, C):
+        batch_size, n_loc, n_feat = X.size()
+        # sum up all time steps
+        
+        # inp = torch.cat((X[:,0],C),dim=-1)
+        inp = X.view(batch_size,-1)
+        # inp = X[:,0]
+        # print(inp.shape,'inp')
+        outputs = self.noise(self.linear(inp)).squeeze(1)
+        # print(outputs.shape,'output')
+        loss = self.criterion(outputs,Y[:,0])
+        return loss, outputs
+# ['0.146 0.046', '0.0 0.0', '0.142 0.028', '0.094 0.024'] 
+# ['0.151 0.047', '0.0 0.0', '0.141 0.022', '0.091 0.016']
+
+# only use X[:,0]  
+# ['0.169 0.048', '0.0 0.0', '0.159 0.03', '0.112 0.027']
+
+
+class GaussianNoise(nn.Module):
+    """Gaussian noise regularizer.
+
+    Args:
+        sigma (float, optional): relative standard deviation used to generate the
+            noise. Relative means that it will be multiplied by the magnitude of
+            the value your are adding the noise to. This means that sigma can be
+            the same regardless of the scale of the vector.
+        is_relative_detach (bool, optional): whether to detach the variable before
+            computing the scale of the noise. If `False` then the scale of the noise
+            won't be seen as a constant but something to optimize: this will bias the
+            network to generate vectors with smaller values.
+    """
+    def __init__(self, sigma=0.1, is_relative_detach=True):
+        super().__init__()
+        self.sigma = sigma
+        self.is_relative_detach = is_relative_detach
+        self.register_buffer('noise', torch.tensor(0))
+
+    def forward(self, x):
+        if self.training and self.sigma != 0:
+            scale = self.sigma * x.detach() if self.is_relative_detach else self.sigma * x
+            sampled_noise = self.noise.expand(*x.size()).float().normal_() * scale
+            x = x + sampled_noise
+        return x 
+
 # nei ['0.331 0.022', '0.0 0.0', '0.901 0.002', '0.789 0.013', '0.653 0.026', '0.736 0.041', '0.691 0.016']
 # ['0.326 0.022', '0.0 0.0', '0.903 0.007', '0.82 0.026', '0.628 0.037', '0.84 0.046', '0.718 0.04']
 # ['0.334 0.021', '0.0 0.0', '0.904 0.004', '0.808 0.017', '0.643 0.021', '0.793 0.043', '0.709 0.013']

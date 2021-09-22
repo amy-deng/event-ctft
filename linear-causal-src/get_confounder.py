@@ -1,3 +1,5 @@
+# TODO use the trained model to output the embedding
+
 # -*- coding: utf-8 -*-
 import warnings
 warnings.filterwarnings('ignore')  # "error", "ignore", "always", "default", "module" or "once"
@@ -48,9 +50,11 @@ parser.add_argument('-pw','--pred_window', type=int, default=2)
 
 parser.add_argument('--enc', type=str, default='gru') # or gru
 
-
 parser.add_argument('--realy', action="store_true", help='real value comes with normalization')
 parser.add_argument('--shuffle', action="store_false")
+
+parser.add_argument('--token', type=str)
+parser.add_argument('--i', type=int)
 
 
 args = parser.parse_args()
@@ -130,111 +134,69 @@ def prepare(args):
     if args.cuda:
         model.cuda()
     model = model.double()
-    data_loader.shuffle()
-    print('<<< data shuffled >>>')
+    if args.shuffle:
+        data_loader.shuffle()
+        print('<<< data shuffled >>>')
     return model, optimizer, result_file, token
 
 
-def eval(data_loader, data, tag='val'):
+def getEmb(data_loader, data, tag='val'):
     model.eval()
-    n_samples = 0.
-    total_loss = 0.  
-    y_true, y_pred = [], []
+    # n_samples = 0.
+    # total_loss = 0.  
+    # y_true, y_pred = [], []
+    emb_list = []
     for inputs in data_loader.get_batches(data, args.batch, False):
         [X, Y] = inputs 
         # if args.model in ['dnnf']:
-        loss, y  = model(X, Y) 
-        total_loss += loss.item()
-        y_true.append(Y[:,0])
-        y_pred.append(y)
-        n_samples += 1
-    y_true = torch.cat(y_true).cpu().detach().numpy() 
-    y_pred = torch.cat(y_pred).cpu().detach().numpy() 
-    eval_dict = eval_classifier(y_true, y_pred)
-    return float(total_loss / n_samples), eval_dict
+        # loss, y  = model(X, Y) 
+        emb = model.getConfounder(X)
+        emb_list.append(emb.cpu().detach().numpy())
+    emb_list = np.concatenate(emb_list)
+    print(emb_list.shape,'emb_list',type(emb_list))
+    return emb_list
 
-
-def train(data_loader, data, epoch, tag='train'):
-    model.train()
-    # torch.nn.utils.clip_grad_norm_(model.parameters(), args.clip)
-    total_loss = 0.
-    n_samples = 0.
-    for inputs in data_loader.get_batches(data, args.batch, True):
-        [X, Y]   = inputs
-        # if args.model in ['dnnf']:
-        loss, y  = model(X, Y) 
-        total_loss += loss.item()
-        optimizer.zero_grad()
-        loss.backward() 
-        # torch.nn.utils.clip_grad_norm(model.parameters(),args.clip)
-        optimizer.step()
-        n_samples += 1
-    return float(total_loss / n_samples)
-
-
-for i in range(args.loop):
-    print('============== Loop i = {} on Dataset {} =============='.format(i,args.dataset))
-
-    model, optimizer, result_file, token = prepare(args)
-    model_state_file = 'models/{}/{}/{}.pth'.format(args.dataset, token, i)
-    if i == 0 and os.path.exists(result_file):  # if result_file exist
-        os.remove(result_file)
-    # train factual and counterfactual data
-    
-    """Training"""
-    print('Begin training...')
-    bad_counter = 0
-    stop_criteria = float('inf') # loss as criteria for early stop
-    for epoch in range(0, args.epochs):
-        train_loss = train(data_loader, data_loader.train, epoch)
-        valid_loss, eval_dict = eval(data_loader, data_loader.val, tag='val')
-        if valid_loss < stop_criteria:
-            stop_criteria = valid_loss
-            bad_counter = 0
-            torch.save({'state_dict': model.state_dict(), 'epoch': epoch}, model_state_file)
-            print('Epo {} tr_los:{:.5f} val_los:{:.5f} '.format(epoch, train_loss, valid_loss),'\t'.join(['{}:{:.4f}'.format(k, eval_dict[k]) for k in eval_dict]))
-        else:
-            bad_counter += 1
-        if bad_counter == args.patience:
-            break
-    # print("training done")
-    checkpoint = torch.load(model_state_file, map_location=lambda storage, loc: storage)
-    model.load_state_dict(checkpoint['state_dict'])
  
-    """Testing"""
-    print('Begin testing...')
 
-    f = open(result_file,'a')
-    wrt = csv.writer(f)
-    print("Test using best epoch: {}".format(checkpoint['epoch']))
+# for i in range(args.loop):
+#     print('============== Loop i = {} on Dataset {} =============='.format(i,args.dataset))
 
-    val_loss, eval_dict = eval(data_loader, data_loader.val, 'val')
-    print('Val      ','\t'.join(['{}:{:.4f}'.format(k, eval_dict[k]) for k in eval_dict]))
+model, optimizer, result_file, token = prepare(args)
+model_state_file = 'models/{}/{}/{}.pth'.format(args.dataset, args.token, args.i)
+print('model_state_file',model_state_file)
+checkpoint = torch.load(model_state_file, map_location=lambda storage, loc: storage)
+model.load_state_dict(checkpoint['state_dict'])
 
-    _, eval_dict = eval(data_loader, data_loader.test, 'test')
-    print('Test     ','\t'.join(['{}:{:.4f}'.format(k, eval_dict[k]) for k in eval_dict]))
-    test_res = [eval_dict[k] for k in eval_dict]
-    wrt.writerow([val_loss] + [0] + test_res)
-    f.close()
+print("getEmb using best epoch: {}".format(checkpoint['epoch']))
 
-# cauculate mean and std, and save it to res_stat
-with open(result_file, 'r') as csv_file:
-    csv_reader = csv.reader(csv_file, delimiter=',')
-    arr = []
-    for row in csv_reader:
-        arr.append(list(map(float, row))) 
-arr = np.array(arr)
-arr = np.nan_to_num(arr)
-line_count = arr.shape[0]
-mean = [round(float(v),3) for v in arr.mean(0)]
-std = [round(float(v),3) for v in arr.std(0)]
-res = [str(mean[i]) +' ' + str(std[i]) for i in range(len(mean))]
-print(res)
+train_emb = getEmb(data_loader, data_loader.train, 'train')
 
-# os.remove(result_file)
+val_emb = getEmb(data_loader, data_loader.val, 'val')
 
-all_res_file = '{}/search_{}_{}.csv'.format(search_path,args.dataset,args.model)
-f = open(all_res_file,'a')
-wrt = csv.writer(f)
-wrt.writerow([token] + [line_count] + res)
-f.close()
+test_emb = getEmb(data_loader, data_loader.test, 'test')
+
+all_confounder_emb = np.concatenate((train_emb,val_emb,test_emb))
+print('all_confounder_emb',all_confounder_emb.shape,type(all_confounder_emb))
+with open('{}/{}/nei_weight_emb.pkl'.format(args.data_path, args.dataset), 'wb') as f:
+    pkl.dump(all_confounder_emb,f)
+# # cauculate mean and std, and save it to res_stat
+# with open(result_file, 'r') as csv_file:
+#     csv_reader = csv.reader(csv_file, delimiter=',')
+#     arr = []
+#     for row in csv_reader:
+#         arr.append(list(map(float, row))) 
+# arr = np.array(arr)
+# arr = np.nan_to_num(arr)
+# line_count = arr.shape[0]
+# mean = [round(float(v),3) for v in arr.mean(0)]
+# std = [round(float(v),3) for v in arr.std(0)]
+# res = [str(mean[i]) +' ' + str(std[i]) for i in range(len(mean))]
+# print(res)
+
+# # os.remove(result_file)
+
+# all_res_file = '{}/search_{}_{}.csv'.format(search_path,args.dataset,args.model)
+# f = open(all_res_file,'a')
+# wrt = csv.writer(f)
+# wrt.writerow([token] + [line_count] + res)
+# f.close()

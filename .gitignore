@@ -13,11 +13,18 @@ src/search_results/
 src/results*/
 src/__pycache__/
 
-linear-causal-src/models/
-linear-causal-src/results/
-linear-causal-src/search_results/
-linear-causal-src/results*/
-linear-causal-src/__pycache__/
+# linear-causal-src/models/
+# linear-causal-src/results/
+# linear-causal-src/search_results/
+# linear-causal-src/results*/
+# linear-causal-src/__pycache__/
+
+*-src/models/
+*-src/results/
+*-src/search_results/
+*-src/results*/
+*-src/__pycache__/
+
 
 *.csv
 # C extensions

@@ -2,7 +2,15 @@ import sys
 import os
 import numpy as np
 from subprocess import call
+'''
+python search_train_event.py ../config/gru_nei.txt 100 gruf EGY collab-t10-2010-freq.pkl 3
+python search_train_event.py ../config/gru_nei.txt 100 nei_mean EGY collab-t10-2010-freq.pkl 5
+python search_train_event.py ../config/gru_nei.txt 100 nei_weight EGY collab-t10-2010-freq.pkl 5
 
+python search_train_event.py ../config/gru_nei_thai.txt 100 gruf THA collab-t10-2010-freq.pkl 4
+python search_train_event.py ../config/gru_nei_thai.txt 100 nei_mean THA collab-t10-2010-freq.pkl 6
+python search_train_event.py ../config/gru_nei_thai.txt 100 nei_weight THA collab-t10-2010-freq.pkl 6
+'''
 def load_config(cfg_file):
     cfg = {}
 
@@ -105,7 +113,6 @@ if __name__ == "__main__":
         datafile = sys.argv[5]
         gpu = sys.argv[6]
     except:
-
         print ('Usage: python param_search.py <config file> <num runs> <model name> <dataset> <datafile> <gpu>')
         exit()
     run(config_file, n_runs, model_name, dataset, datafile, gpu)

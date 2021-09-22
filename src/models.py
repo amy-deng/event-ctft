@@ -485,7 +485,6 @@ class CFR_WASS(nn.Module):
         imb, _ = wasserstein_ht(h,C,p,device=self.device)
         # except:
         #     imb = 0.
-
         C_1d = C.view(-1)
         p = torch.mean(C_1d)
         p = torch.mean(C_1d)
