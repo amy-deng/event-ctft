@@ -44,7 +44,7 @@ def main(args):
     print(model_reloaded['united','state','tear','gas','middle','class'])
     # exit()
     '''
-    with open("{}/{}_tokens_from_{}.txt".format(args.result_path,args.country,args.start_year), 'w') as f:
+    with open("{}/{}_sent_tokens_from_{}.txt".format(args.result_path,args.country,args.start_year), 'w') as f:
         for sentence in processed_tokens:
             # phrase_tokens = phrases[sentence]
             f.write(' '.join(sentence)+'\n')

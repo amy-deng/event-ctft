@@ -109,6 +109,16 @@ def process_texts_phrases(texts): # list of list
         l += text_tokenize(t)
     return l
 
+def clean_document(text):
+    text = re.sub(r"''", " ",text) 
+    text = re.sub(r"\\n", " ",text) 
+    return sentence_tokenize(text)
+
+def clean_document_list(texts):
+    l = []
+    for t in texts:
+        l.append(clean_document(t))
+    return l 
 
 def check_exist(outf):
     return os.path.isfile(outf)
