@@ -79,7 +79,7 @@ for city in city_list:
     print (time.ctime(),' events in',city, 'processing')
     print('# dates',len(date_list),date_list[:6])
     for day in date_list:
-        if day > '2017-03-20':
+        if day > '2017-03-20' or day < '{}-01-01'.format(start_year):
             continue
         r = dict()
         # get previous 7 days and next 7 days
