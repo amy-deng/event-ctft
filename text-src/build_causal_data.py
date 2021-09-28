@@ -8,16 +8,18 @@ from gensim.test.utils import common_texts
 from gensim.corpora.dictionary import Dictionary
 from gensim.test.utils import common_corpus, common_dictionary
 from text_utils import *
-
+'''
+python build_causal_data.py
+'''
 try:
     event_path = sys.argv[1] # /home/sdeng/data/icews/detailed_event_json/THA_2010_w14h7_city.json
     out_path = sys.argv[2]
     # dataset = sys.argv[4] # THA
     # start_year = int(sys.argv[3])
     # end_year = int(sys.argv[4])
-    window = int(sys.argv[4])
-    horizon = int(sys.argv[5])
-    lda_name = sys.argv[6]
+    window = int(sys.argv[3])
+    horizon = int(sys.argv[4])
+    lda_name = sys.argv[5]
 except:
     print("usage: <event_path> <out_path>  <window <=14 > <horizon <=7 > <lda_name >")
     exit()

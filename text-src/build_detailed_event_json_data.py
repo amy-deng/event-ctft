@@ -9,7 +9,9 @@ import sys, os, json, time
 # from gensim.corpora.dictionary import Dictionary
 # from gensim.test.utils import common_corpus, common_dictionary
 
-
+'''
+python build_detailed_event_json_data.py THA /home/sdeng/data/icews/detailed_event_json 2010 14 7
+'''
 try:
     country = sys.argv[1]
     out_path = sys.argv[2]
