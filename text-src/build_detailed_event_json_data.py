@@ -38,7 +38,7 @@ def getRoot(x):
     if len(str(x)) == 4: # 1128
         return x // 100
     elif len(str(x)) == 3:
-        if x // 10 < 20: # 190
+        if x // 10 <= 20: # 190
             return x // 10
         else:
             return x // 100
