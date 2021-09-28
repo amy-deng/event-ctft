@@ -9,6 +9,9 @@ from gensim.test.utils import common_texts
 from gensim.corpora.dictionary import Dictionary
 from gensim.test.utils import common_corpus, common_dictionary
 
+'''
+python train_topic_model.py '/home/sdeng/data/icews/corpus/THA_doc_tokens_from_2010.txt' THA 50 /home/sdeng/data/icews/topic_models
+'''
 try:
     corpus_path = sys.argv[1]
     topic_model_name = sys.argv[2] # THA
