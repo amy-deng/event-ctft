@@ -8,8 +8,10 @@ from gensim.test.utils import common_texts
 from gensim.corpora.dictionary import Dictionary
 from gensim.test.utils import common_corpus, common_dictionary
 from text_utils import *
+
 '''
-python build_causal_data.py
+python build_causal_data.py /home/sdeng/data/icews/detailed_event_json/THA_2010_w14h7_city.json ../data 14 7 THA_50
+
 '''
 try:
     event_path = sys.argv[1] # /home/sdeng/data/icews/detailed_event_json/THA_2010_w14h7_city.json
