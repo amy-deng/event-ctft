@@ -12,10 +12,8 @@ import os, string, re
 # from gensim.models.phrases import Phrases, ENGLISH_CONNECTOR_WORDS, original_scorer
 import nltk
 '''
-get tokenized sentences
+get tokenized documents
 '''
- 
- 
     
 def main(args):
      
