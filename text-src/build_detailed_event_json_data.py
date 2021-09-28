@@ -71,7 +71,7 @@ class NpEncoder(json.JSONEncoder):
             return super(NpEncoder, self).default(obj)
 
 
-for city in city_list[100:]:
+for city in city_list:
     df_city = df_has_city.loc[df_has_city['City'] == city]
     date_list = df_city['Event Date'].unique()
     if len(date_list) <= 1:
