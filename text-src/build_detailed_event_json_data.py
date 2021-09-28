@@ -79,6 +79,8 @@ for city in city_list:
     print (time.ctime(),' events in',city, 'processing')
     print('# dates',len(date_list),date_list[:6])
     for day in date_list:
+        if day > '2017-03-20':
+            continue
         r = dict()
         # get previous 7 days and next 7 days
         prev_dates = list(pd.date_range(end=day, periods=window, closed=None).strftime('%Y-%m-%d'))
@@ -111,5 +113,5 @@ for city in city_list:
         # print(r_json)
         outf.write(r_json)
         outf.write('\n')
-    
-    
+outf.close()
+print (time.ctime(),'done')
