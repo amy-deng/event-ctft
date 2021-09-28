@@ -33,18 +33,28 @@ df = df.drop_duplicates(subset=['Country', 'CAMEO Code', 'Event Date', 'Story ID
 df = df.loc[df['Event Date'] > str(start_year-1)+'-12-01']
 print('# cleaned events after {}-12-01 = {}'.format(start_year-1,len(df)))
 
-def getRoot(x):
-    x = int(x)
-    if len(str(x)) == 4: # 1128
-        return x // 100
-    elif len(str(x)) == 3:
-        if x // 10 <= 20: # 190
-            return x // 10
-        else:
-            return x // 100
+# def getRoot(x):
+#     x = int(x)
+#     if len(str(x)) == 4: # 1128
+#         return x // 100
+#     elif len(str(x)) == 3:
+#         if x // 10 <= 20: # 190
+#             return x // 10
+#         else:
+#             return x // 100
+#     else:
+#         return x // 10
+
+def get_cameo_main(code):
+    code = int(code)
+    if code < 100:
+        return code // 10
+    if code // 10 > 20:
+        return code // 100
     else:
-        return x // 10
-df['root'] = df['CAMEO Code'].apply(lambda x: getRoot(x))
+        return code // 10
+
+df['root'] = df['CAMEO Code'].apply(lambda x: get_cameo_main(x))
 print(df.columns)
 
 
