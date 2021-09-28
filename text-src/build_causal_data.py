@@ -69,7 +69,7 @@ for i,row in df.iterrows():
     if text_df.empty:
         continue # no text
     text_list = text_df['Text'].values
-#     print(text_list)
+    print('text',len(text_list))
     processed_tokens = clean_document_list(text_list)
     # processed_tokens = [['crime', 'business','transnational','crime','suppression','csd','stepping','effort','seek','cooperation','foreign','embassy','embassy','criminal','coming','country'],
     #                     ['hitman', 'business', 'transnational', 'crime', 'suppression','csd', 'stepping', 'effort', 'seek','cooperation', 'foreign', 'embassy', 'embassy','criminal','coming', 'country']]
@@ -94,6 +94,8 @@ for i,row in df.iterrows():
     # print(topic_vec)
     raw_covariates.append(topic_vec)
     raw_outcomes.append(event_vec)
+    if i == 20:
+        break
  
     
 raw_covariates = np.stack(raw_covariates,0)
