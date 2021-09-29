@@ -90,7 +90,7 @@ for i,row in df.iterrows():
     past_story_list = [item for sublist in past_story_list for item in sublist]
     past_story_list = list(set(past_story_list))
 
-    current_story_list = [item for sublist in current_story_list for item in sublist]
+    # current_story_list = [item for sublist in current_story_list for item in sublist]
     current_story_list = list(set(current_story_list))
     if len(current_story_list) <= 0 or len(past_story_list) <= 0 :
         continue # no story id
