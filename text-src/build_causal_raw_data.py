@@ -23,7 +23,7 @@ try:
     horizon = int(sys.argv[4])
     lda_name = sys.argv[5]
 except:
-    print("usage: <event_path> <out_path>  <window <=13 > <horizon <=7 > <lda_name `THA_50`>")
+    print("usage: <event_path> <out_path>  <window <=14 > <horizon <=7 > <lda_name `THA_50`>")
     exit()
 
 country = event_path.split('/')[-1][:3]
@@ -61,27 +61,18 @@ loaded_lda =  models.LdaModel.load('/home/sdeng/data/icews/topic_models/{}.lda'.
 raw_covariates = []
 raw_outcomes = []
 for i,row in df.iterrows():
-    story_list = row['story_list']
-    past_story_list = story_list[-window-1:-1]
-    current_story_list = story_list[-1]
-
-    past_story_list = [item for sublist in past_story_list for item in sublist]
-    past_story_list = list(set(past_story_list))
-
-    current_story_list = [item for sublist in current_story_list for item in sublist]
-    current_story_list = list(set(current_story_list))
-    if len(current_story_list) <= 0 or len(past_story_list) <= 0 :
+    story_list = row['story_list'][14-window:]
+    story_list = [item for sublist in story_list for item in sublist]
+    story_list = list(set(story_list))
+    if len(story_list) <= 0:
         continue # no story id
 
-    past_text_df = news_df.loc[news_df['StoryID'].isin(past_story_list)]
-    current_text_df = news_df.loc[news_df['StoryID'].isin(current_story_list)]
-
-    if current_text_df.empty or past_text_df.empty:
+    text_df = news_df.loc[news_df['StoryID'].isin(story_list)]
+    if text_df.empty:
         continue # no text
-
-    # topic as treatments
-    current_text_list = current_text_df['Text'].values
-    processed_tokens = clean_document_list(current_text_list)
+    text_list = text_df['Text'].values
+    # print('text',len(text_list))
+    processed_tokens = clean_document_list(text_list)
     # processed_tokens = [['crime', 'business','transnational','crime','suppression','csd','stepping','effort','seek','cooperation','foreign','embassy','embassy','criminal','coming','country'],
     #                     ['hitman', 'business', 'transnational', 'crime', 'suppression','csd', 'stepping', 'effort', 'seek','cooperation', 'foreign', 'embassy', 'embassy','criminal','coming', 'country']]
     corpus_bow = [loaded_dict.doc2bow(text) for text in processed_tokens]
@@ -95,16 +86,12 @@ for i,row in df.iterrows():
     for k in topic_count:
         topic_vec[k] = topic_count[k]
     
-    #TODO
     # output 
     event_vec = np.zeros(20)
     event_count = row['event_count']
     for k in event_count:
         event_vec[int(k)-1] = event_count[k]
     
-    # covariates
-
-
     # print(event_vec)
     # print(topic_vec)
     raw_covariates.append(topic_vec)
