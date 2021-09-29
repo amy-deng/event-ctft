@@ -26,7 +26,7 @@ try:
     ngram_path = sys.argv[6]
     top_k_ngram = int(sys.argv[7])
 except:
-    print("usage: <event_path> <out_path> <window <=13 > <horizon <=7 > <lda_name `THA_50`> <ngram_path> <top_k_ngram `15000`>")
+    print("usage: <event_path> <out_path> <window <=13 > <horizon <=7 > <lda_name `THA_50`> <ngram_path> <top_k_ngram `16000`>")
     exit()
 
 country = event_path.split('/')[-1][:3]
@@ -48,7 +48,8 @@ print('topic model and dictionary loaded')
 
 with open(ngram_path,'r') as f:
     ngram = f.read().splitlines()
-print('ngram loaded')
+ngram = ngram[:top_k_ngram]
+print('ngram loaded',len(ngram))
 
 
 # ngram_counts['a']
@@ -128,7 +129,7 @@ for i,row in df.iterrows():
 
     '''covariates'''
     past_text_list = past_text_df['Text'].values
-    processed_str = clean_document_list_str(past_text_list)
+    processed_str = ' '.join(clean_document_list_str(past_text_list))
     ngrams_vec = c_vec.fit_transform(processed_str)
     # print(ngrams_vec.shape) # scipy.sparse.csr.csr_matrix
     raw_covariates.append(ngrams_vec)
@@ -149,7 +150,7 @@ for i,row in df.iterrows():
 
     if i % 1000 == 0:
         print('processing i =',i)
-    if i == 50:
+    if i == 20:
         break
  
 raw_treatments_check = np.stack(raw_treatments_check,0)
