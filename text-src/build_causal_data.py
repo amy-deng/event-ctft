@@ -81,6 +81,8 @@ c_vec = CountVectorizer(ngram_range=(1, 1),stop_words='english',vocabulary=ngram
 # np
 raw_covariates = []
 raw_treatments = []
+raw_treatments_check = []
+
 raw_outcomes = []
 for i,row in df.iterrows():
     story_list = row['story_list']
@@ -101,11 +103,9 @@ for i,row in df.iterrows():
     if current_text_df.empty or past_text_df.empty:
         continue # no text
 
-    # topic as treatments
+    '''topic as treatments at current time'''
     current_text_list = current_text_df['Text'].values
     processed_tokens = clean_document_list(current_text_list)
-    # processed_tokens = [['crime', 'business','transnational','crime','suppression','csd','stepping','effort','seek','cooperation','foreign','embassy','embassy','criminal','coming','country'],
-    #                     ['hitman', 'business', 'transnational', 'crime', 'suppression','csd', 'stepping', 'effort', 'seek','cooperation', 'foreign', 'embassy', 'embassy','criminal','coming', 'country']]
     corpus_bow = [loaded_dict.doc2bow(text) for text in processed_tokens]
     r =  loaded_lda.get_document_topics(corpus_bow,per_word_topics=False,minimum_probability=0.01)
     topic_ids = []
@@ -116,33 +116,50 @@ for i,row in df.iterrows():
     topic_count = collections.Counter(topic_ids)
     for k in topic_count:
         topic_vec[k] = topic_count[k]
+    raw_treatments.append(topic_vec)
     
-    # output 
+    
+    '''output''' 
     event_vec = np.zeros(20)
     event_count = row['event_count']
     for k in event_count:
         event_vec[int(k)-1] = event_count[k]
-    
-    # covariates
+    raw_outcomes.append(event_vec)
+
+    '''covariates'''
     past_text_list = past_text_df['Text'].values
     processed_str = clean_document_list_str(past_text_list)
     ngrams_vec = c_vec.fit_transform(processed_str)
     # print(ngrams_vec.shape) # scipy.sparse.csr.csr_matrix
-
-
-    # print(event_vec)
-    # print(topic_vec)
-    raw_treatments.append(topic_vec)
     raw_covariates.append(ngrams_vec)
-    raw_outcomes.append(event_vec)
+
+    # topic in past, used to check if the treatment topic is the first time appear
+    processed_tokens = clean_document_list(past_text_list)
+    corpus_bow = [loaded_dict.doc2bow(text) for text in processed_tokens]
+    r =  loaded_lda.get_document_topics(corpus_bow,per_word_topics=False,minimum_probability=0.01)
+    topic_ids = []
+    topic_vec = np.zeros(50)
+    for j in range(len(r)):
+        topic_id = [a_tuple[0] for a_tuple in r[j]]
+        topic_ids += topic_id
+    topic_count = collections.Counter(topic_ids)
+    for k in topic_count:
+        topic_vec[k] = topic_count[k]
+    raw_treatments_check.append(topic_vec)
+
     if i % 1000 == 0:
         print('processing i =',i)
+    if i == 50:
+        break
  
-    
+raw_treatments_check = np.stack(raw_treatments_check,0)
 raw_treatments = np.stack(raw_treatments,0)
 raw_outcomes = np.stack(raw_outcomes,0)
 print('raw_outcomes',raw_outcomes.shape, 'raw_outcomes',raw_outcomes.shape,'raw_treatments',len(raw_treatments),type(raw_treatments[0]),raw_treatments[0].shape)
 with open("{}/{}".format(dataset_path,out_file),'wb') as f:
-    pickle.dump({'covariate':raw_covariates,'outcome':raw_outcomes,'treatment':raw_treatments},f)
+    pickle.dump({'covariate':raw_covariates,
+    'outcome':raw_outcomes,
+    'treatment':raw_treatments,
+    'treatment_check':raw_treatments_check},f)
 
 print(out_file,'saved')
