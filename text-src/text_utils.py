@@ -120,6 +120,18 @@ def clean_document_list(texts):
         l.append(clean_document(t))
     return l 
 
+
+def clean_document_str(text):
+    text = re.sub(r"''", " ",text) 
+    text = re.sub(r"\\n", " ",text) 
+    return ' '.join(sentence_tokenize(text))
+
+def clean_document_list_str(texts):
+    l = []
+    for t in texts:
+        l.append(clean_document_str(t))
+    return l 
+
 def check_exist(outf):
     return os.path.isfile(outf)
 

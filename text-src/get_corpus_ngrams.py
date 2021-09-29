@@ -38,28 +38,11 @@ with open(corpus_path,'r') as f:
 country = corpus_path.split('/')[-1][:3]
 print('country',country)
 out_file = "{}/{}_{}gram_tfidf.txt".format(out_path,country,ngram)
-# corpus_tokenized = []
-# for text in corpus:
-#     corpus_tokenized.append(text.split(' '))
-# print('corpus_tokenized processed')
-
-
-# text_bigrams = [ngrams(doc, 2) for doc in corpus_tokenized]
-# text_unigrams = [ngrams(doc, 1) for doc in corpus_tokenized]
-
-# ngram_counts = NgramCounter(text_bigrams + text_unigrams)
-# all_counts = dict()
-# for size in 2, 3, 4, 5:
-#     all_counts[size] = FreqDist(ngrams(data, size))
-
-
 
 c_vec = TfidfVectorizer(ngram_range=(1, ngram),stop_words='english', min_df=20)
 
-# input to fit_transform() should be an iterable with strings
 ngrams = c_vec.fit_transform(corpus)
 
-# needs to happen after fit_transform()
 vocab = c_vec.vocabulary_
 
 count_values = ngrams.toarray().sum(axis=0)

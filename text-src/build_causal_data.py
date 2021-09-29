@@ -8,9 +8,10 @@ from gensim.test.utils import common_texts
 from gensim.corpora.dictionary import Dictionary
 from gensim.test.utils import common_corpus, common_dictionary
 from text_utils import *
+from sklearn.feature_extraction.text import CountVectorizer,TfidfVectorizer
 
 '''
-python build_causal_raw_data.py /home/sdeng/data/icews/detailed_event_json/THA_2010_w14h7_city.json ../data 14 7 THA_50
+python build_causal_data.py /home/sdeng/data/icews/detailed_event_json/THA_2010_w14h7_city.json ../data 10 7 THA_50 /home/sdeng/data/icews/corpus/ngrams/THA_1gram_tfidf.txt 15000
 
 '''
 try:
@@ -22,8 +23,10 @@ try:
     window = int(sys.argv[3])
     horizon = int(sys.argv[4])
     lda_name = sys.argv[5]
+    ngram_path = sys.argv[6]
+    top_k_ngram = int(sys.argv[7])
 except:
-    print("usage: <event_path> <out_path>  <window <=13 > <horizon <=7 > <lda_name `THA_50`>")
+    print("usage: <event_path> <out_path> <window <=13 > <horizon <=7 > <lda_name `THA_50`> <ngram_path> <top_k_ngram `15000`>")
     exit()
 
 country = event_path.split('/')[-1][:3]
@@ -41,6 +44,24 @@ news_df = pd.read_json('/home/sdeng/data/icews/news.1991.201703.country/icews_ne
 
 loaded_dict = corpora.Dictionary.load('/home/sdeng/data/icews/topic_models/{}.dict'.format(country))
 loaded_lda =  models.LdaModel.load('/home/sdeng/data/icews/topic_models/{}.lda'.format(lda_name))
+print('topic model and dictionary loaded')
+
+with open(ngram_path,'r') as f:
+    ngram = f.read().splitlines()
+print('ngram loaded')
+
+
+# ngram_counts['a']
+# sorted(ngram_counts[['']].items())
+# from nltk import ngrams, FreqDist
+
+# v = FreqDist(text_bigrams)
+# v.most_common(1)
+ 
+c_vec = CountVectorizer(ngram_range=(1, 1),stop_words='english',vocabulary=ngram,binary=False)
+
+
+    
 
 
 # TODO
@@ -59,6 +80,7 @@ loaded_lda =  models.LdaModel.load('/home/sdeng/data/icews/topic_models/{}.lda'.
 # list(set(story_list))
 # np
 raw_covariates = []
+raw_treatments = []
 raw_outcomes = []
 for i,row in df.iterrows():
     story_list = row['story_list']
@@ -95,7 +117,6 @@ for i,row in df.iterrows():
     for k in topic_count:
         topic_vec[k] = topic_count[k]
     
-    #TODO
     # output 
     event_vec = np.zeros(20)
     event_count = row['event_count']
@@ -103,20 +124,25 @@ for i,row in df.iterrows():
         event_vec[int(k)-1] = event_count[k]
     
     # covariates
+    past_text_list = past_text_df['Text'].values
+    processed_str = clean_document_list_str(past_text_list)
+    ngrams_vec = c_vec.fit_transform(processed_str)
+    # print(ngrams_vec.shape) # scipy.sparse.csr.csr_matrix
 
 
     # print(event_vec)
     # print(topic_vec)
-    raw_covariates.append(topic_vec)
+    raw_treatments.append(topic_vec)
+    raw_covariates.append(ngrams_vec)
     raw_outcomes.append(event_vec)
-    if i % 1500 == 0:
+    if i % 1000 == 0:
         print('processing i =',i)
  
     
-raw_covariates = np.stack(raw_covariates,0)
+raw_treatments = np.stack(raw_treatments,0)
 raw_outcomes = np.stack(raw_outcomes,0)
-print('raw_outcomes',raw_outcomes.shape, 'raw_outcomes',raw_outcomes.shape)
+print('raw_outcomes',raw_outcomes.shape, 'raw_outcomes',raw_outcomes.shape,'raw_treatments',len(raw_treatments),type(raw_treatments[0]),raw_treatments[0].shape)
 with open("{}/{}".format(dataset_path,out_file),'wb') as f:
-    pickle.dump({'covariate':raw_covariates,'outcome':raw_outcomes},f)
+    pickle.dump({'covariate':raw_covariates,'outcome':raw_outcomes,'treatment':raw_treatments},f)
 
 print(out_file,'saved')
