@@ -150,8 +150,8 @@ for i,row in df.iterrows():
 
     if i % 1000 == 0:
         print('processing i =',i)
-    if i == 20:
-        break
+    # if i == 20:
+    #     break
  
 raw_treatments_check = np.stack(raw_treatments_check,0)
 raw_treatments = np.stack(raw_treatments,0)
