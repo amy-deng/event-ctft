@@ -15,7 +15,7 @@ from sklearn.feature_extraction.text import CountVectorizer,TfidfVectorizer
 
 
 '''
-# python get_corpus_ngrams.py '/home/sdeng/data/icews/corpus/THA_doc_tokens_from_2010.txt' 2 /home/sdeng/data/icews/ngrams
+python get_corpus_ngrams.py '/home/sdeng/data/icews/corpus/THA_doc_tokens_from_2010.txt' 2 /home/sdeng/data/icews/corpus/ngrams
 '''
 
 try:
@@ -54,7 +54,7 @@ out_file = "{}/{}_{}gram_tfidf.txt".format(out_path,country,ngram)
 
 
 
-c_vec = TfidfVectorizer(ngram_range=(1, 2),stop_words='english', min_df=15)
+c_vec = TfidfVectorizer(ngram_range=(1, ngram),stop_words='english', min_df=20)
 
 # input to fit_transform() should be an iterable with strings
 ngrams = c_vec.fit_transform(corpus)
