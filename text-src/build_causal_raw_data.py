@@ -8,9 +8,10 @@ from gensim.test.utils import common_texts
 from gensim.corpora.dictionary import Dictionary
 from gensim.test.utils import common_corpus, common_dictionary
 from text_utils import *
+from sklearn.feature_extraction.text import CountVectorizer,TfidfVectorizer
 
 '''
-python build_causal_raw_data.py /home/sdeng/data/icews/detailed_event_json/THA_2010_w14h7_city.json ../data 14 7 THA_50
+python build_causal_data.py /home/sdeng/data/icews/detailed_event_json/THA_2010_w14h7_city.json ../data 10 7 THA_50 /home/sdeng/data/icews/corpus/ngrams/THA_1gram_tfidf.txt 15000
 
 '''
 try:
@@ -22,8 +23,10 @@ try:
     window = int(sys.argv[3])
     horizon = int(sys.argv[4])
     lda_name = sys.argv[5]
+    ngram_path = sys.argv[6]
+    top_k_ngram = int(sys.argv[7])
 except:
-    print("usage: <event_path> <out_path>  <window <=14 > <horizon <=7 > <lda_name `THA_50`>")
+    print("usage: <event_path> <out_path> <window <=13 > <horizon <=7 > <lda_name `THA_50`> <ngram_path> <top_k_ngram `16000`>")
     exit()
 
 country = event_path.split('/')[-1][:3]
@@ -41,6 +44,25 @@ news_df = pd.read_json('/home/sdeng/data/icews/news.1991.201703.country/icews_ne
 
 loaded_dict = corpora.Dictionary.load('/home/sdeng/data/icews/topic_models/{}.dict'.format(country))
 loaded_lda =  models.LdaModel.load('/home/sdeng/data/icews/topic_models/{}.lda'.format(lda_name))
+print('topic model and dictionary loaded')
+
+with open(ngram_path,'r') as f:
+    ngram = f.read().splitlines()
+ngram = ngram[:top_k_ngram]
+print('ngram loaded',len(ngram))
+
+
+# ngram_counts['a']
+# sorted(ngram_counts[['']].items())
+# from nltk import ngrams, FreqDist
+
+# v = FreqDist(text_bigrams)
+# v.most_common(1)
+ 
+c_vec = CountVectorizer(ngram_range=(1, 1),stop_words='english',vocabulary=ngram,binary=False)
+
+
+    
 
 
 # TODO
@@ -59,22 +81,32 @@ loaded_lda =  models.LdaModel.load('/home/sdeng/data/icews/topic_models/{}.lda'.
 # list(set(story_list))
 # np
 raw_covariates = []
+raw_treatments = []
+raw_treatments_check = []
+
 raw_outcomes = []
 for i,row in df.iterrows():
-    story_list = row['story_list'][14-window:]
-    story_list = [item for sublist in story_list for item in sublist]
-    story_list = list(set(story_list))
-    if len(story_list) <= 0:
+    story_list = row['story_list']
+    past_story_list = story_list[-window-1:-1]
+    current_story_list = story_list[-1]
+
+    past_story_list = [item for sublist in past_story_list for item in sublist]
+    past_story_list = list(set(past_story_list))
+
+    # current_story_list = [item for sublist in current_story_list for item in sublist]
+    current_story_list = list(set(current_story_list))
+    if len(current_story_list) <= 0 or len(past_story_list) <= 0 :
         continue # no story id
 
-    text_df = news_df.loc[news_df['StoryID'].isin(story_list)]
-    if text_df.empty:
+    past_text_df = news_df.loc[news_df['StoryID'].isin(past_story_list)]
+    current_text_df = news_df.loc[news_df['StoryID'].isin(current_story_list)]
+
+    if current_text_df.empty or past_text_df.empty:
         continue # no text
-    text_list = text_df['Text'].values
-    # print('text',len(text_list))
-    processed_tokens = clean_document_list(text_list)
-    # processed_tokens = [['crime', 'business','transnational','crime','suppression','csd','stepping','effort','seek','cooperation','foreign','embassy','embassy','criminal','coming','country'],
-    #                     ['hitman', 'business', 'transnational', 'crime', 'suppression','csd', 'stepping', 'effort', 'seek','cooperation', 'foreign', 'embassy', 'embassy','criminal','coming', 'country']]
+
+    '''topic as treatments at current time'''
+    current_text_list = current_text_df['Text'].values
+    processed_tokens = clean_document_list(current_text_list)
     corpus_bow = [loaded_dict.doc2bow(text) for text in processed_tokens]
     r =  loaded_lda.get_document_topics(corpus_bow,per_word_topics=False,minimum_probability=0.01)
     topic_ids = []
@@ -85,25 +117,50 @@ for i,row in df.iterrows():
     topic_count = collections.Counter(topic_ids)
     for k in topic_count:
         topic_vec[k] = topic_count[k]
+    raw_treatments.append(topic_vec)
     
-    # output 
+    
+    '''output''' 
     event_vec = np.zeros(20)
     event_count = row['event_count']
     for k in event_count:
         event_vec[int(k)-1] = event_count[k]
-    
-    # print(event_vec)
-    # print(topic_vec)
-    raw_covariates.append(topic_vec)
     raw_outcomes.append(event_vec)
-    if i % 1500 == 0:
+
+    '''covariates'''
+    past_text_list = past_text_df['Text'].values
+    processed_str = ' '.join(clean_document_list_str(past_text_list))
+    ngrams_vec = c_vec.fit_transform([processed_str])
+    # print(ngrams_vec.shape) # scipy.sparse.csr.csr_matrix
+    raw_covariates.append(ngrams_vec)
+
+    # topic in past, used to check if the treatment topic is the first time appear
+    processed_tokens = clean_document_list(past_text_list)
+    corpus_bow = [loaded_dict.doc2bow(text) for text in processed_tokens]
+    r =  loaded_lda.get_document_topics(corpus_bow,per_word_topics=False,minimum_probability=0.01)
+    topic_ids = []
+    topic_vec = np.zeros(50)
+    for j in range(len(r)):
+        topic_id = [a_tuple[0] for a_tuple in r[j]]
+        topic_ids += topic_id
+    topic_count = collections.Counter(topic_ids)
+    for k in topic_count:
+        topic_vec[k] = topic_count[k]
+    raw_treatments_check.append(topic_vec)
+
+    if i % 1000 == 0:
         print('processing i =',i)
- 
-    
-raw_covariates = np.stack(raw_covariates,0)
+    # if i == 20:
+    #     break
+
+raw_treatments_check = np.stack(raw_treatments_check,0)
+raw_treatments = np.stack(raw_treatments,0)
 raw_outcomes = np.stack(raw_outcomes,0)
-print('raw_outcomes',raw_outcomes.shape, 'raw_outcomes',raw_outcomes.shape)
+print('raw_outcomes',raw_outcomes.shape, 'raw_outcomes',raw_outcomes.shape,'raw_treatments',len(raw_treatments),type(raw_treatments[0]),raw_treatments[0].shape)
 with open("{}/{}".format(dataset_path,out_file),'wb') as f:
-    pickle.dump({'covariate':raw_covariates,'outcome':raw_outcomes},f)
+    pickle.dump({'covariate':raw_covariates,
+    'outcome':raw_outcomes,
+    'treatment':raw_treatments,
+    'treatment_check':raw_treatments_check},f)
 
 print(out_file,'saved')
