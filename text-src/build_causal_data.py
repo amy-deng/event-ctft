@@ -130,7 +130,7 @@ for i,row in df.iterrows():
     '''covariates'''
     past_text_list = past_text_df['Text'].values
     processed_str = ' '.join(clean_document_list_str(past_text_list))
-    ngrams_vec = c_vec.fit_transform(processed_str)
+    ngrams_vec = c_vec.fit_transform([processed_str])
     # print(ngrams_vec.shape) # scipy.sparse.csr.csr_matrix
     raw_covariates.append(ngrams_vec)
 
