@@ -14,22 +14,22 @@ python propensity_score_matching.py ../data THA_topic raw_w7h7 0
 try:
     # event_path = sys.argv[1] # /home/sdeng/data/icews/detailed_event_json/THA_2010_w14h7_city.json
     out_path = sys.argv[1]
-    dataset = sys.argv[2] # THA_topic
+    dataset_name = sys.argv[2] # THA_topic
     raw_data_name = sys.argv[3] 
     topic_id = int(sys.argv[4])
 except:
-    print("usage: <out_path> <dataset `THA_topic`> <raw_data_name `raw_w10h7`> <topic_id>")
+    print("usage: <out_path> <dataset_name `THA_topic`> <raw_data_name `raw_w10h7`> <topic_id>")
     exit()
 
 
-with open('{}/{}/{}/topic_{}.pkl'.format(out_path, dataset, raw_data_name, topic_id),'rb') as f:
+with open('{}/{}/{}/topic_{}.pkl'.format(out_path, dataset_name, raw_data_name, topic_id),'rb') as f:
     dataset = pickle.load(f)
 
 
 
-plot_path = '{}/{}/{}/plot'.format(out_path, dataset, raw_data_name)
+plot_path = '{}/{}/{}/plot'.format(out_path, dataset_name, raw_data_name)
 os.makedirs(plot_path, exist_ok=True)
-exit()
+# exit()
 
 treatment = dataset['treatment']
 treatment = treatment
