@@ -12,7 +12,7 @@ from sklearn.feature_extraction.text import CountVectorizer,TfidfVectorizer
 
 '''
 python build_causal_raw_data.py /home/sdeng/data/icews/detailed_event_json/THA_2010_w14h7_city.json ../data 7 7 THA_50 /home/sdeng/data/icews/corpus/ngrams/THA_1gram_tfidf.txt 15000
-python build_causal_raw_data.py /home/sdeng/data/icews/detailed_event_json/THA_tmp.json ../data 7 7 THA_50 /home/sdeng/data/icews/corpus/ngrams/THA_1gram_tfidf.txt 5000
+python build_causal_raw_data.py /home/sdeng/data/icews/detailed_event_json/THA_2010_w21h7_city.json ../data 7 7 THA_50 /home/sdeng/data/icews/corpus/ngrams/THA_1gram_tfidf.txt 15000
 
 '''
 try:
@@ -163,8 +163,8 @@ for i,row in df.iterrows():
 
     if i % 500 == 0:
         print('processing i =',i)
-    if i == 20:
-        break
+    # if i == 20:
+    #     break
 
 raw_treatments_check = np.stack(raw_treatments_check,0)
 raw_treatments = np.stack(raw_treatments,0)
