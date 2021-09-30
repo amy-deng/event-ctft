@@ -11,7 +11,8 @@ from text_utils import *
 from sklearn.feature_extraction.text import CountVectorizer,TfidfVectorizer
 
 '''
-python build_causal_raw_data.py /home/sdeng/data/icews/detailed_event_json/THA_2010_w14h7_city.json ../data 8 7 THA_50 /home/sdeng/data/icews/corpus/ngrams/THA_1gram_tfidf.txt 15000
+python build_causal_raw_data.py /home/sdeng/data/icews/detailed_event_json/THA_2010_w14h7_city.json ../data 7 7 THA_50 /home/sdeng/data/icews/corpus/ngrams/THA_1gram_tfidf.txt 15000
+python build_causal_raw_data.py /home/sdeng/data/icews/detailed_event_json/THA_tmp.json ../data 7 7 THA_50 /home/sdeng/data/icews/corpus/ngrams/THA_1gram_tfidf.txt 5000
 
 '''
 try:
@@ -133,7 +134,7 @@ for i,row in df.iterrows():
     event_vec = np.zeros((horizon,20))
     event_count_list = row['event_count_list']
     for i_ in range(len(event_count_list)):
-        event_count = event_count_list[i]
+        event_count = event_count_list[i_]
         for k in event_count:
             event_vec[i_][int(k)-1] = event_count[k]
     raw_outcomes.append(event_vec)
