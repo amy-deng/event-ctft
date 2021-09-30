@@ -4,32 +4,35 @@ import sys, os, json, time, collections, pickle
 # import glob
 from sklearn.linear_model import LogisticRegression
 from sklearn.calibration import CalibratedClassifierCV
-import scipy
+from sklearn.preprocessing import StandardScaler
+from matplotlib import pyplot as plt
 
+import scipy
+'''
+python propensity_score_matching.py ../data THA_topic raw_w7h7 0
+'''
 try:
     # event_path = sys.argv[1] # /home/sdeng/data/icews/detailed_event_json/THA_2010_w14h7_city.json
     out_path = sys.argv[1]
     dataset = sys.argv[2] # THA_topic
     raw_data_name = sys.argv[3] 
     topic_id = int(sys.argv[4])
-    event_code = int(sys.argv[5])
-    # start_year = int(sys.argv[3])
-    # end_year = int(sys.argv[4])
-    # window = int(sys.argv[3])
-    # horizon = int(sys.argv[4])
-    # lda_name = sys.argv[5]
-    # ngram_path = sys.argv[6]
-    # top_k_ngram = int(sys.argv[7])
 except:
-    print("usage: <out_path> <dataset `THA_topic`> <raw_data_name `raw_w10h7`> <topic_id> <event_code 1-20>")
+    print("usage: <out_path> <dataset `THA_topic`> <raw_data_name `raw_w10h7`> <topic_id>")
     exit()
 
 
 with open('{}/{}/{}/topic_{}.pkl'.format(out_path, dataset, raw_data_name, topic_id),'rb') as f:
     dataset = pickle.load(f)
 
+
+plot_path = '{}/{}/{}/plot'.format(out_path, dataset, raw_data_name)
+os.makedirs(plot_path, exist_ok=True)
+
+
+
 treatment = dataset['treatment']
-treatment = treatment[:,topic_id]
+treatment = treatment
 treatment = np.where(treatment > 0, 1, 0)
 
 covariate = dataset['covariate']
@@ -42,9 +45,14 @@ outcome_sep_day = dataset['outcome'] # number of events; sum of all days
 
 # train propensity scoring function
 # logistic regression
+scaler = StandardScaler()
+X = scaler.fit_transform(covariate)
+print(X.shape)
 
-cls = LogisticRegression(random_state=42).fit(covariate, treatment)
+cls = LogisticRegression(random_state=42,max_iter=2000)
 cls = CalibratedClassifierCV(cls)
+cls.fit(X, treatment)
+print('propensity scoring model trained')
 
 propensity = cls.predict_proba(covariate)
 propensity = propensity[:,1]
@@ -64,7 +72,8 @@ eff_list = []
 all_outcome_treatment = []
 all_control_outcome = []
 all_control_outcome_day = []
-all_outcome_treatment_day = []
+all_treatment_outcome_day = []
+used_control_indices = []
 n_pairs = 0
 for i in treatment_idices:
     curr = propensity_logit[controlled_indices]
@@ -75,38 +84,71 @@ for i in treatment_idices:
         # get treatment effect?
         outcome_control = outcome[controlled_indices[min_idx]]
         outcome_treatment = outcome[i]
-        print('outcome_control',outcome_control,'outcome_treatment',outcome_treatment)
+        # print('outcome_control',outcome_control,'outcome_treatment',outcome_treatment)
         eff = outcome_treatment-outcome_control
 
         eff_list.append(eff)
         all_outcome_treatment.append(outcome_treatment)
         all_control_outcome.append(outcome_control)
         all_control_outcome_day.append(outcome_sep_day[controlled_indices[min_idx]])
-        all_outcome_treatment_day.append(outcome_sep_day[i])
+        all_treatment_outcome_day.append(outcome_sep_day[i])
         n_pairs += 1
+        used_control_indices.append(controlled_indices[min_idx])
     else:
-        print('no')
+        print('min diff is larger than the caliper {:.5f}; skip'.format(caliper))
 
 eff_list = np.stack(eff_list,0)
 all_control_outcome = np.stack(all_control_outcome,0)
 all_outcome_treatment = np.stack(all_outcome_treatment,0)
 all_control_outcome_day = np.stack(all_control_outcome_day,0)
-all_outcome_treatment_day = np.stack(all_outcome_treatment_day,0)
+all_treatment_outcome_day = np.stack(all_treatment_outcome_day,0)
 
-# TEST TODO
 all_control_outcome_max = all_control_outcome.max(0)
 all_outcome_treatment_max = all_outcome_treatment.max(0)
 all_control_outcome_day_max = all_control_outcome_day.max(0)
-all_outcome_treatment_day_max = all_outcome_treatment_day.max(0)
+all_treatment_outcome_day_max = all_treatment_outcome_day.max(0)
 
 ATE = eff_list.mean(0)
-
+top3 = ATE.argsort()[-3:][::-1]
 # ate 
+fig, axes = plt.subplots(7, 3, figsize=(10,16), sharex=True, sharey=False)
+labels = ['statement', 'appeal','express cooperate','consult','diplomatic cooperation','material cooperation','provide aid','yield','investigate','demand','disapprove','reject','threaten','protest','minitary','reduce relation','coerce','assault','fight','mass violence']
+for i, ax in enumerate(axes.flatten()):
+    if i >= 20:
+        break
+    fig.add_subplot(ax)
+    if ATE[i]>0:
+        lw = 2
+        title_color = 'red'
+    else:
+        lw = 1
+        title_color = 'black'
+    if i in top3:
+        top = '*'
+    else:
+        top = ''
+    ax.set_title(top+labels[i]+top+ ' ATE={:.4f}'.format(ATE[i]),color=title_color)
 
-for i in range(all_control_outcome_day_max.shape[-1]):
-    all_outcome_treatment_day_max[:,i]
-    pass
-# draw treatment group, control group max()
+    ax.plot(all_treatment_outcome_day_max[:,i],label='treated',linewidth=lw,color='blue')#,marker='o')
+    ax.plot(all_control_outcome_day_max[:,i],label='controlled',linewidth=lw,color='orange')
+    max_y = max(all_control_outcome_day_max[:,i].max(), all_treatment_outcome_day_max[:,i].max()) + 2
+    ax.set_ylim(0, max_y) 
+    
+    ax.margins(x=0, y=0)
+    ax.set_ylabel('# of events')#, color=cols[i])
+    ax.set_xlabel('Lead time')
+    ax.legend()
+
+
+plt.subplots_adjust(wspace=0, hspace=0)
+plt.axis('off')
+plt.suptitle('Topic '+str(topic_id), fontsize=16, y=1.0)  
+plt.margins(x=0, y=0)
+plt.legend()
+plt.tight_layout()
+fig.savefig("{}/topic_{}.pdf".format(plot_path,topic_id), bbox_inches='tight', dpi=300, transparent=True)
+# plt.show()
+print('plot saved')
 
 # t  
 
