@@ -25,11 +25,11 @@ except:
 with open('{}/{}/{}/topic_{}.pkl'.format(out_path, dataset, raw_data_name, topic_id),'rb') as f:
     dataset = pickle.load(f)
 
-exit()
+
 
 plot_path = '{}/{}/{}/plot'.format(out_path, dataset, raw_data_name)
 os.makedirs(plot_path, exist_ok=True)
-
+exit()
 
 treatment = dataset['treatment']
 treatment = treatment
