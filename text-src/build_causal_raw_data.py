@@ -11,7 +11,7 @@ from text_utils import *
 from sklearn.feature_extraction.text import CountVectorizer,TfidfVectorizer
 
 '''
-python build_causal_data.py /home/sdeng/data/icews/detailed_event_json/THA_2010_w14h7_city.json ../data 10 7 THA_50 /home/sdeng/data/icews/corpus/ngrams/THA_1gram_tfidf.txt 15000
+python build_causal_raw_data.py /home/sdeng/data/icews/detailed_event_json/THA_2010_w14h7_city.json ../data 8 7 THA_50 /home/sdeng/data/icews/corpus/ngrams/THA_1gram_tfidf.txt 15000
 
 '''
 try:
