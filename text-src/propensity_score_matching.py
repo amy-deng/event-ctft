@@ -25,10 +25,10 @@ except:
 with open('{}/{}/{}/topic_{}.pkl'.format(out_path, dataset, raw_data_name, topic_id),'rb') as f:
     dataset = pickle.load(f)
 
+exit()
 
 plot_path = '{}/{}/{}/plot'.format(out_path, dataset, raw_data_name)
 os.makedirs(plot_path, exist_ok=True)
-
 
 
 treatment = dataset['treatment']
@@ -41,7 +41,7 @@ covariate = np.concatenate([v.toarray() for v in covariate],0)
 outcome = dataset['outcome'].sum(1) # number of events; sum of all days
 # not binary vector
 outcome_sep_day = dataset['outcome'] # number of events; sum of all days
-
+print('data loaded')
 
 # train propensity scoring function
 # logistic regression
