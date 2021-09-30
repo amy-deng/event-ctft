@@ -35,7 +35,7 @@ save_path = '{}/{}/{}'.format(out_path,dataset,raw_data_name)
 os.makedirs(save_path, exist_ok=True)
 
 
-with open('{}/{}.pkl'.format(out_path,dataset,raw_data_name),'rb') as f:
+with open('{}/{}/{}.pkl'.format(out_path,dataset,raw_data_name),'rb') as f:
     data = pickle.load(f)
 treatment = data['treatment'] # np.array
 outcome = data['outcome'] # np.array
