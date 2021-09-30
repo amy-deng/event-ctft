@@ -148,7 +148,7 @@ for i,row in df.iterrows():
         topic_vec[k] = topic_count[k]
     raw_treatments_check.append(topic_vec)
 
-    if i % 1000 == 0:
+    if i % 500 == 0:
         print('processing i =',i)
     # if i == 20:
     #     break

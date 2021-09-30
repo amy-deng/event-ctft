@@ -110,16 +110,20 @@ for city in city_list:
         next_dates = list(pd.date_range(start=day, periods=horizon+1, closed='right').strftime('%Y-%m-%d'))
         df_next_all = df_city.loc[df_city['Event Date'].isin(next_dates)]
         r['event_count'] = df_next_all['root'].value_counts().to_dict() # next 7 days
+        # TODO, better save for each day
 #         print('next_dates',next_dates,df_next_all.empty)
         if df_next_all.empty:
             r['event_ids'] = [[] for i in range(horizon)]
         else:
+            event_count_list = []
             event_list = []
             for d in next_dates:
                 df_next = df_city.loc[df_city['Event Date'] == d]
 #                 print(df_next['Event ID'])
                 event_list.append(df_next['Event ID'].unique())
+                event_count_list.append(df_next['root'].value_counts().to_dict())
             r['event_ids'] = event_list
+            r['event_count_list'] = event_count_list
         # print(r)
         r_json = json.dumps(r, cls=NpEncoder)
         # print(r_json)

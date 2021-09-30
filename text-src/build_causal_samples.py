@@ -11,23 +11,15 @@ from text_utils import *
 from sklearn.feature_extraction.text import CountVectorizer,TfidfVectorizer
 
 '''
-python build_causal_samples.py ../data THA_50 raw_w7h7
+python build_causal_samples.py ../data THA_topic raw_w7h7
 
 '''
 try:
-    # event_path = sys.argv[1] # /home/sdeng/data/icews/detailed_event_json/THA_2010_w14h7_city.json
     out_path = sys.argv[1]
     dataset = sys.argv[2] # THA_topic
-    raw_data_name = sys.argv[3] 
-    # start_year = int(sys.argv[3])
-    # end_year = int(sys.argv[4])
-    # window = int(sys.argv[3])
-    # horizon = int(sys.argv[4])
-    # lda_name = sys.argv[5]
-    # ngram_path = sys.argv[6]
-    # top_k_ngram = int(sys.argv[7])
+    raw_data_name = sys.argv[3]  
 except:
-    print("usage: <out_path> <dataset> <raw_data_name `raw_w10h7`> ")
+    print("usage: <out_path> <dataset `THA_topic`> <raw_data_name `raw_w10h7`> ")
     exit()
 
 
