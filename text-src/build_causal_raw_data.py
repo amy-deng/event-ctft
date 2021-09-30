@@ -121,11 +121,23 @@ for i,row in df.iterrows():
     
     
     '''output''' 
+    '''
     event_vec = np.zeros(20)
     event_count = row['event_count']
     for k in event_count:
         event_vec[int(k)-1] = event_count[k]
     raw_outcomes.append(event_vec)
+    '''
+
+
+    event_vec = np.zeros((horizon,20))
+    event_count_list = row['event_count_list']
+    for i_ in range(len(event_count_list)):
+        event_count = event_count_list[i]
+        for k in event_count:
+            event_vec[i_][int(k)-1] = event_count[k]
+    raw_outcomes.append(event_vec)
+
 
     '''covariates'''
     past_text_list = past_text_df['Text'].values
@@ -150,8 +162,8 @@ for i,row in df.iterrows():
 
     if i % 500 == 0:
         print('processing i =',i)
-    # if i == 20:
-    #     break
+    if i == 20:
+        break
 
 raw_treatments_check = np.stack(raw_treatments_check,0)
 raw_treatments = np.stack(raw_treatments,0)
