@@ -10,7 +10,7 @@ import sys, os, json, time
 # from gensim.test.utils import common_corpus, common_dictionary
 
 '''
-python build_detailed_event_json_data.py THA /home/sdeng/data/icews/detailed_event_json 2010 14 7
+python build_detailed_event_json_data.py THA /home/sdeng/data/icews/detailed_event_json 2010 20 7
 '''
 try:
     country = sys.argv[1]
@@ -114,6 +114,7 @@ for city in city_list:
 #         print('next_dates',next_dates,df_next_all.empty)
         if df_next_all.empty:
             r['event_ids'] = [[] for i in range(horizon)]
+            r['event_count_list'] = [{} for i in range(horizon)]
         else:
             event_count_list = []
             event_list = []
