@@ -55,7 +55,7 @@ for file in file_list:
     X = scaler.fit_transform(covariate)
     # print(X.shape)
 
-    cls = LogisticRegression(random_state=42,max_iter=20)
+    cls = LogisticRegression(random_state=42,max_iter=2000)
     cls = CalibratedClassifierCV(cls)
     cls.fit(X, treatment)
     print('propensity scoring model trained')
