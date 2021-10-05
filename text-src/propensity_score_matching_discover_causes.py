@@ -31,7 +31,7 @@ os.makedirs(plot_path, exist_ok=True)
 # exit()
 # event_id = event_code-1
 effect_dict = {}
-ii = 0
+
 for file in file_list:
     file_name = file.split('/')[-1]
     topic_id = file_name.split('.')[0].split('_')[-1]
@@ -118,9 +118,6 @@ for file in file_list:
 
     ATE = eff_list.mean(0)
     effect_dict[int(topic_id)] = eff_list.mean(0)
-    i+=1
-    if i >= 5:
-        break
     # top3 = ATE.argsort()[-3:][::-1]
 
 with open('{}/{}/{}/plot/effect_dict.pkl'.format(out_path, dataset_name, raw_data_name),'wb') as f:
