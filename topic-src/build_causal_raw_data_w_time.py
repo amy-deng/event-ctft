@@ -132,7 +132,7 @@ for i,row in df.iterrows():
     raw_treatments_check.append(topic_vec)
 
     ''' date '''
-    date_list.append(row['date'])
+    date_list.append(str(row['date']))
 
     if i % 100 == 0:
         print('processing i =',i)
