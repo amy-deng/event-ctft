@@ -9,7 +9,6 @@ from matplotlib import pyplot as plt
 
 import scipy
 '''
-TODO
 python propensity_score_matching_discover_causes.py ../data THA_topic raw_w7h7
 for each event find causes
 '''
