@@ -11,7 +11,6 @@ from text_utils import *
 from sklearn.feature_extraction.text import CountVectorizer,TfidfVectorizer
 from scipy import sparse
 '''
-python build_causal_raw_data_w_time.py /home/sdeng/data/icews/detailed_event_json/THA_2010_w14h7_city.json ../data 7 7 THA_50 /home/sdeng/data/icews/corpus/ngrams/THA_1gram_tfidf.txt 15000
 python build_causal_raw_data_w_time.py /home/sdeng/data/icews/detailed_event_json/THA_2010_w21h7_city.json ../data 7 7 THA_50 /home/sdeng/data/icews/corpus/ngrams/THA_1gram_tfidf.txt 15000
 
 '''
@@ -115,7 +114,8 @@ for i,row in df.iterrows():
     processed_str = ' '.join(clean_document_list_str(past_text_list))
     ngrams_vec = c_vec.fit_transform([processed_str])
     # print(ngrams_vec.shape) # scipy.sparse.csr.csr_matrix
-    raw_covariates.append(ngrams_vec.toarray())
+    raw_covariates.append(ngrams_vec)
+    # raw_covariates.append(ngrams_vec.toarray())
 
     # topic in past, used to check if the treatment topic is the first time appear
     processed_tokens = clean_document_list(past_text_list)
@@ -144,7 +144,7 @@ raw_treatments_check = np.stack(raw_treatments_check,0)
 raw_treatments = np.stack(raw_treatments,0)
 raw_outcomes = np.stack(raw_outcomes,0)
 raw_covariates = np.stack(raw_covariates,0)
-raw_covariates = sparse.csr_matrix(raw_covariates)
+# raw_covariates = sparse.csr_matrix(raw_covariates)
 date_list = np.array(date_list)
 print('raw_outcomes',raw_outcomes.shape,'raw_treatments',raw_treatments.shape,'raw_treatments_check',raw_treatments_check.shape)
 print('raw_covariates',type(raw_covariates),raw_covariates.shape,'date_list',date_list.shape)

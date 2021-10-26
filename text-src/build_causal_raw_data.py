@@ -145,7 +145,8 @@ for i,row in df.iterrows():
     processed_str = ' '.join(clean_document_list_str(past_text_list))
     ngrams_vec = c_vec.fit_transform([processed_str])
     # print(ngrams_vec.shape) # scipy.sparse.csr.csr_matrix
-    raw_covariates.append(ngrams_vec.toarray())
+    raw_covariates.append(ngrams_vec)
+    # raw_covariates.append(ngrams_vec.toarray())
 
     # topic in past, used to check if the treatment topic is the first time appear
     processed_tokens = clean_document_list(past_text_list)
@@ -170,7 +171,7 @@ raw_treatments_check = np.stack(raw_treatments_check,0)
 raw_treatments = np.stack(raw_treatments,0)
 raw_outcomes = np.stack(raw_outcomes,0)
 raw_covariates = np.stack(raw_covariates,0)
-raw_covariates = sparse.csr_matrix(raw_covariates)
+# raw_covariates = sparse.csr_matrix(raw_covariates)
 print('raw_outcomes',raw_outcomes.shape, 'raw_outcomes',raw_outcomes.shape,'raw_treatments',type(raw_covariates),raw_treatments.shape)
 with open("{}/{}".format(dataset_path,out_file),'wb') as f:
     pickle.dump({'covariate':raw_covariates,
