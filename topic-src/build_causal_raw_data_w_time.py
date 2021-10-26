@@ -136,15 +136,14 @@ for i,row in df.iterrows():
 
     if i % 100 == 0:
         print('processing i =',i)
-    if i > 30:
-        print('testing...break')
-        break
+    # if i > 30:
+    #     print('testing...break')
+    #     break
  
 raw_treatments_check = np.stack(raw_treatments_check,0)
 raw_treatments = np.stack(raw_treatments,0)
 raw_outcomes = np.stack(raw_outcomes,0)
 raw_covariates = np.stack(raw_covariates,0)
-# raw_covariates = sparse.csr_matrix(raw_covariates)
 date_list = np.array(date_list)
 print('raw_outcomes',raw_outcomes.shape,'raw_treatments',raw_treatments.shape,'raw_treatments_check',raw_treatments_check.shape)
 print('raw_covariates',type(raw_covariates),raw_covariates.shape,'date_list',date_list.shape)
