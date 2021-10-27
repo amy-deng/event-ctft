@@ -30,7 +30,7 @@ file_list = glob.glob('{}/{}/{}/*.pkl'.format(out_path, dataset_name, raw_data_n
 save_path = '{}/{}/{}/causal_effect'.format(out_path, dataset_name, raw_data_name)
 os.makedirs(save_path, exist_ok=True)
 effect_dict = {}
-for file in file_list[:2]:
+for file in file_list:
     file_name = file.split('/')[-1]
     tmp = file_name.split('.')[0].split('_')
     topic_id = int(tmp[1])
@@ -106,7 +106,7 @@ for file in file_list[:2]:
     effect_dict[(int(topic_id),split_date)] = eff_list.mean(0)
     # top3 = ATE.argsort()[-3:][::-1]
 
-with open('{}/effect_dict.pkl'.format(save_path),'wb') as f:
+with open('{}/effect_dict_pw{}_biy{}.pkl'.format(save_path,pred_window,target_binary),'wb') as f:
     pickle.dump(effect_dict,f)
 print(save_path,'/effect_dict.pkl saved')
  
