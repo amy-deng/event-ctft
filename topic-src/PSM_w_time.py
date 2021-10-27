@@ -49,9 +49,9 @@ for file in file_list[:2]:
         exit()
     # no need to draw
     print("dataset['outcome']",dataset['outcome'].shape)
-    outcome = dataset['outcome'][:,:,].sum(1) # number of events; sum of all days
+    outcome = dataset['outcome'][:,:pred_window,].sum(1) # number of events; sum of all days
     # not binary vector
-    outcome_sep_day = dataset['outcome'][:,:,] # number of events; sum of all days
+    outcome_sep_day = dataset['outcome'][:,:pred_window,] # number of events; sum of all days
     print('topic {} data loaded'.format(topic_id))
     print('outcome',outcome.shape, 'outcome_sep_day',outcome_sep_day.shape) 
  
