@@ -68,7 +68,7 @@ sorted_indices = np.argsort(dates)
 
 samples_by_time = {}
 
-for topic_id in range(2):
+for topic_id in range(50):
     treatment_assign_by_topic = []
     covariate_by_topic = []
     outcome_by_topic = []
