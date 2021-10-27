@@ -9,7 +9,7 @@ from matplotlib import pyplot as plt
 
 import scipy
 '''
-python PSM_w_time.py ../data THA_topic check_topic_causal_data_w7h7
+python PSM_w_time.py ../data THA_topic check_topic_causal_data_w7h7 5 1
 for each event find causes
 '''
 try:
@@ -18,7 +18,7 @@ try:
     dataset_name = sys.argv[2] # THA_topic
     raw_data_name = sys.argv[3] 
     pred_window = sys.argv[4]
-    target_binary = sys.argv[5]
+    target_binary = int(sys.argv[5])
     # event_code = int(sys.argv[4])
 except:
     print("usage: <out_path> <dataset_name `THA_topic`> <raw_data_name `check_topic_causal_data_w7h7`> <pred_window 5> <target_binary 0>")
@@ -48,6 +48,7 @@ for file in file_list[:2]:
         print('only support non-binary target variable now')
         exit()
     # no need to draw
+    print("dataset['outcome']",dataset['outcome'].shape)
     outcome = dataset['outcome'][:,:,].sum(1) # number of events; sum of all days
     # not binary vector
     outcome_sep_day = dataset['outcome'][:,:,] # number of events; sum of all days
