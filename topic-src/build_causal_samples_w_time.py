@@ -67,14 +67,13 @@ def save_samples(treatment, outcome, covariate, outpath):
 sorted_indices = np.argsort(dates)
 
 samples_by_time = {}
-cur_time_split_idx = 0
+
 for topic_id in range(2):
     treatment_assign_by_topic = []
     covariate_by_topic = []
     outcome_by_topic = []
 
-    out_file = "{}/topic_{}.pkl".format(save_path,topic_id)
-
+    cur_time_split_idx = 0
     for i in sorted_indices:
 
         date = dates[i]
