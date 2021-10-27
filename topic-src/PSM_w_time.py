@@ -17,7 +17,7 @@ try:
     out_path = sys.argv[1]
     dataset_name = sys.argv[2] # THA_topic
     raw_data_name = sys.argv[3] 
-    pred_window = sys.argv[4]
+    pred_window = int(sys.argv[4])
     target_binary = int(sys.argv[5])
     # event_code = int(sys.argv[4])
 except:
