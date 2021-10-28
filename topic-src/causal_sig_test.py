@@ -18,12 +18,12 @@ try:
     out_path = sys.argv[1]
     dataset_name = sys.argv[2] # THA_topic
     raw_data_name = sys.argv[3] 
-    effect_dict = sys.argv[4] 
+    effect_dict_name = sys.argv[4] 
 except:
-    print("usage: <out_path> <dataset_name `THA_topic`> <raw_data_name `check_topic_causal_data_w7h7`> <effect_dict>")
+    print("usage: <out_path> <dataset_name `THA_topic`> <raw_data_name `check_topic_causal_data_w7h7`> <effect_dict_name>")
     exit()
 
-file_path = "{}/{}/{}/causal_effect/{}.pkl".format(out_path,dataset_name,raw_data_name,effect_dict)
+file_path = "{}/{}/{}/causal_effect/{}.pkl".format(out_path,dataset_name,raw_data_name,effect_dict_name)
 
 with open(file_path,'rb') as f:
     effect_dict = pickle.load(f)
@@ -42,7 +42,7 @@ splitted_date_lists = [
 
 event_types = ['statement', 'appeal','express cooperate','consult','diplomatic cooperation','material cooperation','provide aid','yield','investigate','demand','disapprove','reject','threaten','protest','minitary','reduce relation','coerce','assault','fight','mass violence']
 
-f = open('{}/{}/{}/causal_effect/{}.csv'.format(out_path, dataset_name, raw_data_name,effect_dict),'a')
+f = open('{}/{}/{}/causal_effect/{}.csv'.format(out_path, dataset_name, raw_data_name,effect_dict_name),'a')
 wrt = csv.writer(f)
 wrt.writerow(["event-idx", "event-type", 'rank', "topic-id","effect","z-score","p-value","end-date"])
 
