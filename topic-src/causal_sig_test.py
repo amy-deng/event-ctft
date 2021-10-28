@@ -44,7 +44,7 @@ event_types = ['statement', 'appeal','express cooperate','consult','diplomatic c
 
 f = open('{}/{}/{}/causal_effect/causes.csv'.format(out_path, dataset_name, raw_data_name),'a')
 wrt = csv.writer(f)
-wrt.writerow(["event-idx", "event-type", 'rank', "topic-id","p-value","end-date"])
+wrt.writerow(["event-idx", "event-type", 'rank', "topic-id","effect","p-value","end-date"])
 
 for end_date in splitted_date_lists:
     res = []
@@ -60,7 +60,7 @@ for end_date in splitted_date_lists:
         res.append(tmp)
     res = np.stack(res)
 
-    print('end_date={} \t res {}'.format(end_date,res.shape))
+    # print('end_date={} \t res {}'.format(end_date,res.shape))
 
     z_list = []
     for j in range(20):
@@ -72,9 +72,9 @@ for end_date in splitted_date_lists:
         len_nonzero = len(np.nonzero(sig_idx)[0])
         topic_idx = sorted_idx[:len_nonzero]
         top_p = p_values[topic_idx]
-        print(event_types[j],len_nonzero,top_p,topic_idx)
+        # print(event_types[j],len_nonzero,top_p,topic_idx)
         for i in range(len(topic_idx)):
-            r = [j,event_types[j],i,topic_idx[i],end_date,top_p[i]]
+            r = [j,event_types[j],i,topic_idx[i],round(res[:,j][i],5),round(top_p[i],5),end_date]
             print(r)
             wrt.writerow(r)
 
