@@ -62,10 +62,12 @@ for end_date in splitted_date_lists:
 
     # print('end_date={} \t res {}'.format(end_date,res.shape))
 
-    z_list = []
+    # z_list = []
     for j in range(20):
-        z_list.append(stats.zscore(res[:,j]))
-        z_scores = stats.zscore(res[:,j])
+        # z_list.append(stats.zscore(res[:,j]))
+        effect = res[:,j]
+        z_scores = stats.zscore(effect)
+        # print('z_scores',z_scores.shape)
         p_values = scipy.stats.norm.cdf(z_scores)
         # p_values = scipy.stats.norm.sf(abs(z_scores))*2
         sorted_idx = np.argsort(p_values)
@@ -73,9 +75,11 @@ for end_date in splitted_date_lists:
         len_nonzero = len(np.nonzero(sig_idx)[0])
         topic_idx = sorted_idx[:len_nonzero]
         top_p = p_values[topic_idx]
+        top_z = z_scores[topic_idx]
+        top_effect = effect[topic_idx]
         # print(event_types[j],len_nonzero,top_p,topic_idx)
         for i in range(len(topic_idx)):
-            r = [j,event_types[j],i,topic_idx[i],round(res[:,j][i],5),round(z_scores[i],5),round(top_p[i],5),end_date]
+            r = [j,event_types[j],i,topic_idx[i],round(top_effect[i],5),round(top_z[i],5),round(top_p[i],5),end_date]
             # print(r)
             wrt.writerow(r)
 
