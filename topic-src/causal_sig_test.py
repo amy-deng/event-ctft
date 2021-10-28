@@ -44,7 +44,7 @@ event_types = ['statement', 'appeal','express cooperate','consult','diplomatic c
 
 f = open('{}/{}/{}/causal_effect/causes.csv'.format(out_path, dataset_name, raw_data_name),'a')
 wrt = csv.writer(f)
-wrt.writerow(["event-idx", "event-type", 'rank', "topic-id","effect","p-value","end-date"])
+wrt.writerow(["event-idx", "event-type", 'rank', "topic-id","effect","z-score","p-value","end-date"])
 
 for end_date in splitted_date_lists:
     res = []
@@ -74,7 +74,7 @@ for end_date in splitted_date_lists:
         top_p = p_values[topic_idx]
         # print(event_types[j],len_nonzero,top_p,topic_idx)
         for i in range(len(topic_idx)):
-            r = [j,event_types[j],i,topic_idx[i],round(res[:,j][i],5),round(top_p[i],5),end_date]
+            r = [j,event_types[j],i,topic_idx[i],round(res[:,j][i],5),round(z_scores[i]),round(top_p[i],5),end_date]
             # print(r)
             wrt.writerow(r)
 
