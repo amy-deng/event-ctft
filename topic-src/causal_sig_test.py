@@ -24,7 +24,7 @@ except:
     print("usage: <out_path> <dataset_name `THA_topic`> <raw_data_name `check_topic_causal_data_w7h7`> <effect_dict_name> <sig_level 0.05 0.01>")
     exit()
 
-file_path = "{}/{}/{}/causal_effect/{}_.pkl".format(out_path,dataset_name,raw_data_name,effect_dict_name,sig_level)
+file_path = "{}/{}/{}/causal_effect/{}.pkl".format(out_path,dataset_name,raw_data_name,effect_dict_name)
 
 with open(file_path,'rb') as f:
     effect_dict = pickle.load(f)
@@ -43,7 +43,7 @@ splitted_date_lists = [
 
 event_types = ['statement', 'appeal','express cooperate','consult','diplomatic cooperation','material cooperation','provide aid','yield','investigate','demand','disapprove','reject','threaten','protest','minitary','reduce relation','coerce','assault','fight','mass violence']
 
-f = open('{}/{}/{}/causal_effect/{}.csv'.format(out_path, dataset_name, raw_data_name,effect_dict_name),'a')
+f = open('{}/{}/{}/causal_effect/{}_{}.csv'.format(out_path, dataset_name, raw_data_name,effect_dict_name,sig_level),'a')
 wrt = csv.writer(f)
 wrt.writerow(["event-idx", "event-type", 'rank', "topic-id","effect","z-score","p-value","end-date"])
 
