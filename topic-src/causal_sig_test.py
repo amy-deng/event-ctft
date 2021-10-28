@@ -66,7 +66,8 @@ for end_date in splitted_date_lists:
     for j in range(20):
         z_list.append(stats.zscore(res[:,j]))
         z_scores = stats.zscore(res[:,j])
-        p_values = scipy.stats.norm.sf(abs(z_scores))*2
+        p_values = scipy.stats.norm.cdf
+        # p_values = scipy.stats.norm.sf(abs(z_scores))*2
         sorted_idx = np.argsort(p_values)
         sig_idx = np.where(p_values<0.05,1,0)
         len_nonzero = len(np.nonzero(sig_idx)[0])
