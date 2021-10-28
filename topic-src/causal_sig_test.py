@@ -55,6 +55,7 @@ for end_date in splitted_date_lists:
             exit()
 
         tmp = effect_dict[key]
+        print(tmp.shape)
         res.append(tmp)
     res = np.stack(res)
 
