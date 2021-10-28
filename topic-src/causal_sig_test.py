@@ -42,7 +42,7 @@ splitted_date_lists = [
 
 event_types = ['statement', 'appeal','express cooperate','consult','diplomatic cooperation','material cooperation','provide aid','yield','investigate','demand','disapprove','reject','threaten','protest','minitary','reduce relation','coerce','assault','fight','mass violence']
 
-f = open('{}/{}/{}/causal_effect/causes.csv'.format(out_path, dataset_name, raw_data_name),'a')
+f = open('{}/{}/{}/causal_effect/effect_dict_pw5_biy0.csv'.format(out_path, dataset_name, raw_data_name),'a')
 wrt = csv.writer(f)
 wrt.writerow(["event-idx", "event-type", 'rank', "topic-id","effect","z-score","p-value","end-date"])
 
