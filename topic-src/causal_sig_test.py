@@ -68,8 +68,8 @@ for end_date in splitted_date_lists:
         effect = res[:,j]
         z_scores = stats.zscore(effect)
         # print('z_scores',z_scores.shape)
-        p_values = scipy.stats.norm.cdf(z_scores)
-        # p_values = scipy.stats.norm.sf(abs(z_scores))*2
+        # p_values = scipy.stats.norm.cdf(z_scores)
+        p_values = scipy.stats.norm.sf(abs(z_scores))*2
         sorted_idx = np.argsort(p_values)
         sig_idx = np.where(p_values<0.05,1,0)
         len_nonzero = len(np.nonzero(sig_idx)[0])
