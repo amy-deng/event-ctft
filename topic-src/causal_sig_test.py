@@ -75,7 +75,7 @@ for end_date in splitted_date_lists:
         # print(event_types[j],len_nonzero,top_p,topic_idx)
         for i in range(len(topic_idx)):
             r = [j,event_types[j],i,topic_idx[i],round(res[:,j][i],5),round(top_p[i],5),end_date]
-            print(r)
+            # print(r)
             wrt.writerow(r)
 
 f.close()
