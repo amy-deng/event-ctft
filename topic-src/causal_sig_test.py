@@ -52,10 +52,11 @@ for end_date in splitted_date_lists:
         key = (topic,end_date)
         if key not in effect_dict:
             print('key',key)
-            exit()
-
-        tmp = effect_dict[key]
-        print(tmp.shape)
+            # exit()
+            tmp = np.zeros(20)
+        else:
+            tmp = effect_dict[key]
+        # print(tmp.shape)
         res.append(tmp)
     res = np.stack(res)
 
