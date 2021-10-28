@@ -19,11 +19,12 @@ try:
     dataset_name = sys.argv[2] # THA_topic
     raw_data_name = sys.argv[3] 
     effect_dict_name = sys.argv[4] 
+    sig_level = float(sys.argv[5])
 except:
-    print("usage: <out_path> <dataset_name `THA_topic`> <raw_data_name `check_topic_causal_data_w7h7`> <effect_dict_name>")
+    print("usage: <out_path> <dataset_name `THA_topic`> <raw_data_name `check_topic_causal_data_w7h7`> <effect_dict_name> <sig_level 0.05 0.01>")
     exit()
 
-file_path = "{}/{}/{}/causal_effect/{}.pkl".format(out_path,dataset_name,raw_data_name,effect_dict_name)
+file_path = "{}/{}/{}/causal_effect/{}_.pkl".format(out_path,dataset_name,raw_data_name,effect_dict_name,sig_level)
 
 with open(file_path,'rb') as f:
     effect_dict = pickle.load(f)
@@ -71,7 +72,7 @@ for end_date in splitted_date_lists:
         # p_values = scipy.stats.norm.cdf(z_scores)
         p_values = scipy.stats.norm.sf(abs(z_scores))*2
         sorted_idx = np.argsort(p_values)
-        sig_idx = np.where(p_values<0.05,1,0)
+        sig_idx = np.where(p_values<sig_level,1,0)
         len_nonzero = len(np.nonzero(sig_idx)[0])
         topic_idx = sorted_idx[:len_nonzero]
         top_p = p_values[topic_idx]
