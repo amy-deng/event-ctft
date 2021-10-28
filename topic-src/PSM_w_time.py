@@ -44,17 +44,19 @@ for file in file_list:
     treatment = np.where(treatment > 0, 1, 0)
     covariate = dataset['covariate']
     covariate = np.concatenate([v.toarray() for v in covariate],0) 
-    if target_binary == 1:
-        print('only support non-binary target variable now')
-        exit()
-    # no need to draw
+    
     print("dataset['outcome']",dataset['outcome'].shape)
     outcome = dataset['outcome'][:,:pred_window,].sum(1) # number of events; sum of all days
-    # not binary vector
-    outcome_sep_day = dataset['outcome'][:,:pred_window,] # number of events; sum of all days
+    # outcome_sep_day = dataset['outcome'][:,:pred_window,] # number of events; sum of all days
+
+    if target_binary == 1:
+        print('Convert outcome to binary')
+        outcome = np.where(outcome > 0, 1, 0)
+        # exit()
+
     print('topic {} data loaded'.format(topic_id))
-    print('outcome',outcome.shape, 'outcome_sep_day',outcome_sep_day.shape) 
- 
+    print('outcome',outcome.shape) 
+    
     # train propensity scoring function
     # logistic regression
     scaler = StandardScaler()
