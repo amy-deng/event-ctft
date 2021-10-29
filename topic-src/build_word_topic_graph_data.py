@@ -364,11 +364,11 @@ for i,row in df.iterrows():
         for id in vocab_ids:
             g.ids[id] = idx
             idx += 1
-        print(g)
+        # print(g)
         g_list.append(g)
     all_g_list.append(g_list)
-    if len(all_g_list) >= 3:
-        break
+    # if len(all_g_list) >= 3:
+        # break
 
 y_list = torch.tensor(y_list)
 # save_graphs(dataset_path + "/data.bin", all_g_list, {"y":y_list})
