@@ -276,8 +276,8 @@ for i,row in df.iterrows():
     if day_has_data < his_days_threshold:
         continue
     city = row['city']
-    date = row['date']
-    print(date,type(date),str(date))
+    date = str(row['date'])[:10]
+    # print(date,type(date),str(date))
     event_count_list = row['event_count_list'][:horizon] # event_count = row['event_count']
     event_count = {}
     ys = []
