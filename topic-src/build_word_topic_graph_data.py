@@ -301,7 +301,7 @@ for i,row in df.iterrows():
             break
     causal_weight = causal_time_dict[cur_end_date]
     # used to set topic nodes [just hightlight topic] TODO
-    print('{} day_has_data, cur_end_date:{}'.format(day_has_data,cur_end_date))
+    print('i={} \t {} day_has_data \t cur_end_date:{}'.format(i,day_has_data,cur_end_date))
     # 2. build hetero graph for each day
     g_list = []
     for story_ids_day in story_list:
@@ -367,7 +367,7 @@ for i,row in df.iterrows():
         print(g)
         g_list.append(g)
     all_g_list.append(g_list)
-    if i > 10:
+    if len(g_list) >= 10:
         break
 
 y_list = torch.tensor(y_list)
