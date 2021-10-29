@@ -269,8 +269,8 @@ def topic_word_conn(sample_words,num_words=20):
 num_sample, num_pos_sample = 0, 0
 all_g_list, y_list, city_list, date_list = [], [], [], []
 for i,row in df.iterrows():
-    if i <278:
-        continue
+    # if i <278:
+    #     continue
     day_has_data = 0
     story_list = row['story_list'][-window:]
     for v in story_list:
