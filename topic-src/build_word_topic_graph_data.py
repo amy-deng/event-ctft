@@ -224,6 +224,7 @@ def doc_topic_dist(tokens_list):
     doc_node, topic_node, weight = [], [], []
     for doc_id in range(len(topic_dists)):
         topic_weights = topic_dists[doc_id]
+        print('topic_weights',topic_weights)
         for t,w in topic_weights:
             doc_node.append(doc_id)
             topic_node.append(t)
@@ -268,6 +269,8 @@ def topic_word_conn(sample_words,num_words=20):
 num_sample, num_pos_sample = 0, 0
 all_g_list, y_list, city_list, date_list = [], [], [], []
 for i,row in df.iterrows():
+    if i <278:
+        continue
     day_has_data = 0
     story_list = row['story_list'][-window:]
     for v in story_list:
@@ -309,7 +312,7 @@ for i,row in df.iterrows():
             # how to deal with it
             continue
         story_text_lists = news_df.loc[news_df['StoryID'].isin(story_ids_day)]['Text'].values
-        # print('story_text_lists',len(story_text_lists))
+        print('story_ids_day',len(story_ids_day),'story_text_lists',len(story_text_lists))
         tokens_list = clean_document_list(story_text_lists)
         # words appeared in this example
         sample_words = list(set([item for sublist in tokens_list for item in sublist]))
