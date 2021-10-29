@@ -1,3 +1,4 @@
+from nltk.util import pr
 import pandas as pd
 import numpy as np
 import sys, os, json, time, collections, pickle, math
@@ -12,55 +13,43 @@ from sklearn.feature_extraction.text import CountVectorizer,TfidfVectorizer
 from scipy import sparse
 from scipy.spatial.distance import cdist
 import dgl
+from dgl.data.utils import save_graphs,load_graphs
+
 #### build datasets
-### TODO
-
-# only select samples that have enough historical news, different locations
-# {
-#     'date':'',# future events
-#     'story_id': '',# historical news'
-#     'event_dict':
-#     'city':
-#     'state':
-# }
-
-# use data generated from build_detailed_event_json_data.py
-# 
-
-event_path = '/home/sdeng/data/icews/detailed_event_json/THA_2010_w21h7_city.json'
-lda_name = 'THA_50'
-ngram_path = '/home/sdeng/data/icews/corpus/ngrams/THA_1gram_tfidf.txt'
-country = 'THA'
-top_k_ngram = 15000
-window=7
-horizon=7
-his_days_threshold=3
-causal_file = '../data/THA_topic/check_topic_causal_data_w7h7/causal_effect/effect_dict_pw7_biy1_0.05.csv'
+### testing
+ 
+'''
+python build_word_topic_graph_data.py /home/sdeng/data/icews/detailed_event_json/THA_2010_w21h7_city.json ../data THA_50 /home/sdeng/data/icews/corpus/ngrams/THA_1gram_tfidf.txt 15000 7 7 3 ../data/THA_topic/check_topic_causal_data_w7h7/causal_effect/effect_dict_pw7_biy1_0.05.csv
+'''
+# event_path = '/home/sdeng/data/icews/detailed_event_json/THA_2010_w21h7_city.json'
+# lda_name = 'THA_50'
+# ngram_path = '/home/sdeng/data/icews/corpus/ngrams/THA_1gram_tfidf.txt'
+# country = 'THA'
+# top_k_ngram = 15000
+# window=7
+# horizon=7
+# his_days_threshold=3
+# causal_file = '../data/THA_topic/check_topic_causal_data_w7h7/causal_effect/effect_dict_pw7_biy1_0.05.csv'
 try:
     event_path = sys.argv[1] # /home/sdeng/data/icews/detailed_event_json/THA_2010_w21h7_city.json
     out_path = sys.argv[2]
     lda_name = sys.argv[3]
     ngram_path = sys.argv[4]
     top_k_ngram = int(sys.argv[5])
-
-    
     window = int(sys.argv[6])
     horizon = int(sys.argv[7])
     his_days_threshold = int(sys.argv[8])
-
     causal_file = sys.argv[9] # ../data/THA_topic/check_topic_causal_data_w7h7/causal_effect/effect_dict_pw7_biy1_0.05.csv
 except:
     print("usage: <event_path> <out_path> <lda_name `THA_50`> <ngram_path> <top_k_ngram `15000`> <window 7> <horizon 7> <his_days_threshold 3> <causal_file>")
     exit()
 
 country = event_path.split('/')[-1][:3]
-dataset = country + '_topic'
+dataset = '{}_w{}h{}_minday{}'.format(country,window,horizon,his_days_threshold)
 dataset_path = "{}/{}".format(out_path,dataset)
 os.makedirs(dataset_path, exist_ok=True)
 print('dataset_path',dataset_path)
-
-# out_file = "raw_w{}h{}.pkl".format(window,horizon)
-# print('out_file',out_file)
+ 
 
 '''event and news'''
 df = pd.read_json(event_path,lines=True)
@@ -80,7 +69,6 @@ word_id_map = {}
 for i in range(len(vocab)):
     word_id_map[vocab[i]] = i
 
-
 # 2017-01-01
 splitted_date_lists = [
     '2010-07-01',
@@ -96,12 +84,15 @@ causal_time_dict = {}
 for end_date in splitted_date_lists:
     tmp = causal_df.loc[causal_df['end-date']==end_date]
     causal_topic_effect = tmp[['topic-id','effect']].values
-    effect_all_topic = [0. for i in range(50)]
+    effect_all_topic = np.zeros(50)#[0. for i in range(50)]
     for topic_id, eff in causal_topic_effect:
         effect_all_topic[int(topic_id)] = round(eff,5)
     causal_time_dict[end_date] = effect_all_topic
 
-'''non-causal'''
+'''non-causal since we defined the significance level, 
+then middle parts are considered random, 
+maybe just randomly denoise those topics in approach design'''
+
 
 def word_word_pmi(tokens_list, window_size=20):
     '''
@@ -275,51 +266,49 @@ def topic_word_conn(sample_words,num_words=20):
 
 # his_days_threshold=3
 num_sample, num_pos_sample = 0, 0
-all_g_list, y_list = []
+all_g_list, y_list, city_list, date_list = [], [], [], []
 for i,row in df.iterrows():
-    story_list = row['story_list'][-window:]
-    city = row['city']
-    date = row['date']
-    event_count_list = row['event_count_list'][:horizon] # event_count = row['event_count']
-    event_ids = row['event_ids']
-    event_count = {}
-    for d in event_count_list:
-        if len(d) > 0:
-            for key in d:
-                event_count[key] = event_count.get(key,0)+d[key]
     day_has_data = 0
+    story_list = row['story_list'][-window:]
     for v in story_list:
         if len(v) > 0:
             day_has_data += 1
     if day_has_data < his_days_threshold:
         continue
-    num_sample+=1
-    if event_count and '14' in event_count:
-        num_pos_sample += 1
+    city = row['city']
+    date = row['date']
+    event_count_list = row['event_count_list'][:horizon] # event_count = row['event_count']
+    event_count = {}
+    ys = []
+    for i in range(len(event_count_list)):
+        curr_event_count = event_count_list[i]
+        if len(curr_event_count) > 0: 
+            for key in curr_event_count:
+                event_count[key] = event_count.get(key,0)+curr_event_count[key]
+        if event_count and '14' in event_count:
+            ys.append(1)
+        else:
+            ys.append(0)
+    y_list.append(ys)  
+    city_list.append(city)
+    date_list.append(date)
 
-    # get data and build topic graph
-    #  1. set window, build PMI word graph 
-    # 2. connect topic and doc? and words 
-    # 2. check date in which range
-    # 
-    
-    for end_date in splitted_date_lists:
+    # 1. get causal topic
+    for end_date in splitted_date_lists: # check date in which range
         if date < end_date:
             cur_end_date = end_date
             break
-    print('cur_end_date',cur_end_date)
+    causal_weight = causal_time_dict[cur_end_date]
     # used to set topic nodes [just hightlight topic] TODO
-
-
-    # build graph for each day
+    print('{} day_has_data, cur_end_date:{}'.format(day_has_data,cur_end_date))
+    # 2. build hetero graph for each day
     g_list = []
     for story_ids_day in story_list:
         if len(story_ids_day) <= 0:
             # how to deal with it
             continue
-    
         story_text_lists = news_df.loc[news_df['StoryID'].isin(story_ids_day)]['Text'].values
-        print('story_text_lists',len(story_text_lists))
+        # print('story_text_lists',len(story_text_lists))
         tokens_list = clean_document_list(story_text_lists)
         # words appeared in this example
         sample_words = list(set([item for sublist in tokens_list for item in sublist]))
@@ -361,6 +350,9 @@ for i,row in df.iterrows():
 
         g = dgl.heterograph(graph_data)
         g.nodes['word'].data['id'] = torch.from_numpy(vocab_ids).long()
+        topic_graph_nodes = g.nodes('topic').numpy()
+        causal_weight = torch.from_numpy(causal_weight[topic_graph_nodes])
+        g.nodes['topic'].data['effect'] = causal_weight
         g.edges['ww'].data['weight'] = edge_ww
         g.edges['dw'].data['weight'] = edge_dw
         g.edges['dt'].data['weight'] = edge_dt
@@ -371,78 +363,27 @@ for i,row in df.iterrows():
         for id in vocab_ids:
             g.ids[id] = idx
             idx += 1
-
+        print(g)
         g_list.append(g)
-    # build graph, for each sample, get historical graphs
-    g = dgl.graph((src,dst)) # between words, undirected
+    all_g_list.append(g_list)
+    if i > 10:
+        break
 
+y_list = torch.tensor(y_list)
+save_graphs(dataset_path + "/data.bin", all_g_list, {"y":y_list})
+attr_dict = {"date":date_list,"city":city_list}
+with open(dataset_path + '/attr.pkl','wb') as f:
+    pickle.dump(attr_dict, f)
+print(dataset_path + '/attr.pkl', 'saved!')
 
-
-
-
-import dgl
-import torch as th
-# Create a heterograph with 3 node types and 3 edges types.
-graph_data = {
-   ('drug', 'interacts', 'drug'): (th.tensor([0, 1]), th.tensor([1, 2])),
-   ('drug', 'interacts', 'gene'): (th.tensor([0, 1]), th.tensor([2, 3])),
-   ('drug', 'treats', 'disease'): (th.tensor([1]), th.tensor([2]))
-}
-g = dgl.heterograph(graph_data)
-g.ntypes
-g.etypes
-g.canonical_etypes
-    
-
-data = np.array([
-    [3,0,2],
-    [2,0,3],
-    [1,1,3]
-])
-src, rel, dst = data.transpose()
-uniq_v, edges = np.unique((src, dst), return_inverse=True)  
-src, dst = np.reshape(edges, (2, -1))
-uniq_v
-
-
-
-# at lease 1 day?
-count_empty_story = 0
-count_empty_story_no_protest = 0
-
-for i,row in df.iterrows():
-    story_list = row['story_list']
-    city = row['city']
-    date = row['date']
-    event_count = row['event_count']
-    event_ids = row['event_ids']
-    flat_story_list = [item for sublist in story_list for item in sublist]
-    if len(flat_story_list) < 20:
-        count_empty_story+=1
-        if len(event_count) <= 0 or '14' not in event_count:
-            count_empty_story_no_protest += 1
-
-
-def test(threshold):
-    count_empty_story = 0
-    count_empty_story_no_protest = 0
-    for i,row in df.iterrows():
-        story_list = row['story_list']
-        city = row['city']
-        date = row['date']
-        event_count = row['event_count']
-        event_ids = row['event_ids']
-        day = 0
-        for v in story_list:
-            if len(v) > 0:
-                day += 1
-        if day >= threshold:
-            count_empty_story+=1
-            if len(event_count) <= 0 or '14' not in event_count:
-                count_empty_story_no_protest += 1
-    print('count_empty_story',count_empty_story,'count_empty_story_no_protest',count_empty_story_no_protest)
-    print(count_empty_story_no_protest/count_empty_story)
-
-
-
-test(threshold=2)
+ 
+# data = np.array([
+#     [3,0,2],
+#     [2,0,3],
+#     [1,1,3]
+# ])
+# src, rel, dst = data.transpose()
+# uniq_v, edges = np.unique((src, dst), return_inverse=True)  
+# src, dst = np.reshape(edges, (2, -1))
+# uniq_v
+ 
