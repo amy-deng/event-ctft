@@ -352,8 +352,8 @@ for i,row in df.iterrows():
         g = dgl.heterograph(graph_data)
         g.nodes['word'].data['id'] = torch.from_numpy(vocab_ids).long()
         topic_graph_nodes = g.nodes('topic').numpy()
-        causal_weight = torch.from_numpy(causal_weight[topic_graph_nodes])
-        g.nodes['topic'].data['effect'] = causal_weight
+        curr_causal_weight = torch.from_numpy(causal_weight[topic_graph_nodes])
+        g.nodes['topic'].data['effect'] = curr_causal_weight
         g.edges['ww'].data['weight'] = edge_ww
         g.edges['dw'].data['weight'] = edge_dw
         g.edges['dt'].data['weight'] = edge_dt
