@@ -224,7 +224,7 @@ def doc_topic_dist(tokens_list):
     doc_node, topic_node, weight = [], [], []
     for doc_id in range(len(topic_dists)):
         topic_weights = topic_dists[doc_id]
-        print('topic_weights',topic_weights)
+        # print('topic_weights',topic_weights)
         for t,w in topic_weights:
             doc_node.append(doc_id)
             topic_node.append(t)
