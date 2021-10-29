@@ -269,8 +269,8 @@ def topic_word_conn(sample_words,num_words=20):
 num_sample, num_pos_sample = 0, 0
 all_g_list, y_list, city_list, date_list = [], [], [], []
 for i,row in df.iterrows():
-    if i <278:
-        continue
+    # if i <278:
+    #     continue
     day_has_data = 0
     story_list = row['story_list'][-window:]
     for v in story_list:
@@ -305,6 +305,7 @@ for i,row in df.iterrows():
     causal_weight = causal_time_dict[cur_end_date]
     # used to set topic nodes [just hightlight topic] TODO
     print('i={} \t {} day_has_data \t cur_end_date:{}'.format(i,day_has_data,cur_end_date))
+    continue
     # 2. build hetero graph for each day
     g_list = []
     for story_ids_day in story_list:
@@ -312,7 +313,9 @@ for i,row in df.iterrows():
             # how to deal with it
             continue
         story_text_lists = news_df.loc[news_df['StoryID'].isin(story_ids_day)]['Text'].values
-        print('story_ids_day',len(story_ids_day),'story_text_lists',len(story_text_lists))
+        if len(story_text_lists) <= 0:
+            print('story_ids_day',len(story_ids_day),'story_text_lists',len(story_text_lists))
+            continue
         tokens_list = clean_document_list(story_text_lists)
         # words appeared in this example
         sample_words = list(set([item for sublist in tokens_list for item in sublist]))
