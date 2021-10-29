@@ -367,15 +367,16 @@ for i,row in df.iterrows():
         print(g)
         g_list.append(g)
     all_g_list.append(g_list)
-    if len(g_list) >= 5:
+    if len(g_list) >= 3:
         break
 
 y_list = torch.tensor(y_list)
-save_graphs(dataset_path + "/data.bin", all_g_list, {"y":y_list})
-attr_dict = {"date":date_list,"city":city_list}
-with open(dataset_path + '/attr.pkl','wb') as f:
+# save_graphs(dataset_path + "/data.bin", all_g_list, {"y":y_list})
+print('g',len(all_g_list),'y',len(y_list), 'date',len(date_list), 'city',len(city_list))
+attr_dict = {"graphs_list":all_g_list,"y":y_list,"date":date_list,"city":city_list}
+with open(dataset_path + '/data.pkl','wb') as f:
     pickle.dump(attr_dict, f)
-print(dataset_path + '/attr.pkl', 'saved!')
+print(dataset_path + '/data.pkl', 'saved!')
 
  
 # data = np.array([
