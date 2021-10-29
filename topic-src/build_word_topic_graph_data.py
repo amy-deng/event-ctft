@@ -281,8 +281,8 @@ for i,row in df.iterrows():
     event_count_list = row['event_count_list'][:horizon] # event_count = row['event_count']
     event_count = {}
     ys = []
-    for i in range(len(event_count_list)):
-        curr_event_count = event_count_list[i]
+    for ii in range(len(event_count_list)):
+        curr_event_count = event_count_list[ii]
         if len(curr_event_count) > 0: 
             for key in curr_event_count:
                 event_count[key] = event_count.get(key,0)+curr_event_count[key]
