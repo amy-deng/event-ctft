@@ -367,7 +367,7 @@ for i,row in df.iterrows():
         print(g)
         g_list.append(g)
     all_g_list.append(g_list)
-    if len(g_list) >= 3:
+    if len(all_g_list) >= 3:
         break
 
 y_list = torch.tensor(y_list)
