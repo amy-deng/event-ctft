@@ -277,6 +277,7 @@ for i,row in df.iterrows():
         continue
     city = row['city']
     date = row['date']
+    print(date,type(date),str(date))
     event_count_list = row['event_count_list'][:horizon] # event_count = row['event_count']
     event_count = {}
     ys = []
