@@ -93,3 +93,6 @@ f.close()
 #     writer = csv.writer(outcsv)
 #     writer.writerow(["event-idx", "event-type", 'rank', "topic-id","p-value"])
 
+# finally decide to use this one [effect_dict_pw7_biy1_0.05.csv]. 
+# binary outcome remove the noise that if repeated events are reforted 
+# pred_window=7, if historical window=7,then causes still count
