@@ -185,4 +185,6 @@ Yemen
 
 
 
-tokens_list = [['thailand', 'karaoke', 'karaoke', 'owner', 'wounded', 'pattani', 'shooting', 'shooting', 'insurgency', 'deep', 'south', 'continues', 'gun', 'attack', 'injured', 'karaoke', 'shop', 'owner', 'pattani', 'insurgent', 'carried', 'bomb', 'attack', 'district', 'injury', 'reported', 'explosion', 'damaged', 'motorcycle', 'left', 'ban', 'ban', 'bu-sala', 'song', 'road', 'yarang', 'district', 'pattani', 'human', 'casualty', 'reported', 'investigator', 'network'], ['killed', 'thai', 'troubled', 'south', 'people', 'including', 'marine', 'suspected', 'militant', 'killed', 'separate', 'clash', 'thailand', 'violent', 'south', 'police', 'military', 'officer', 'wednesday', 'military', 'security', 'force', 'arrest', 'militant', 'gathering', 'gun', 'thailand']]
+tokens_list = [['thailand', 'karaoke', 'karaoke', 'owner', 'wounded', 'pattani', 'shooting', 'shooting', 'insurgency', 'deep', 'south', 'continues', 'gun', 'attack', 'injured', 'karaoke', 'shop', 'owner', 'pattani', 'insurgent', 
+'carried', 'bomb', 'attack', 'district', 'injury', 'reported', 'explosion', 'damaged', 'motorcycle', 'left', 'ban', 'ban', 'bu-sala', 'song', 'road', 'yarang', 'district', 'pattani', 'human', 'casualty', 
+'reported', 'investigator', 'network'], ['killed', 'thai', 'troubled', 'south', 'people', 'including', 'marine', 'suspected', 'militant', 'killed', 'separate', 'clash', 'thailand', 'violent', 'south', 'police', 'military', 'officer', 'wednesday', 'military', 'security', 'force', 'arrest', 'militant', 'gathering', 'gun', 'thailand']]

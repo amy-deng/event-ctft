@@ -270,9 +270,9 @@ num_sample, num_pos_sample = 0, 0
 all_g_list, y_list, city_list, date_list = [], [], [], []
 
 # topic---topic
-topic_i, topic_j, weight = topic_topic_sim(percent=85)
+topic_i, topic_j, weight = topic_topic_sim(percent=95) # 85
 edge_tt = torch.tensor(weight)
-
+print('# topic nodes',len(set(topic_i)),len(set(topic_j)))
 for i,row in df.iterrows():
     day_has_data = 0
     story_list = row['story_list'][-window:]
@@ -319,7 +319,7 @@ for i,row in df.iterrows():
 
     graph_data = {}
     # word---word
-    word_i, word_j, weight = word_word_pmi(tokens_list, window_size=20) # window-size=20
+    word_i, word_j, weight = word_word_pmi(tokens_list, window_size=30) # window-size=20
     # print('# word nodes',len(set(word_i)),len(set(word_j)))
 
     vocab_ids, edges = np.unique((word_i, word_j), return_inverse=True)  
@@ -367,7 +367,7 @@ for i,row in df.iterrows():
     for id in vocab_ids:
         g.ids[id] = idx
         idx += 1
-    # print(g)
+    print(g)
     # g_list.append(g) 
     all_g_list.append(g)
     y_list.append(ys)  
@@ -381,7 +381,7 @@ y_list = torch.tensor(y_list)
 # save_graphs(dataset_path + "/data.bin", all_g_list, {"y":y_list})
 print('g',len(all_g_list),'y',len(y_list), 'date',len(date_list), 'city',len(city_list))
 attr_dict = {"graphs_list":all_g_list,"y":y_list,"date":date_list,"city":city_list}
-with open(dataset_path + '/data_static.pkl','wb') as f:
+with open(dataset_path + '/data_static_tt95_ww30.pkl','wb') as f:
     pickle.dump(attr_dict, f)
 print(dataset_path + '/data.pkl', 'saved!')
 
