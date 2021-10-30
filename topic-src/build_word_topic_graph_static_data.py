@@ -332,7 +332,9 @@ for i,row in df.iterrows():
     words_in_curr_sample.sort()
     vocab_graph_node_map = dict(zip(words_in_curr_sample,range(len(words_in_curr_sample))))
     word_graph_node = [vocab_graph_node_map[v] for v in word_node]
-    graph_data[('doc','dw','word')]=(torch.tensor(doc_node),torch.tensor(word_graph_node))
+    # graph_data[('doc','dw','word')]=(torch.tensor(doc_node),torch.tensor(word_graph_node))
+    graph_data[('word','wd','doc')]=(torch.tensor(word_graph_node),torch.tensor(doc_node))
+
     edge_dw = torch.tensor(weight)
 
     # word---word
@@ -351,7 +353,8 @@ for i,row in df.iterrows():
     # doc---topic
     doc_node, topic_node, weight = doc_topic_dist(tokens_list)
     # print('# topic nodes',len(set(topic_node)),len(set(doc_node)))
-    graph_data[('doc','dt','topic')]=(torch.tensor(doc_node),torch.tensor(topic_node))
+    # graph_data[('doc','dt','topic')]=(torch.tensor(doc_node),torch.tensor(topic_node))
+    graph_data[('topic','td','doc')]=(torch.tensor(topic_node),torch.tensor(doc_node))
     edge_dt = torch.tensor(weight)
     '''# topic---topic
     topic_i, topic_j, weight = topic_topic_sim(percent=85)
@@ -363,7 +366,8 @@ for i,row in df.iterrows():
     topic_node, word_node, weight = topic_word_conn(sample_words,num_words=20) #need check words existed in topics
     # print('# word nodes',len(set(word_node)),len(set(topic_node)))
     word_graph_node = [vocab_graph_node_map[v] for v in word_node]
-    graph_data[('topic','tw','word')]=(torch.tensor(topic_node),torch.tensor(word_graph_node))
+    # graph_data[('topic','tw','word')]=(torch.tensor(topic_node),torch.tensor(word_graph_node))
+    graph_data[('word','wt','topic')]=(torch.tensor(word_graph_node),torch.tensor(topic_node))
     edge_tw = torch.tensor(weight)
 
     g = dgl.heterograph(graph_data)
@@ -374,10 +378,10 @@ for i,row in df.iterrows():
     curr_causal_weight = torch.from_numpy(causal_weight[topic_graph_nodes])
     g.nodes['topic'].data['effect'] = curr_causal_weight
     g.edges['ww'].data['weight'] = edge_ww
-    g.edges['dw'].data['weight'] = edge_dw
-    g.edges['dt'].data['weight'] = edge_dt
+    g.edges['wd'].data['weight'] = edge_dw
+    g.edges['td'].data['weight'] = edge_dt
     g.edges['tt'].data['weight'] = edge_tt
-    g.edges['tw'].data['weight'] = edge_tw
+    g.edges['wt'].data['weight'] = edge_tw
     g.ids = {}
     idx = 0
     for id in words_in_curr_sample:
@@ -397,7 +401,7 @@ y_list = torch.tensor(y_list)
 # save_graphs(dataset_path + "/data.bin", all_g_list, {"y":y_list})
 print('g',len(all_g_list),'y',len(y_list), 'date',len(date_list), 'city',len(city_list))
 attr_dict = {"graphs_list":all_g_list,"y":y_list,"date":date_list,"city":city_list}
-with open(dataset_path + '/data_static_{}_{}_tt85_ww10.pkl'.format(start_date,stop_date),'wb') as f:
+with open(dataset_path + '/data_static_{}_{}_tt85_ww10_2.pkl'.format(start_date,stop_date),'wb') as f:
     pickle.dump(attr_dict, f)
 print(dataset_path + '/data.pkl', 'saved!')
 
