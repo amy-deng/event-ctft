@@ -268,6 +268,11 @@ def topic_word_conn(sample_words,num_words=20):
 # his_days_threshold=3
 num_sample, num_pos_sample = 0, 0
 all_g_list, y_list, city_list, date_list = [], [], [], []
+
+# topic---topic
+topic_i, topic_j, weight = topic_topic_sim(percent=85)
+edge_tt = torch.tensor(weight)
+
 for i,row in df.iterrows():
     # if i <278:
     #     continue
@@ -293,9 +298,7 @@ for i,row in df.iterrows():
             ys.append(1)
         else:
             ys.append(0)
-    y_list.append(ys)  
-    city_list.append(city)
-    date_list.append(date)
+    
 
     # 1. get causal topic
     for end_date in splitted_date_lists: # check date in which range
@@ -304,7 +307,7 @@ for i,row in df.iterrows():
             break
     causal_weight = causal_time_dict[cur_end_date]
     # used to set topic nodes [just hightlight topic] TODO
-    print('i={} \t {} day_has_data \t cur_end_date:{}'.format(i,day_has_data,cur_end_date))
+    
     # continue
     # 2. build hetero graph for each day
     g_list = []
@@ -314,7 +317,7 @@ for i,row in df.iterrows():
             continue
         story_text_lists = news_df.loc[news_df['StoryID'].isin(story_ids_day)]['Text'].values
         if len(story_text_lists) <= 0:
-            print('story_ids_day',len(story_ids_day),'story_text_lists',len(story_text_lists))
+            # print('story_ids_day',len(story_ids_day),'story_text_lists',len(story_text_lists))
             continue
         tokens_list = clean_document_list(story_text_lists)
         # words appeared in this example
@@ -343,11 +346,12 @@ for i,row in df.iterrows():
         # print('# topic nodes',len(set(topic_node)),len(set(doc_node)))
         graph_data[('doc','dt','topic')]=(torch.tensor(doc_node),torch.tensor(topic_node))
         edge_dt = torch.tensor(weight)
-        # topic---topic
+        '''# topic---topic
         topic_i, topic_j, weight = topic_topic_sim(percent=85)
         # print('# topic nodes',len(set(topic_i)),len(set(topic_j)))
         graph_data[('topic','tt','topic')]=(torch.tensor(topic_i),torch.tensor(topic_j))
-        edge_tt = torch.tensor(weight)
+        edge_tt = torch.tensor(weight)'''
+        graph_data[('topic','tt','topic')]=(torch.tensor(topic_i),torch.tensor(topic_j))
         # topic---word
         topic_node, word_node, weight = topic_word_conn(sample_words,num_words=20) #need check words existed in topics
         # print('# word nodes',len(set(word_node)),len(set(topic_node)))
@@ -372,7 +376,13 @@ for i,row in df.iterrows():
             idx += 1
         # print(g)
         g_list.append(g)
+    if len(g_list) < his_days_threshold:
+        continue
     all_g_list.append(g_list)
+    y_list.append(ys)  
+    city_list.append(city)
+    date_list.append(date)
+    print('i={} \t {} day_has_data \t cur_end_date:{} {}'.format(i,len(g_list),cur_end_date,time.ctime()))
     # if len(all_g_list) >= 3:
         # break
 
@@ -380,7 +390,7 @@ y_list = torch.tensor(y_list)
 # save_graphs(dataset_path + "/data.bin", all_g_list, {"y":y_list})
 print('g',len(all_g_list),'y',len(y_list), 'date',len(date_list), 'city',len(city_list))
 attr_dict = {"graphs_list":all_g_list,"y":y_list,"date":date_list,"city":city_list}
-with open(dataset_path + '/data.pkl','wb') as f:
+with open(dataset_path + '/data2.pkl','wb') as f:
     pickle.dump(attr_dict, f)
 print(dataset_path + '/data.pkl', 'saved!')
 
