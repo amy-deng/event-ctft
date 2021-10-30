@@ -40,8 +40,9 @@ try:
     horizon = int(sys.argv[7])
     his_days_threshold = int(sys.argv[8])
     causal_file = sys.argv[9] # ../data/THA_topic/check_topic_causal_data_w7h7/causal_effect/effect_dict_pw7_biy1_0.05.csv
+    start_date = sys.argv[10]
 except:
-    print("usage: <event_path> <out_path> <lda_name `THA_50`> <ngram_path> <top_k_ngram `15000`> <window 7> <horizon 7> <his_days_threshold 3> <causal_file>")
+    print("usage: <event_path> <out_path> <lda_name `THA_50`> <ngram_path> <top_k_ngram `15000`> <window 7> <horizon 7> <his_days_threshold 3> <causal_file> <start_date 2010-01-01>")
     exit()
 
 country = event_path.split('/')[-1][:3]
@@ -274,6 +275,10 @@ topic_i, topic_j, weight = topic_topic_sim(percent=85) # 85
 edge_tt = torch.tensor(weight)
 print('# topic nodes',len(set(topic_i)),len(set(topic_j)),'weight',len(weight))
 for i,row in df.iterrows():
+    city = row['city']
+    date = str(row['date'])[:10]
+    if date < start_date:
+        continue
     day_has_data = 0
     story_list = row['story_list'][-window:]
     for v in story_list:
@@ -281,8 +286,7 @@ for i,row in df.iterrows():
             day_has_data += 1
     if day_has_data < his_days_threshold:
         continue
-    city = row['city']
-    date = str(row['date'])[:10]
+    
     # print(date,type(date),str(date))
     event_count_list = row['event_count_list'][:horizon] # event_count = row['event_count']
     event_count = {}
@@ -381,7 +385,7 @@ y_list = torch.tensor(y_list)
 # save_graphs(dataset_path + "/data.bin", all_g_list, {"y":y_list})
 print('g',len(all_g_list),'y',len(y_list), 'date',len(date_list), 'city',len(city_list))
 attr_dict = {"graphs_list":all_g_list,"y":y_list,"date":date_list,"city":city_list}
-with open(dataset_path + '/data_static_tt85_ww10.pkl','wb') as f:
+with open(dataset_path + '/data_static_{}_tt85_ww10.pkl'.format(start_date),'wb') as f:
     pickle.dump(attr_dict, f)
 print(dataset_path + '/data.pkl', 'saved!')
 
