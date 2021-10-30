@@ -30,6 +30,7 @@ python build_word_topic_graph_static_data.py /home/sdeng/data/icews/detailed_eve
 # horizon=7
 # his_days_threshold=3
 # causal_file = '../data/THA_topic/check_topic_causal_data_w7h7/causal_effect/effect_dict_pw7_biy1_0.05.csv'
+
 try:
     event_path = sys.argv[1] # /home/sdeng/data/icews/detailed_event_json/THA_2010_w21h7_city.json
     out_path = sys.argv[2]
@@ -41,6 +42,7 @@ try:
     his_days_threshold = int(sys.argv[8])
     causal_file = sys.argv[9] # ../data/THA_topic/check_topic_causal_data_w7h7/causal_effect/effect_dict_pw7_biy1_0.05.csv
     start_date = sys.argv[10]
+    # stop_date = sys.argv[11]
 except:
     print("usage: <event_path> <out_path> <lda_name `THA_50`> <ngram_path> <top_k_ngram `15000`> <window 7> <horizon 7> <his_days_threshold 3> <causal_file> <start_date 2010-01-01>")
     exit()
@@ -322,23 +324,31 @@ for i,row in df.iterrows():
     sample_words = [w for w in sample_words if w in vocab]
 
     graph_data = {}
-    # word---word
-    word_i, word_j, weight = word_word_pmi(tokens_list, window_size=10) # window-size=20
-    # print('# word nodes',len(set(word_i)),len(set(word_j)))
-
-    vocab_ids, edges = np.unique((word_i, word_j), return_inverse=True)  
-    src, dst = np.reshape(edges, (2, -1))
-    graph_data[('word','ww','word')]=(torch.tensor(src),torch.tensor(dst))
-    edge_ww = torch.tensor(weight)
-    vocab_graph_node_map = dict(zip(vocab_ids,range(len(vocab_ids))))
     # doc---word
     doc_node, word_node, weight = doc_word_tfidf(tokens_list)
     # print('# doc nodes',len(set(doc_node)),len(set(word_node)))
+    words_in_curr_sample = list(set(word_node))
+    # print('words_in_curr_sample',len(words_in_curr_sample))
+    words_in_curr_sample.sort()
+    vocab_graph_node_map = dict(zip(words_in_curr_sample,range(len(words_in_curr_sample))))
     word_graph_node = [vocab_graph_node_map[v] for v in word_node]
     graph_data[('doc','dw','word')]=(torch.tensor(doc_node),torch.tensor(word_graph_node))
     edge_dw = torch.tensor(weight)
 
-        # doc---topic
+    # word---word
+    word_i, word_j, weight = word_word_pmi(tokens_list, window_size=10) # window-size=20
+    word_graph_node_i = [vocab_graph_node_map[v] for v in word_i]
+    word_graph_node_j = [vocab_graph_node_map[v] for v in word_j]
+    graph_data[('word','ww','word')]=(torch.tensor(word_graph_node_i),torch.tensor(word_graph_node_j))
+    # print('# word nodes',len(set(word_i)),len(set(word_j)))
+    # vocab_ids, edges = np.unique((word_i, word_j), return_inverse=True)  
+    # src, dst = np.reshape(edges, (2, -1))
+    # graph_data[('word','ww','word')]=(torch.tensor(src),torch.tensor(dst))
+    edge_ww = torch.tensor(weight)
+    # vocab_graph_node_map = dict(zip(vocab_ids,range(len(vocab_ids))))
+    
+
+    # doc---topic
     doc_node, topic_node, weight = doc_topic_dist(tokens_list)
     # print('# topic nodes',len(set(topic_node)),len(set(doc_node)))
     graph_data[('doc','dt','topic')]=(torch.tensor(doc_node),torch.tensor(topic_node))
@@ -357,7 +367,9 @@ for i,row in df.iterrows():
     edge_tw = torch.tensor(weight)
 
     g = dgl.heterograph(graph_data)
-    g.nodes['word'].data['id'] = torch.from_numpy(vocab_ids).long()
+    # g.nodes['word'].data['id'] = torch.from_numpy(vocab_ids).long()
+    g.nodes['word'].data['id'] = torch.tensor(words_in_curr_sample).long()
+
     topic_graph_nodes = g.nodes('topic').numpy()
     curr_causal_weight = torch.from_numpy(causal_weight[topic_graph_nodes])
     g.nodes['topic'].data['effect'] = curr_causal_weight
@@ -368,7 +380,7 @@ for i,row in df.iterrows():
     g.edges['tw'].data['weight'] = edge_tw
     g.ids = {}
     idx = 0
-    for id in vocab_ids:
+    for id in words_in_curr_sample:
         g.ids[id] = idx
         idx += 1
     # print(g)
