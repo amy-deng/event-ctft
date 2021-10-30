@@ -35,10 +35,10 @@ class static_heto_graph(nn.Module):
         self.word_embeds = nn.Parameter(torch.Tensor(num_word, h_dim)) # change it to blocks
         self.topic_embeds = nn.Parameter(torch.Tensor(num_topic, h_dim))
         self.hconv = dglnn.HeteroGraphConv({
-                        'tw' : dglnn.GraphConv(5,5),
+                        'wt' : dglnn.GraphConv(5,5),
                         'ww' : dglnn.GraphConv(5,5),
-                        'dw' : dglnn.GraphConv(5,5),
-                        'dt' : dglnn.GraphConv(5,5),
+                        'wd' : dglnn.GraphConv(5,5),
+                        'td' : dglnn.GraphConv(5,5),
                         'tt' : dglnn.GraphConv(5,5)},
                         # 'dw' : dglnn.SAGEConv(10,10),
                         # 'dt' : dglnn.SAGEConv(10,10),
@@ -74,10 +74,10 @@ class static_heto_graph(nn.Module):
 
     def forward(self, g_list, y_data): 
         bg = dgl.batch(g_list)
-        # print(bg,'bg =====')
+        print(bg,'bg =====')
         print(bg.canonical_etypes)
-        # h1 = {'word' : torch.randn((bg.number_of_nodes('word'), 5))}
-        # h1 = {'doc' : torch.randn((bg.number_of_nodes('doc'), 5))}
+        # h1 = {'word' : torch.randn((bg.number_of_nodes('word'), 5)),'topic' : torch.randn((bg.number_of_nodes('topic'), 5))}
+        h1 = {'word' : torch.randn((bg.number_of_nodes('word'), 5))}
         # h1 = {'topic' : torch.randn((bg.number_of_nodes('topic'), 5))}
         h1 = {'doc' : torch.randn((bg.number_of_nodes('doc'), 5)),
         'word' : torch.randn((bg.number_of_nodes('word'), 5)),
