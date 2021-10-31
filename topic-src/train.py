@@ -60,7 +60,7 @@ torch.manual_seed(args.seed)
 if use_cuda:
     torch.cuda.manual_seed(args.seed)
 device = torch.device('cuda' if use_cuda else 'cpu')
-
+print('device',device)
 with open('{}/{}/word_emb_300.pkl'.format(args.dp,args.dataset), 'rb') as f:
     word_embeds = pickle.load(f)
 print('load word_emb_300.pkl')
