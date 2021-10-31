@@ -40,6 +40,7 @@ class StaticGraphData(data.Dataset):
             self.y_data = y_data
             self.g_data = g_data
             print(len(self.g_data),'self.g_data', 'self.y_data',self.y_data.shape)
+            print('positive',y_data.mean())
             # if torch.cuda.is_available():
             #       true_prob_s = true_prob_s.cuda()
             #       true_prob_r = true_prob_r.cuda()
