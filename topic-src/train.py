@@ -177,7 +177,7 @@ def eval(data_loader, set_name='valid'):
     for i, batch in enumerate(data_loader):
         g_data, y_data = batch
         # g_data = torch.stack(g_data, dim=0)
-        y_data = torch.stack(y_data, dim=0)
+        y_data = torch.stack(y_data, dim=0).to(device)
         loss, y_pred = model(g_data, y_data) 
         y_true_l.append(y_data)
         y_pred_l.append(y_pred)
