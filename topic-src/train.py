@@ -152,7 +152,7 @@ def train(train_loader):
     for i, batch in enumerate(train_loader):
         g_data, y_data = batch
         # g_data = torch.stack(g_data, dim=0)
-        y_data = torch.stack(y_data, dim=0)
+        y_data = torch.stack(y_data, dim=0).to(device)
         # print(i,y_data.shape,'y_data',y_data)
         # print(len(g_data),'g_data')
         loss, y_pred = model(g_data, y_data) 
