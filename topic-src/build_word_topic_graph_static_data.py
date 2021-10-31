@@ -387,7 +387,7 @@ for i,row in df.iterrows():
     for id in words_in_curr_sample:
         g.ids[id] = idx
         idx += 1
-    print(g)
+    # print(g)
     # g_list.append(g) 
     all_g_list.append(g)
     y_list.append(ys)  
