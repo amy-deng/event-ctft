@@ -204,8 +204,9 @@ def eval(data_loader, set_name='valid'):
 
 
 for i in range(args.runs):
-    print('============== Run i = {} on Dataset {} =============='.format(i,args.dataset))
     model, optimizer, result_file, token = prepare(args, word_embeds, device)
+    print('============== Run i = {} on Dataset {} {} =============='.format(i,args.dataset,token))
+
     # result_file = 'results/{}/{}.csv'.format(args.dataset,token)
     model_state_file = 'models/{}/{}/{}.pth'.format(args.dataset, token, i)
     if i == 0 and os.path.exists(result_file):  # if result_file exist
