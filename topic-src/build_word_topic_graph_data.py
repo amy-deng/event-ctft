@@ -372,6 +372,7 @@ for i,row in df.iterrows():
         g = dgl.heterograph(graph_data)
         # g.nodes['word'].data['id'] = torch.from_numpy(vocab_ids).long()
         g.nodes['word'].data['id'] = torch.tensor(words_in_curr_sample).long()
+        # g.nodes['topic'].data['id'] = g.nodes('topic').long()
 
         topic_graph_nodes = g.nodes('topic').numpy()
         curr_causal_weight = torch.from_numpy(causal_weight[topic_graph_nodes])

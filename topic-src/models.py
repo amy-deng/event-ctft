@@ -24,27 +24,32 @@ except:
 
 # a static graph model
 class static_heto_graph(nn.Module):
-    def __init__(self, h_dim, seq_len=7, num_topic=50, num_word=15000,dropout=0.5):
+    def __init__(self, h_inp, vocab_size, h_dim, seq_len=7, num_topic=50, num_word=15000,dropout=0.5):
         super().__init__()
+        self.h_inp = h_inp
+        self.vocab_size = vocab_size
         self.h_dim = h_dim
         self.num_topic = num_topic
         # self.num_rels = num_rels
         self.seq_len = seq_len
         self.dropout = nn.Dropout(dropout)
+        self.word_embeds = None
         # initialize rel and ent embedding
-        self.word_embeds = nn.Parameter(torch.Tensor(num_word, h_dim)) # change it to blocks
+        # self.word_embeds = nn.Parameter(torch.Tensor(num_word, h_dim)) # change it to blocks
         self.topic_embeds = nn.Parameter(torch.Tensor(num_topic, h_dim))
         self.hconv = dglnn.HeteroGraphConv({
-                        'wt' : dglnn.GraphConv(5,5),
-                        'ww' : dglnn.GraphConv(5,5),
-                        'wd' : dglnn.GraphConv(5,5),
-                        'td' : dglnn.GraphConv(5,5),
-                        'tt' : dglnn.GraphConv(5,5)},
+                        'wt' : dglnn.GraphConv(h_inp,h_dim),
+                        'ww' : dglnn.GraphConv(h_dim,h_dim),
+                        'wd' : dglnn.GraphConv(h_dim,h_dim),
+                        'td' : dglnn.GraphConv(h_dim,h_dim),
+                        'tt' : dglnn.GraphConv(h_dim,h_dim)},
                         # 'dw' : dglnn.SAGEConv(10,10),
                         # 'dt' : dglnn.SAGEConv(10,10),
                         # 'tt' : dglnn.SAGEConv(10,10)},
                         aggregate='sum')
-
+        self.maxpooling  = nn.MaxPool1d(3)# 
+        # self.maxpooling  = dglnn.MaxPooling()
+        self.out_layer = nn.Linear(5,1)
         # self.word_embeds = None
         # self.global_emb = None  
         # self.ent_map = None
@@ -74,21 +79,61 @@ class static_heto_graph(nn.Module):
 
     def forward(self, g_list, y_data): 
         bg = dgl.batch(g_list)
-        print(bg,'bg =====')
-        print(bg.canonical_etypes)
+        # unbatch???? get emb of lists
+        # print(bg,'bg =====')
+        # print(bg.canonical_etypes)
         # h1 = {'word' : torch.randn((bg.number_of_nodes('word'), 5)),'topic' : torch.randn((bg.number_of_nodes('topic'), 5))}
-        h1 = {'word' : torch.randn((bg.number_of_nodes('word'), 5))}
+        # h1 = {'word' : torch.randn((bg.number_of_nodes('word'), 5))}
         # h1 = {'topic' : torch.randn((bg.number_of_nodes('topic'), 5))}
-        h1 = {'doc' : torch.randn((bg.number_of_nodes('doc'), 5)),
-        'word' : torch.randn((bg.number_of_nodes('word'), 5)),
-        'topic' : torch.randn((bg.number_of_nodes('topic'), 5))}
-        r = self.hconv(bg,h1)
-        print(r,'rrrrr',r.keys())
+        # bg.nodes['word'].data['h'] 
+        word_emb = self.word_embeds[bg.nodes['word'].data['id']].view(-1, self.word_embeds.shape[1])
+        topic_emb = self.topic_embeds[bg.nodes('topic')]
+        doc_emb = torch.zeros((bg.number_of_nodes('doc'), self.h_dim))
+        emb_dict = {
+            'word':word_emb,
+            'topic':topic_emb,
+            'doc':doc_emb
+        }
+        # h1 = {'doc' : torch.randn((bg.number_of_nodes('doc'), 5)),
+        #      'word' : torch.randn((bg.number_of_nodes('word'), 5)),
+        #     'topic' : torch.randn((bg.number_of_nodes('topic'), 5))}
+        r = self.hconv(bg,emb_dict)
+        # print('rrrrr',r.keys())
+        doc_emb = r['doc']
+        print(doc_emb.shape,'doc_emb')
+        doc_len = [g.num_nodes('doc') for g in g_list]
+        doc_emb_split = torch.split(doc_emb, doc_len)
+        print(len(doc_emb_split),'doc_emb_split',doc_emb_split[0].shape)
+        # padding to same size  
+        print(max(doc_len),'max(doc_len)')
+        embed_pad_tensor = torch.zeros(len(doc_len), max(doc_len), 5)
+        for i, embeds in enumerate(doc_emb_split): 
+                embed_pad_tensor[i, torch.arange(0,len(embeds)), :] = embeds
+        print(embed_pad_tensor.shape,'embed_pad_tensor') # batch,max # doc, f 
+
+        # doc_pool = self.maxpooling(bg,doc_emb)
+        # sub_g = dgl.edge_type_subgraph(bg, [('topic', 'td', 'doc')])
+        # sub_g = dgl.edge_type_subgraph(bg, [('topic', 'tt', 'topic')])
+        # doc_emb = r['topic']
+        # doc_pool = self.maxpooling(dgl.to_homogeneous(sub_g), doc_emb)
+        # print(doc_pool,doc_pool.shape,'doc_pool')
+
+        # doc_emb_split = torch.split(doc_pool, [1 for i in range(len(g_list))])
+        # print(doc_emb_split,'doc_emb_split')
+        doc_pool = embed_pad_tensor.mean(1)
+        # doc_pool = self.maxpooling(embed_pad_tensor)
+        print(doc_pool.shape,'doc_pool')
+        # doc_emb_mean = doc_emb.mean(0)
+        y_pred = self.out_layer(doc_pool)
+        # print(y_pred.shape,'y_pred',y_pred,y_data.shape,'y_data')
+        loss = self.criterion(y_pred.view(-1), y_data)
+        y_pred = torch.sigmoid(y_pred)
+        # out layer
         # batch graphs
         # graph propagation
         # pred, idx, _ = self.__get_pred_embeds(t_list)
         # loss = self.criterion(pred, true_prob_r[idx])
-        return 
+        return loss, y_pred
 
 
     def __get_pred_embeds(self, t_list):

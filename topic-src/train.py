@@ -46,6 +46,14 @@ print("cuda",use_cuda)
 np.random.seed(args.seed)
 torch.manual_seed(args.seed) 
 
+with open('{}/{}/word_emb_300.pkl'.format(args.dp,args.dataset), 'rb') as f:
+    word_embeds = pickle.load(f)
+print('load word_emb_300.pkl')
+word_embeds = torch.FloatTensor(word_embeds)
+vocab_size = word_embeds.size(0)
+emb_size = word_embeds.size(1)
+
+
 train_dataset_loader = StaticGraphData(args.dp, args.dataset,set_name='train')
 # valid_dataset_loader = StaticGraphData(args.dp, args.dataset,set_name='valid')
 test_dataset_loader = StaticGraphData(args.dp, args.dataset,set_name='test')
@@ -57,12 +65,25 @@ train_loader = DataLoader(train_dataset_loader, batch_size=args.batch_size,
 test_loader = DataLoader(test_dataset_loader, batch_size=1,
                         shuffle=False, collate_fn=collate_2)
 
-model = static_heto_graph(h_dim=args.n_hidden)
+model = static_heto_graph(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden)
+model_name = model.__class__.__name__
 
 optimizer = torch.optim.Adam(
     model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
 total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
 print('#params:', total_params)
+token = '{}_sl{}'.format(model_name, args.seq_len)
+
+os.makedirs('models', exist_ok=True)
+os.makedirs('models/' + args.dataset, exist_ok=True)
+model_state_file = 'models/{}/{}.pth'.format(args.dataset, token)
+# model_graph_file = 'models/{}/{}_graph.pth'.format(args.dataset, token)
+outf = 'models/{}/{}.result'.format(args.dataset, token)
+
+if use_cuda:
+    model.cuda()
+    word_embeds = word_embeds.cuda()
+model.word_embeds = word_embeds
 
 # for i, batch in enumerate(train_loader):
 #     g_data, y_data = batch
@@ -74,7 +95,7 @@ print('#params:', total_params)
     
     # loss = model(batch_data, true_r)
 
-
+epoch = 0
 def train(data_loader, dataset_loader=None):
     model.train()
     total_loss = 0
@@ -83,9 +104,9 @@ def train(data_loader, dataset_loader=None):
         g_data, y_data = batch
         # g_data = torch.stack(g_data, dim=0)
         y_data = torch.stack(y_data, dim=0)
-        print(i,y_data.shape,'y_data',y_data)
-        print(len(g_data),'g_data')
-        loss = model(g_data, y_data)
+        # print(i,y_data.shape,'y_data',y_data)
+        # print(len(g_data),'g_data')
+        loss, y_pred = model(g_data, y_data)
     # for i, batch in enumerate(data_loader):
     #     batch_data, true_s, true_r, true_o = batch
     #     batch_data = torch.stack(batch_data, dim=0)
@@ -100,10 +121,39 @@ def train(data_loader, dataset_loader=None):
         optimizer.zero_grad()
         total_loss += loss.item()
 
-    # t2 = time.time()
-    # reduced_loss = total_loss / (dataset_loader.len / args.batch_size)
-    # print("Epoch {:04d} | Loss {:.6f} | time {:.2f} {}".format(
-    #     epoch, reduced_loss, t2 - t0, time.ctime()))
-    # return reduced_loss
+    t2 = time.time()
+    reduced_loss = total_loss / (dataset_loader.len / args.batch_size)
+    print("Epoch {:04d} | Loss {:.6f} | time {:.2f} {}".format(
+        epoch, reduced_loss, t2 - t0, time.ctime()))
+    return reduced_loss
 
-train(train_dataset_loader, dataset_loader=None)
+
+for epoch in range(1, args.max_epochs+1):
+    train(train_loader, train_dataset_loader)
+
+
+# bad_counter = 0
+# loss_small =  float("inf")
+# try:
+#     print("start training...")
+#     for epoch in range(1, args.max_epochs+1):
+#         train_loss = train(train_loader, train_dataset_loader)
+#         # evaluate(train_eval_loader, train_dataset_loader, set_name='Train') # eval on train set
+#         valid_loss, recall, f1, f2 = evaluate(
+#             valid_loader, valid_dataset_loader, set_name='Valid') # eval on valid set
+
+#         if valid_loss < loss_small:
+#             loss_small = valid_loss
+#             bad_counter = 0
+#             print('save better model...')
+#             torch.save({'state_dict': model.state_dict(), 'epoch': epoch, 'global_emb': None}, model_state_file)
+#             # evaluate(test_loader, test_dataset_loader, set_name='Test')
+#         else:
+#             bad_counter += 1
+#         if bad_counter == args.patience:
+#             break
+#     print("training done")
+
+# except KeyboardInterrupt:
+#     print('-' * 80)
+#     print('Exiting from training early, epoch', epoch)
