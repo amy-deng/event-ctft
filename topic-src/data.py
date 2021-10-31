@@ -30,12 +30,12 @@ class StaticGraphData(data.Dataset):
             datafile_list = datafiles.split(',')
             y_data = []
             g_data = []
-            for datafile in datafiles:
+            for datafile in datafile_list:
                   with open('{}/{}/{}.pkl'.format(path, dataset,datafile),'rb') as f:
                         # with open('{}/{}/data_static_2012-01-01_2013-01-01_tt85_ww10.pkl'.format(path, dataset),'rb') as f:
                         data_dict = pickle.load(f)
-                        y_data.append(data_dict['y'])
-                        g_data += data_dict['graphs_list']
+                  y_data.append(data_dict['y'])
+                  g_data += data_dict['graphs_list']
             # times = torch.from_numpy(times)
             # y_data = data_dict['y'] # tensor 
             # g_data = data_dict['graphs_list'] # dgl
