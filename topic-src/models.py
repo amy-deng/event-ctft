@@ -39,8 +39,8 @@ class static_heto_graph(nn.Module):
         self.topic_embeds = nn.Parameter(torch.Tensor(num_topic, h_dim))
         self.hconv = dglnn.HeteroGraphConv({
                         'wt' : dglnn.GraphConv(h_inp,h_dim),
-                        'ww' : dglnn.GraphConv(h_dim,h_dim),
-                        'wd' : dglnn.GraphConv(h_dim,h_dim),
+                        'ww' : dglnn.GraphConv(h_inp,h_dim),
+                        'wd' : dglnn.GraphConv(h_inp,h_dim),
                         'td' : dglnn.GraphConv(h_dim,h_dim),
                         'tt' : dglnn.GraphConv(h_dim,h_dim)},
                         # 'dw' : dglnn.SAGEConv(10,10),
@@ -49,7 +49,7 @@ class static_heto_graph(nn.Module):
                         aggregate='sum')
         self.maxpooling  = nn.MaxPool1d(3)# 
         # self.maxpooling  = dglnn.MaxPooling()
-        self.out_layer = nn.Linear(5,1)
+        self.out_layer = nn.Linear(h_dim,1)
         # self.word_embeds = None
         # self.global_emb = None  
         # self.ent_map = None
@@ -87,7 +87,9 @@ class static_heto_graph(nn.Module):
         # h1 = {'topic' : torch.randn((bg.number_of_nodes('topic'), 5))}
         # bg.nodes['word'].data['h'] 
         word_emb = self.word_embeds[bg.nodes['word'].data['id']].view(-1, self.word_embeds.shape[1])
-        topic_emb = self.topic_embeds[bg.nodes('topic')]
+        # topic_emb = self.topic_embeds[bg.nodes('topic')]
+        print(bg.nodes['topic'].data['id'])
+        topic_emb = self.topic_embeds[bg.nodes['topic'].data['id']].view(-1, self.topic_embeds.shape[1])
         doc_emb = torch.zeros((bg.number_of_nodes('doc'), self.h_dim))
         emb_dict = {
             'word':word_emb,
@@ -106,7 +108,7 @@ class static_heto_graph(nn.Module):
         print(len(doc_emb_split),'doc_emb_split',doc_emb_split[0].shape)
         # padding to same size  
         print(max(doc_len),'max(doc_len)')
-        embed_pad_tensor = torch.zeros(len(doc_len), max(doc_len), 5)
+        embed_pad_tensor = torch.zeros(len(doc_len), max(doc_len), self.h_dim)
         for i, embeds in enumerate(doc_emb_split): 
                 embed_pad_tensor[i, torch.arange(0,len(embeds)), :] = embeds
         print(embed_pad_tensor.shape,'embed_pad_tensor') # batch,max # doc, f 

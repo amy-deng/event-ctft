@@ -27,7 +27,7 @@ import collections
 class StaticGraphData(data.Dataset):
       def __init__(self, path, dataset, set_name='train'):
             # data, times = utils.load_quadruples(path + dataset, set_name + '.txt')
-            with open('{}/{}/data_static_2012-01-01_2012-01-11_tt85_ww10_2.pkl'.format(path, dataset),'rb') as f:
+            with open('{}/{}/data_static_2012-01-01_2012-01-11_tt85_ww10_3.pkl'.format(path, dataset),'rb') as f:
             # with open('{}/{}/data_static_2012-01-01_2013-01-01_tt85_ww10.pkl'.format(path, dataset),'rb') as f:
                 data_dict = pickle.load(f)
             # times = torch.from_numpy(times)

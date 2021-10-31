@@ -372,7 +372,7 @@ for i,row in df.iterrows():
         g = dgl.heterograph(graph_data)
         # g.nodes['word'].data['id'] = torch.from_numpy(vocab_ids).long()
         g.nodes['word'].data['id'] = torch.tensor(words_in_curr_sample).long()
-        # g.nodes['topic'].data['id'] = g.nodes('topic').long()
+        g.nodes['topic'].data['id'] = g.nodes('topic').long()
 
         topic_graph_nodes = g.nodes('topic').numpy()
         curr_causal_weight = torch.from_numpy(causal_weight[topic_graph_nodes])
@@ -403,7 +403,7 @@ y_list = torch.tensor(y_list)
 # save_graphs(dataset_path + "/data.bin", all_g_list, {"y":y_list})
 print('g',len(all_g_list),'y',len(y_list), 'date',len(date_list), 'city',len(city_list))
 attr_dict = {"graphs_list":all_g_list,"y":y_list,"date":date_list,"city":city_list}
-with open(dataset_path + '/data_{}_{}_tt85_ww10_2.pkl'.format(start_date,stop_date),'wb') as f:
+with open(dataset_path + '/data_{}_{}_tt85_ww10_3.pkl'.format(start_date,stop_date),'wb') as f:
     pickle.dump(attr_dict, f)
 print(dataset_path + '/data.pkl', 'saved!')
 
