@@ -25,16 +25,23 @@ import collections
 
         
 class StaticGraphData(data.Dataset):
-      def __init__(self, path, dataset, datafile):
+      def __init__(self, path, dataset, datafiles, horizon):
             # data, times = utils.load_quadruples(path + dataset, set_name + '.txt')
-            with open('{}/{}/{}.pkl'.format(path, dataset,datafile),'rb') as f:
-            # with open('{}/{}/data_static_2012-01-01_2013-01-01_tt85_ww10.pkl'.format(path, dataset),'rb') as f:
-                data_dict = pickle.load(f)
+            datafile_list = datafiles.split(',')
+            y_data = []
+            g_data = []
+            for datafile in datafiles:
+                  with open('{}/{}/{}.pkl'.format(path, dataset,datafile),'rb') as f:
+                        # with open('{}/{}/data_static_2012-01-01_2013-01-01_tt85_ww10.pkl'.format(path, dataset),'rb') as f:
+                        data_dict = pickle.load(f)
+                        y_data.append(data_dict['y'])
+                        g_data += data_dict['graphs_list']
             # times = torch.from_numpy(times)
-            y_data = data_dict['y'] # tensor 
-            g_data = data_dict['graphs_list'] # dgl
+            # y_data = data_dict['y'] # tensor 
+            # g_data = data_dict['graphs_list'] # dgl
+            y_data = torch.cat(y_data,dim=0)
             print(y_data.shape,'y_data',y_data)
-            y_data = y_data.sum(-1)
+            y_data = y_data[:,:horizon].sum(-1)
             y_data = torch.where(y_data > 0,1.,0.)
             self.len = len(y_data)
             self.y_data = y_data

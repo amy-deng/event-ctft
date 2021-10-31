@@ -17,18 +17,19 @@ parser.add_argument("--gpu", type=int, default=0, help="gpu")
 parser.add_argument("--lr", type=float, default=1e-3, help="learning rate")
 parser.add_argument("--weight_decay", type=float, default=1e-5, help="weight_decay")
 parser.add_argument("-d", "--dataset", type=str, default='THA_w7h7_minday3', help="dataset to use")
-parser.add_argument("-df", "--datafile", type=str, default='data_static_2012-01-01_2012-01-11_tt85_ww10_3', help="dataset to use")
+parser.add_argument("-df", "--datafiles", type=str, default='data_static_2012-01-01_2012-01-11_tt85_ww10_3', help="dataset to use")
 
 parser.add_argument("--grad-norm", type=float, default=1.0, help="norm to clip gradient to")
 parser.add_argument("--max-epochs", type=int, default=100, help="maximum epochs")
 parser.add_argument("--seq-len", type=int, default=7)
+parser.add_argument("--horizon", type=int, default=7)
 parser.add_argument("--batch-size", type=int, default=16)
 parser.add_argument("--rnn-layers", type=int, default=1)
 # parser.add_argument("--maxpool", type=int, default=1)
-parser.add_argument("--patience", type=int, default=10)
+parser.add_argument("--patience", type=int, default=15)
 # parser.add_argument("--use-gru", type=int, default=1, help='1 use gru 0 rnn')
 # parser.add_argument("--attn", type=str, default='', help='dot/add/genera; default general')
-parser.add_argument("--seed", type=int, default=42, help='random seed')
+parser.add_argument("--seed", type=int, default=999, help='random seed')
 parser.add_argument("--runs", type=int, default=5, help='number of runs')
 parser.add_argument("--model", type=str, default="m0", help="model name")
 parser.add_argument("--train", type=float, default=0.7, help="")
@@ -55,7 +56,7 @@ use_cuda = args.gpu >= 0 and torch.cuda.is_available()
 
 
 print("cuda",use_cuda)
-np.random.seed(args.seed)
+
 torch.manual_seed(args.seed) 
 if use_cuda:
     torch.cuda.manual_seed(args.seed)
@@ -73,13 +74,14 @@ emb_size = word_embeds.size(1)
 # valid_dataset_loader = StaticGraphData(args.dp, args.dataset,set_name='valid')
 # test_dataset_loader = StaticGraphData(args.dp, args.dataset,set_name='test')
 
-static_graph_dataset = StaticGraphData(args.dp, args.dataset,args.datafile)
+static_graph_dataset = StaticGraphData(args.dp, args.dataset,args.datafiles, args.horizon)
 
 dataset_size = len(static_graph_dataset)
 indices = list(range(dataset_size))
 split1 = int(np.floor(args.train * dataset_size))
 split2 = int(np.floor((args.val+args.train) * dataset_size))
-if args.shuffle :
+if args.shuffle:
+    np.random.seed(args.seed)
     np.random.shuffle(indices)
 train_indices, val_indices, test_indices = indices[:split1], indices[split1:split2], indices[split2:]
 print(len(train_indices),len(val_indices),len(test_indices))
@@ -115,7 +117,7 @@ def prepare(args,word_embeds,device):
         model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
     total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print('#params:', total_params)
-    token = '{}_sl{}_lr{}_bs{}'.format(model_name, args.seq_len,args.lr,args.batch_size)
+    token = '{}_sl{}_h{}_lr{}_bs{}'.format(model_name, args.seq_len,args.horizon,args.lr,args.batch_size)
 
     os.makedirs('models', exist_ok=True)
     os.makedirs('models/' + args.dataset, exist_ok=True)
@@ -218,7 +220,7 @@ for i in range(args.runs):
                 loss_small = small_value
                 bad_counter = 0
                 torch.save({'state_dict': model.state_dict(), 'epoch': epoch}, model_state_file)
-                print('Epo {} tr_los:{:.5f} val_los:{:.5f} '.format(epoch, train_loss, valid_loss),'|'.join(['{}:{:.4f}'.format(k, eval_dict[k]) for k in eval_dict]))
+                print('Epo {:04d} tr_los:{:.5f} val_los:{:.5f} '.format(epoch, train_loss, valid_loss),'|'.join(['{}:{:.4f}'.format(k, eval_dict[k]) for k in eval_dict]))
             else:
                 bad_counter += 1
             if bad_counter == args.patience:
@@ -268,7 +270,7 @@ f = open(all_res_file,'a')
 wrt = csv.writer(f)
 wrt.writerow([token] + [line_count] + res)
 f.close()
-
+print(token)
 # checkpoint = torch.load(model_state_file, map_location=lambda storage, loc: storage)
 # model.load_state_dict(checkpoint['state_dict'])
 # bad_counter = 0
