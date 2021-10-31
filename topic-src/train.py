@@ -112,6 +112,8 @@ print(train_loader,train_loader.len)
 def prepare(args,word_embeds,device): 
     if args.model == 'm0':
         model = static_heto_graph(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device)
+    # elif args.model == 'm1':
+    #     model = static_heto_graph2(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device)
     elif args.model == 'word':
         model = static_graph(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device)
 
@@ -171,8 +173,7 @@ def train(train_loader):
 
     t2 = time.time()
     reduced_loss = total_loss / (train_loader.len / args.batch_size)
-    print("Epoch {:04d} | Loss {:.6f} | time {:.2f} {}".format(
-        epoch, reduced_loss, t2 - t0, time.ctime()))
+    print("Epoch {:04d} | Loss {:.6f} | time {:.2f} {}".format(epoch, reduced_loss, t2 - t0, time.ctime()))
     return reduced_loss
 
 @torch.no_grad()
