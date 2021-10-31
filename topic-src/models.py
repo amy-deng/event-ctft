@@ -329,7 +329,6 @@ class static_graph(nn.Module):
         mean_embed = torch.zeros(len(word_len), self.h_dim).to(self.device)
         for i, embeds in enumerate(word_emb_split): 
             mean_embed[i, :] = embeds.mean(0)
-
         # embed_pad_tensor = torch.zeros(len(word_len), max(word_len), self.h_dim).to(self.device)
         # for i, embeds in enumerate(word_emb_split): 
         #         embed_pad_tensor[i, torch.arange(0,len(embeds)), :] = embeds

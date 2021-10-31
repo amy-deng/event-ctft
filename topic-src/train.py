@@ -23,7 +23,7 @@ parser.add_argument("--grad-norm", type=float, default=1.0, help="norm to clip g
 parser.add_argument("--max-epochs", type=int, default=100, help="maximum epochs")
 parser.add_argument("--seq-len", type=int, default=7)
 parser.add_argument("--horizon", type=int, default=7)
-parser.add_argument("--batch-size", type=int, default=16)
+parser.add_argument("--batch-size", type=int, default=32)
 parser.add_argument("--rnn-layers", type=int, default=1)
 # parser.add_argument("--maxpool", type=int, default=1)
 parser.add_argument("--patience", type=int, default=15)
@@ -100,7 +100,7 @@ train_loader.len = len(train_indices)
 valid_loader.len = len(val_indices)
 test_loader.len = len(test_indices)
 
-print(train_loader,train_loader.len)
+# print(train_loader,train_loader.len)
 
 # train_loader = DataLoader(train_dataset_loader, batch_size=args.batch_size,
 #                         shuffle=True, collate_fn=collate_2)
