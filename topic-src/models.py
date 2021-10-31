@@ -22,6 +22,54 @@ except:
     print("<<< dgl are not imported >>>")
     pass
  
+
+# class HeteroLayerG(nn.Module):
+#     def __init__(self, in_size, out_size):
+#         super(HeteroLayerG, self).__init__()
+#         self.weight = nn.ModuleDict({
+#                 'ww': nn.Linear(in_size, out_size),
+#                 'wt': nn.Linear(out_size, out_size),
+#                 'wd': nn.Linear(out_size, out_size),
+#                 'td': nn.Linear(out_size, out_size),
+#                 'tt': nn.Linear(out_size, out_size),
+#             }) 
+
+#     def forward(self, G):
+#         # print(G,feat_dict,'G,feat_dict')
+#         funcs={}
+#         for srctype, etype, dsttype in [['word','ww','word']]: 
+#             Wh = self.weight[etype](G.nodes['word'].data['h'])
+#             G.nodes[srctype].data['h'] = Wh
+#             funcs[etype] = (fn.u_mul_e('h', 'weight', 'm'), fn.mean('m', 'h'))
+#         G.multi_update_all(funcs, 'sum')
+#         funcs = {}
+#         # print(G.canonical_etypes)
+#         G.edges['tt'].data['weight'] = G.edges['tt'].data['weight'].float()
+#         for srctype, etype, dsttype in G.canonical_etypes:
+#             if etype == 'ww':
+#                 continue
+#             # print('srctype, etype, dsttype',srctype, etype, dsttype) 
+#             Wh = self.weight[etype](G.nodes[srctype].data['h'])
+#             G.nodes[srctype].data['h'] = Wh 
+#             funcs[etype] = (fn.u_mul_e('h', 'weight', 'm'), fn.mean('m', 'h')) 
+#         G.multi_update_all(funcs, 'sum')
+#         return G
+#         # return {ntype : G.nodes[ntype].data['h'] for ntype in G.ntypes}
+
+# class HeteroNetG(nn.Module):
+#     def __init__(self, in_size, hidden_size, out_size):
+#         super(HeteroNetG, self).__init__() 
+#         self.layer1 = HeteroLayerG(in_size, hidden_size)
+#         self.layer2 = HeteroLayerG(hidden_size, out_size)
+
+#     def forward(self, G):
+#         h_dict = {ntype : G.nodes[ntype].data['h'] for ntype in G.ntypes}
+#         G = self.layer1(G, h_dict)
+#         h_dict = {ntype : G.nodes[ntype].data['h'] for ntype in G.ntypes}
+#         h_dict = {k : F.leaky_relu(h) for k, h in h_dict.items()}
+#         h_dict = self.layer2(G, h_dict)
+#         return G
+
 class HeteroLayer(nn.Module):
     def __init__(self, in_size, out_size):
         super(HeteroLayer, self).__init__()
