@@ -53,6 +53,24 @@ class HeteroLayer(nn.Module):
         G.multi_update_all(funcs, 'sum')
         return G
         # return {ntype : G.nodes[ntype].data['h'] for ntype in G.ntypes}
+
+class WordGraphLayer(nn.Module):
+    def __init__(self, in_size, out_size):
+        super(WordGraphLayer, self).__init__()
+        self.weight = nn.ModuleDict({
+                'ww': nn.Linear(in_size, out_size),
+            }) 
+    def forward(self, G):
+        # print(G,feat_dict,'G,feat_dict')
+        funcs={}
+        for srctype, etype, dsttype in [['word','ww','word']]: 
+            Wh = self.weight[etype](G.nodes['word'].data['h'])
+            G.nodes[srctype].data['h'] = Wh
+            funcs[etype] = (fn.u_mul_e('h', 'weight', 'm'), fn.mean('m', 'h'))
+        G.multi_update_all(funcs, 'sum')
+        return G
+        # return {ntype : G.nodes[ntype].data['h'] for ntype in G.ntypes}
+
 # https://www.jianshu.com/p/767950b560c4
 class HeteroLayer_orig(nn.Module):
     def __init__(self, in_size, out_size, etypes):
@@ -248,6 +266,73 @@ class static_heto_graph(nn.Module):
         # doc_emb_mean = doc_emb.mean(0)
         y_pred = self.out_layer(doc_pool)
         # print(y_pred.shape,'y_pred',y_pred,y_data.shape,'y_data')
+        loss = self.criterion(y_pred.view(-1), y_data)
+        y_pred = torch.sigmoid(y_pred)
+        # out layer
+        # batch graphs
+        # graph propagation
+        # pred, idx, _ = self.__get_pred_embeds(t_list)
+        # loss = self.criterion(pred, true_prob_r[idx])
+        return loss, y_pred
+
+class static_graph(nn.Module):
+    def __init__(self, h_inp, vocab_size, h_dim, device, seq_len=7, num_topic=50, num_word=15000,dropout=0.5):
+        super().__init__()
+        self.h_inp = h_inp
+        self.vocab_size = vocab_size
+        self.h_dim = h_dim
+        self.num_topic = num_topic
+        # self.num_rels = num_rels
+        self.seq_len = seq_len
+        self.device = device
+        self.dropout = nn.Dropout(dropout)
+        self.word_embeds = None 
+        self.hconv1 = WordGraphLayer(h_inp, h_dim) 
+        self.hconv2 = WordGraphLayer(h_dim, h_dim)
+        # self.maxpooling  = nn.MaxPool1d(3)# 
+        # self.maxpooling  = dglnn.MaxPooling()
+        self.out_layer = nn.Linear(h_dim,1) 
+        self.threshold = 0.5
+        self.out_func = torch.sigmoid
+        self.criterion = F.binary_cross_entropy_with_logits #soft_cross_entropy
+        self.init_weights()
+
+
+    def init_weights(self):
+        for p in self.parameters():
+            if p.data.ndimension() >= 2:
+                nn.init.xavier_uniform_(p.data, gain=nn.init.calculate_gain('relu'))
+            else:
+                stdv = 1. / math.sqrt(p.size(0))
+                p.data.uniform_(-stdv, stdv)
+
+    def forward(self, g_list, y_data): 
+        bg = dgl.batch(g_list).to(self.device)
+        # unbatch???? get emb of lists
+        # print(bg,'bg =====')
+        # print(bg.canonical_etypes)
+        # h1 = {'word' : torch.randn((bg.number_of_nodes('word'), 5)),'topic' : torch.randn((bg.number_of_nodes('topic'), 5))}
+        # h1 = {'word' : torch.randn((bg.number_of_nodes('word'), 5))}
+        # h1 = {'topic' : torch.randn((bg.number_of_nodes('topic'), 5))}
+        # bg.nodes['word'].data['h'] 
+        word_emb = self.word_embeds[bg.nodes['word'].data['id']].view(-1, self.word_embeds.shape[1])
+        # topic_emb = self.topic_embeds[bg.nodes['topic'].data['id']].view(-1, self.topic_embeds.shape[1])
+        # doc_emb = torch.zeros((bg.number_of_nodes('doc'), self.h_dim)).to(self.device)
+        bg.nodes['word'].data['h'] = word_emb
+        bg = self.hconv1(bg)
+        bg = self.hconv2(bg)
+        word_emb = bg.nodes['word'].data['h']
+        word_len = [g.num_nodes('word') for g in g_list]
+        word_emb_split = torch.split(word_emb, word_len)
+        # print(len(doc_emb_split),'doc_emb_split',doc_emb_split[0].shape)
+        # padding to same size  
+        embed_pad_tensor = torch.zeros(len(word_len), max(word_len), self.h_dim).to(self.device)
+        for i, embeds in enumerate(word_emb_split): 
+                embed_pad_tensor[i, torch.arange(0,len(embeds)), :] = embeds
+        # print(embed_pad_tensor.shape,'embed_pad_tensor') # batch,max # doc, f 
+
+        word_pool = embed_pad_tensor.mean(1)
+        y_pred = self.out_layer(word_pool)
         loss = self.criterion(y_pred.view(-1), y_data)
         y_pred = torch.sigmoid(y_pred)
         # out layer

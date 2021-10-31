@@ -110,7 +110,11 @@ print(train_loader,train_loader.len)
                         # shuffle=False, collate_fn=collate_2)
 
 def prepare(args,word_embeds,device): 
-    model = static_heto_graph(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device)
+    if args.model == 'm0':
+        model = static_heto_graph(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device)
+    elif args.model == 'word':
+        model = static_graph(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device)
+
     model_name = model.__class__.__name__
 
     optimizer = torch.optim.Adam(
