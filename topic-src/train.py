@@ -123,7 +123,7 @@ def prepare(args,word_embeds,device):
         model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
     total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print('#params:', total_params)
-    token = '{}_sl{}_h{}_lr{}_bs{}'.format(model_name, args.seq_len,args.horizon,args.lr,args.batch_size)
+    token = '{}_sl{}_h{}_lr{}_bs{}_p{}'.format(model_name, args.seq_len,args.horizon,args.lr,args.batch_size,args.patience)
 
     os.makedirs('models', exist_ok=True)
     os.makedirs('models/' + args.dataset, exist_ok=True)
@@ -206,7 +206,6 @@ def eval(data_loader, set_name='valid'):
 for i in range(args.runs):
     model, optimizer, result_file, token = prepare(args, word_embeds, device)
     print('============== Run i = {} on Dataset {} {} =============='.format(i,args.dataset,token))
-
     # result_file = 'results/{}/{}.csv'.format(args.dataset,token)
     model_state_file = 'models/{}/{}/{}.pth'.format(args.dataset, token, i)
     if i == 0 and os.path.exists(result_file):  # if result_file exist

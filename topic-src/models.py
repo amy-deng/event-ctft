@@ -152,15 +152,18 @@ class static_heto_graph(nn.Module):
         # print(len(doc_emb_split),'doc_emb_split',doc_emb_split[0].shape)
         # padding to same size  
         # print(max(doc_len),'max(doc_len)')
-        embed_pad_tensor = torch.zeros(len(doc_len), max(doc_len), self.h_dim).to(self.device)
+        # embed_pad_tensor = torch.zeros(len(doc_len), max(doc_len), self.h_dim).to(self.device)
+        mean_embed = torch.zeros(len(doc_len), self.h_dim).to(self.device)
         for i, embeds in enumerate(doc_emb_split): 
-                embed_pad_tensor[i, torch.arange(0,len(embeds)), :] = embeds
-      
-        doc_pool = embed_pad_tensor.mean(1)
+            mean_embed[i, :] = embeds.mean(0)
+        # for i, embeds in enumerate(doc_emb_split): 
+        #         embed_pad_tensor[i, torch.arange(0,len(embeds)), :] = embeds
+
+        # doc_pool = embed_pad_tensor.mean(1)
         # doc_pool = self.maxpooling(embed_pad_tensor)
         # print(doc_pool.shape,'doc_pool')
         # doc_emb_mean = doc_emb.mean(0)
-        y_pred = self.out_layer(doc_pool)
+        y_pred = self.out_layer(mean_embed)
         # print(y_pred.shape,'y_pred',y_pred,y_data.shape,'y_data')
         loss = self.criterion(y_pred.view(-1), y_data)
         y_pred = torch.sigmoid(y_pred)
@@ -207,13 +210,16 @@ class static_graph(nn.Module):
         word_emb_split = torch.split(word_emb, word_len)
         # print(len(doc_emb_split),'doc_emb_split',doc_emb_split[0].shape)
         # padding to same size  
-        embed_pad_tensor = torch.zeros(len(word_len), max(word_len), self.h_dim).to(self.device)
+        mean_embed = torch.zeros(len(word_len), self.h_dim).to(self.device)
         for i, embeds in enumerate(word_emb_split): 
-                embed_pad_tensor[i, torch.arange(0,len(embeds)), :] = embeds
-        # print(embed_pad_tensor.shape,'embed_pad_tensor') # batch,max # doc, f 
+            mean_embed[i, :] = embeds.mean(0)
 
-        word_pool = embed_pad_tensor.mean(1)
-        y_pred = self.out_layer(word_pool)
+        # embed_pad_tensor = torch.zeros(len(word_len), max(word_len), self.h_dim).to(self.device)
+        # for i, embeds in enumerate(word_emb_split): 
+        #         embed_pad_tensor[i, torch.arange(0,len(embeds)), :] = embeds
+        # print(embed_pad_tensor.shape,'embed_pad_tensor') # batch,max # doc, f 
+        # word_pool = embed_pad_tensor.mean(1)
+        y_pred = self.out_layer(mean_embed)
         loss = self.criterion(y_pred.view(-1), y_data)
         y_pred = torch.sigmoid(y_pred) 
         return loss, y_pred
