@@ -113,7 +113,9 @@ def prepare(args,word_embeds,device):
     if args.model == 'm0':
         model = static_heto_graph(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device)
     elif args.model == 'm2':
-        model = static_heto_graph_causal(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device)
+        model = static_heto_graph_causal_uni(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device)
+    elif args.model == 'm3':
+        model = static_heto_graph_causal_cus(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device)
     elif args.model == 'm1':
         model = static_heto_graph0(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device)
     elif args.model == 'word':
