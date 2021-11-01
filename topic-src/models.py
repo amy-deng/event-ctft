@@ -73,7 +73,7 @@ class HeteroNetG(nn.Module):
         return G
 
 class HeteroLayerCausal(nn.Module):
-    def __init__(self, in_size, out_size):
+    def __init__(self, in_size, out_size, device):
         super().__init__()
         self.weight = nn.ModuleDict({
                 'ww': nn.Linear(in_size, out_size),
@@ -82,6 +82,7 @@ class HeteroLayerCausal(nn.Module):
                 'td': nn.Linear(out_size, out_size),
                 'tt': nn.Linear(out_size, out_size),
             }) 
+        self.device = device
         self.weight_causal = nn.Linear(out_size, out_size)
         self.weight_noise = nn.Linear(out_size, out_size)
 
@@ -107,7 +108,7 @@ class HeteroLayerCausal(nn.Module):
                 v = G.nodes['topic'].data['effect']
                 causal_mask = torch.where(v > 0., 1., 0.)
                 # t = (v == 0).nonzero().view(-1)
-                random_mask = torch.bernoulli(torch.tensor([0.1]*len(causal_mask))) * (causal_mask==0)#.view(-1, 1, -1)
+                random_mask = torch.bernoulli(torch.tensor([0.1]*len(causal_mask))) * (causal_mask==0).to(self.device)#.view(-1, 1, -1)
                 causal_mask = causal_mask.view(-1, 1)
                 random_mask = random_mask.view(-1, 1)
                 # print(causal_mask.shape,random_mask.shape,node_emb.shape)
@@ -149,10 +150,10 @@ class __HeteroLayer2(nn.Module):
         return {ntype : G.nodes[ntype].data['h'] for ntype in G.ntypes}
 
 class HeteroNetCausal(nn.Module):
-    def __init__(self, in_size, hidden_size, out_size):
+    def __init__(self, in_size, hidden_size, out_size, device):
         super().__init__() 
-        self.layer1 = HeteroLayerCausal(in_size, hidden_size)
-        self.layer2 = HeteroLayerCausal(hidden_size, out_size)
+        self.layer1 = HeteroLayerCausal(in_size, hidden_size, device)
+        self.layer2 = HeteroLayerCausal(hidden_size, out_size, device)
 
     def forward(self, G, emb_dict):
         h_dict = self.layer1(G, emb_dict)
@@ -323,7 +324,7 @@ class static_heto_graph_causal(nn.Module):
         # self.word_embeds = nn.Parameter(torch.Tensor(num_word, h_dim)) # change it to blocks
         self.topic_embeds = nn.Parameter(torch.Tensor(num_topic, h_dim))
         
-        self.hconv = HeteroNetCausal(h_inp, h_dim, h_dim)
+        self.hconv = HeteroNetCausal(h_inp, h_dim, h_dim, self.device)
         # self.maxpooling  = nn.MaxPool1d(3)# 
         # self.maxpooling  = dglnn.MaxPooling()
         self.out_layer = nn.Linear(h_dim,1) 
