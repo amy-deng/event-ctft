@@ -108,7 +108,7 @@ class HeteroLayerCausal(nn.Module):
                 v = G.nodes['topic'].data['effect']
                 causal_mask = torch.where(v > 0., 1., 0.)
                 # t = (v == 0).nonzero().view(-1)
-                random_mask = torch.bernoulli(torch.tensor([0.1]*len(causal_mask))) * (causal_mask==0).to(self.device)#.view(-1, 1, -1)
+                random_mask = torch.bernoulli(torch.tensor([0.1]*len(causal_mask)).to(self.device)) * (causal_mask==0)#.view(-1, 1, -1)
                 causal_mask = causal_mask.view(-1, 1)
                 random_mask = random_mask.view(-1, 1)
                 # print(causal_mask.shape,random_mask.shape,node_emb.shape)
