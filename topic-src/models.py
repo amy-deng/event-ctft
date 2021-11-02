@@ -86,6 +86,18 @@ class HeteroLayerCausalUni(nn.Module):
         self.weight_causal = nn.Linear(out_size, out_size,bias=False)
         self.weight_noise = nn.Linear(out_size, out_size,bias=False)
 
+        self.pos_cause =  nn.Parameter(torch.Tensor(1))
+        self.neg_cause =  nn.Parameter(torch.Tensor(1))
+        self.init_weights()
+
+    def init_weights(self):
+        for p in self.parameters():
+            if p.data.ndimension() >= 2:
+                nn.init.xavier_uniform_(p.data, gain=nn.init.calculate_gain('relu'))
+            else:
+                stdv = 1. / math.sqrt(p.size(0))
+                p.data.uniform_(-stdv, stdv)
+
     def forward(self, G, feat_dict):
         # print(G,feat_dict,'G,feat_dict')
         funcs={}
@@ -108,7 +120,8 @@ class HeteroLayerCausalUni(nn.Module):
                 v = G.nodes['topic'].data['effect']#.double()
                 # causal_mask = torch.where(v > 0., 1., v)
                 # causal_mask = torch.where(causal_mask < 0., -1., causal_mask)
-                causal_mask = (v!=0)*1.0 #(v>0)+(v<0)*1
+                # causal_mask = (v!=0)*1.0 #(v>0)+(v<0)*1
+                causal_mask = (v>0)*1.0*self.pos_cause + (v<0)*1.0*self.neg_cause 
                 # causal_mask = v
                 # t = (v == 0).nonzero().view(-1)
                 random_mask = torch.bernoulli(torch.tensor([0.1]*len(causal_mask)).to(self.device)) * (causal_mask==0)#.view(-1, 1, -1)
@@ -147,6 +160,18 @@ class HeteroLayerCausalCus(nn.Module):
         self.device = device
         # self.weight_causal = nn.Linear(out_size, out_size,bias=False)
         # self.weight_noise = nn.Linear(out_size, out_size,bias=False)
+        self.pos_cause =  nn.Parameter(torch.Tensor(1))
+        self.neg_cause =  nn.Parameter(torch.Tensor(1))
+        self.init_weights()
+
+    def init_weights(self):
+        for p in self.parameters():
+            if p.data.ndimension() >= 2:
+                nn.init.xavier_uniform_(p.data, gain=nn.init.calculate_gain('relu'))
+            else:
+                stdv = 1. / math.sqrt(p.size(0))
+                p.data.uniform_(-stdv, stdv)
+
 
     def forward(self, G, feat_dict):
         # print(G,feat_dict,'G,feat_dict')
@@ -168,7 +193,8 @@ class HeteroLayerCausalCus(nn.Module):
             node_emb = feat_dict[srctype]
             if srctype == 'topic':
                 v = G.nodes['topic'].data['effect'] 
-                causal_mask = (v!=0)*1.0 #(v>0)+(v<0)*1
+                # causal_mask = (v!=0)*1.0 #(v>0)+(v<0)*1
+                causal_mask = (v>0)*1.0*self.pos_cause + (v<0)*1.0*self.neg_cause 
                 random_mask = torch.bernoulli(torch.tensor([0.1]*len(causal_mask)).to(self.device)) * (causal_mask==0)#.view(-1, 1, -1)
                 causal_mask = causal_mask.view(-1, 1)
                 random_mask = random_mask.view(-1, 1)
