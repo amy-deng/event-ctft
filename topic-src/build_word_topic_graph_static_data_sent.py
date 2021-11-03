@@ -114,7 +114,7 @@ def get_topwords(docs, top_n=800):
     return top_features
 
 
-def word_word_pmi_sent(tokens_list, window_size=20):
+def word_word_pmi_sent(tokens_list, sample_words, window_size=20):
     '''
     tokens_list = [['thailand', 'district', 'injury', 'reported', 'explosion', 'damaged'],['thailand','bomb', 'patrolman']]
     '''
@@ -148,6 +148,8 @@ def word_word_pmi_sent(tokens_list, window_size=20):
                 word_i = window[i]
                 word_j = window[j]
                 if word_i not in word_id_map or word_j not in word_id_map:
+                    continue
+                if word_i not in sample_words or word_j not in sample_words:
                     continue
                 word_i_id = word_id_map[word_i]
                 word_j_id = word_id_map[word_j]
@@ -374,7 +376,7 @@ for i,row in df.iterrows():
     edge_dw = torch.tensor(weight)
 
     # word---word
-    word_i, word_j, weight = word_word_pmi_sent(sent_token_list) # window-size=20
+    word_i, word_j, weight = word_word_pmi_sent(sent_token_list, sample_words) # window-size=20
     word_graph_node_i = [vocab_graph_node_map[v] for v in word_i]
     word_graph_node_j = [vocab_graph_node_map[v] for v in word_j]
     graph_data[('word','ww','word')]=(torch.tensor(word_graph_node_i),torch.tensor(word_graph_node_j))
