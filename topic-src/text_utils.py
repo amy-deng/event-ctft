@@ -35,8 +35,8 @@ def nltk_stem(word_l):
 
 
 def get_stopwords():
-    # file = '/home/sdeng/data/stopwords-en.txt'
-    file = '../data/stopwords-en.txt'
+    file = '/home/sdeng/data/stopwords-en.txt'
+    # file = '../data/stopwords-en.txt'
     assert check_exist(file), "can not find stopwords file {}".format(file)
     return open(file).read().split('\n')
 
