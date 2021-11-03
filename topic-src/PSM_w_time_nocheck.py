@@ -9,7 +9,7 @@ from matplotlib import pyplot as plt
 
 import scipy
 '''
-python PSM_w_time_nocheck.py ../data THA_topic check_topic_causal_data_w7h7 5 1
+python PSM_w_time_nocheck.py ../data THA_topic check_topic_causal_data_w7h14 14 1
 for each event find causes
 '''
 try:
@@ -33,8 +33,8 @@ effect_dict = {}
 for file in file_list:
     file_name = file.split('/')[-1]
     tmp = file_name.split('.')[0].split('_')
-    topic_id = int(tmp[1])
-    split_date = tmp[2]
+    topic_id = int(tmp[2])
+    split_date = tmp[3]
     # topic_id = file_name.split('.')[0].split('_')[-1]
     # with open('{}/{}/{}/topic_{}.pkl'.format(out_path, dataset_name, raw_data_name, topic_id),'rb') as f:
     with open(file,'rb') as f:
