@@ -104,7 +104,7 @@ for i,row in df.iterrows():
 
     event_vec = np.zeros((horizon,20))
     event_count_list = row['event_count_list']
-    print(len(event_count_list))
+    print(len(event_count_list),event_vec.shape,'event_vec')
     for i_ in range(len(event_count_list)):
         event_count = event_count_list[i_]
         for k in event_count:
