@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from nltk.util import pr
 import numpy as np
 import pickle as pkl
 import scipy.sparse as sp
@@ -34,7 +35,8 @@ def nltk_stem(word_l):
 
 
 def get_stopwords():
-    file = '/home/sdeng/data/stopwords-en.txt'
+    # file = '/home/sdeng/data/stopwords-en.txt'
+    file = '../data/stopwords-en.txt'
     assert check_exist(file), "can not find stopwords file {}".format(file)
     return open(file).read().split('\n')
 
@@ -102,6 +104,27 @@ def text_tokenize(text): # list of list
     for sent in lists:
         token_lists.append(sentence_tokenize(sent))
     return token_lists
+
+def document_sent_tokenize_both(text): # list of list
+    text = re.sub(r"''", "\\n",text) 
+    lists = text.split("\\n")
+    token_lists = []
+    token_all = []
+    for sent in lists:
+        list_of_tokens = sentence_tokenize(sent)
+        token_all += list_of_tokens
+        token_lists.append(list_of_tokens)
+    return token_all, token_lists
+
+def document_sent_tokenize(texts): # list of strings
+    doc_token_list = []
+    sent_token_list = []
+    for t in texts:
+        token_all, token_lists = document_sent_tokenize_both(t)
+        doc_token_list.append(token_all)
+        sent_token_list += token_lists
+    return doc_token_list, sent_token_list
+
 
 def process_texts_phrases(texts): # list of list
     l = []
