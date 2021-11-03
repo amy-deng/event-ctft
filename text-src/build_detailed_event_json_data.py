@@ -11,6 +11,7 @@ import sys, os, json, time
 
 '''
 python build_detailed_event_json_data.py THA /home/sdeng/data/icews/detailed_event_json 2010 20 7
+
 '''
 try:
     country = sys.argv[1]
