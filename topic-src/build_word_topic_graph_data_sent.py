@@ -67,7 +67,7 @@ with open(ngram_path,'r') as f:
 vocab = vocab[:top_k_ngram]
 print('vocab loaded',len(vocab))
 
-outf = dataset_path + '/data_{}_{}_tt85_sentpmi.pkl'.format(start_date,stop_date)
+outf = dataset_path + '/data_{}_{}_tt85_sentpmi_12h.pkl'.format(start_date,stop_date)
 print(outf)
 
 word_id_map = {}
@@ -94,12 +94,23 @@ for end_date in splitted_date_lists:
         effect_all_topic[int(topic_id)] = round(eff,5)
     causal_time_dict[end_date] = effect_all_topic
 
-'''non-causal since we defined the significance level, 
-then middle parts are considered random, 
-maybe just randomly denoise those topics in approach design'''
+
+def get_topwords(docs, top_n=800):
+    vectorizer = TfidfVectorizer(
+                analyzer='word',
+                tokenizer=lambda x: x,
+                preprocessor=lambda x: x,
+                token_pattern=None,
+                min_df = 1) # ignore terms that appear in less than 5 documents, default is 1
+    X = vectorizer.fit_transform(docs)
+    indices = np.argsort(vectorizer.idf_)[::-1]
+    features = vectorizer.get_feature_names()
+    top_features = [features[i] for i in indices[:top_n]]
+    return top_features
 
 
-def word_word_pmi_sent(tokens_list, window_size=20):
+
+def word_word_pmi_sent(tokens_list, sample_words, window_size=20):
     '''
     tokens_list = [['thailand', 'district', 'injury', 'reported', 'explosion', 'damaged'],['thailand','bomb', 'patrolman']]
     '''
@@ -133,6 +144,8 @@ def word_word_pmi_sent(tokens_list, window_size=20):
                 word_i = window[i]
                 word_j = window[j]
                 if word_i not in word_id_map or word_j not in word_id_map:
+                    continue
+                if word_i not in sample_words or word_j not in sample_words:
                     continue
                 word_i_id = word_id_map[word_i]
                 word_j_id = word_id_map[word_j]
@@ -168,12 +181,14 @@ def word_word_pmi_sent(tokens_list, window_size=20):
     return row, col, weight
     
 
-def doc_word_tfidf(tokens_list):
+def doc_word_tfidf(tokens_list, sample_words):
     word_doc_list = {} # document frequency DF
     for i in range(len(tokens_list)):
         words = tokens_list[i]
         appeared = set()
         for word in words:
+            if word not in sample_words: 
+                continue
             if word in appeared:
                 continue
             if word in word_doc_list:
@@ -331,6 +346,8 @@ for i,row in df.iterrows():
         tokens_list, sent_token_list = document_sent_tokenize(story_text_lists)
         # words appeared in this example
         sample_words = list(set([item for sublist in tokens_list for item in sublist]))
+        if len(sample_words) > 1200:
+            sample_words = get_topwords(sent_token_list,1200)
         sample_words = [w for w in sample_words if w in vocab]
 
         graph_data = {}
@@ -346,7 +363,7 @@ for i,row in df.iterrows():
         edge_dw = torch.tensor(weight)
 
         # word---word
-        word_i, word_j, weight = word_word_pmi_sent(sent_token_list, window_size=10) # window-size=20
+        word_i, word_j, weight = word_word_pmi_sent(sent_token_list, sample_words) # window-size=20
         word_graph_node_i = [vocab_graph_node_map[v] for v in word_i]
         word_graph_node_j = [vocab_graph_node_map[v] for v in word_j]
         graph_data[('word','ww','word')]=(torch.tensor(word_graph_node_i),torch.tensor(word_graph_node_j))
@@ -369,7 +386,7 @@ for i,row in df.iterrows():
         edge_tt = torch.tensor(weight)'''
         graph_data[('topic','tt','topic')]=(torch.tensor(topic_i),torch.tensor(topic_j))
         # topic---word
-        topic_node, word_node, weight = topic_word_conn(sample_words,num_words=20) #need check words existed in topics
+        topic_node, word_node, weight = topic_word_conn(sample_words,num_words=30) #need check words existed in topics
         # print('# word nodes',len(set(word_node)),len(set(topic_node)))
         word_graph_node = [vocab_graph_node_map[v] for v in word_node]
         graph_data[('word','wt','topic')]=(torch.tensor(word_graph_node),torch.tensor(topic_node))
