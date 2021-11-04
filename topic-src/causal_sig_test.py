@@ -71,7 +71,11 @@ for end_date in splitted_date_lists:
     for j in range(20):
         # z_list.append(stats.zscore(res[:,j]))
         effect = res[:,j]
-        z_scores = stats.zscore(effect)
+        try:
+            z_scores = stats.zscore(effect)
+        except:
+            print(effect)
+            exit()
         # print('z_scores',z_scores.shape)
         # p_values = scipy.stats.norm.cdf(z_scores)
         p_values = scipy.stats.norm.sf(abs(z_scores))*2
