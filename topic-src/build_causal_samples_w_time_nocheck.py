@@ -19,8 +19,10 @@ try:
     out_path = sys.argv[1]
     dataset = sys.argv[2] # THA_topic
     raw_data_name = sys.argv[3]  
+    start_date = sys.argv[4]
+    end_date = sys.argv[5]
 except:
-    print("usage: <out_path> <dataset `THA_topic`> <raw_data_name `raw_w10h7`> ")
+    print("usage: <out_path> <dataset `THA_topic`> <raw_data_name `raw_w10h7`> <start_date> <end_date>")
     exit()
 
 
@@ -78,7 +80,8 @@ for topic_id in range(50):
     for i in sorted_indices:
 
         date = dates[i]
-
+        if date < start_date or date >= start_date:
+            continue
         if date > splitted_date_lists[cur_time_split_idx]:
             
             out_path = "{}/nocheck_topic_{}_{}.pkl".format(save_path,topic_id,splitted_date_lists[cur_time_split_idx])
@@ -97,7 +100,7 @@ for topic_id in range(50):
         # else:
         #     pass
     
-    out_path = "{}/nocheck_topic_{}_{}.pkl".format(save_path,topic_id,splitted_date_lists[cur_time_split_idx])
+    out_path = "{}/nocheck_topic_{}_{}_{}_{}.pkl".format(save_path,topic_id,splitted_date_lists[cur_time_split_idx],start_date, end_date)
     save_samples(treatment_assign_by_topic,outcome_by_topic,covariate_by_topic,out_path)
 
         

@@ -11,7 +11,11 @@ import scipy
 import csv
 from scipy import stats
 '''
-python causal_sig_test.py ../data THA_topic check_topic_causal_data_w7h7 effect_dict_pw5_biy0
+python causal_sig_test.py ../data THA_topic check_topic_causal_data_w7h7 effect_dict_pw5_biy0 0.05
+python causal_sig_test.py ../data THA_topic check_topic_causal_data_w7h14 effect_dict_pw14_biy1_nocheck 0.05
+python causal_sig_test.py ../data THA_topic check_topic_causal_data_w7h14 effect_dict_pw7_biy1_nocheck 0.05
+python causal_sig_test.py ../data THA_topic check_topic_causal_data_w7h14 effect_dict_pw3_biy1_nocheck 0.05
+
 for each event find causes
 '''
 try:
@@ -25,7 +29,7 @@ except:
     exit()
 
 file_path = "{}/{}/{}/causal_effect/{}.pkl".format(out_path,dataset_name,raw_data_name,effect_dict_name)
-
+print(file_path)
 with open(file_path,'rb') as f:
     effect_dict = pickle.load(f)
 
