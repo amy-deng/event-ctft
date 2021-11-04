@@ -19,7 +19,7 @@ from dgl.data.utils import save_graphs,load_graphs
 ### testing
  
 '''
-python build_word_topic_graph_data.py /home/sdeng/data/icews/detailed_event_json/THA_2010_w21h7_city.json ../data THA_50 /home/sdeng/data/icews/corpus/ngrams/THA_1gram_tfidf.txt 15000 7 7 3 ../data/THA_topic/check_topic_causal_data_w7h7/causal_effect/effect_dict_pw7_biy1_0.05.csv
+python build_word_topic_graph_data_sent.py /home/sdeng/data/icews/detailed_event_json/THA_2010_w21h7_city.json ../data THA_50 /home/sdeng/data/icews/corpus/ngrams/THA_1gram_tfidf.txt 15000 7 7 3 ../data/THA_topic/check_topic_causal_data_w7h7/causal_effect/effect_dict_pw7_biy1_0.05.csv 2014-01-01 2017-04-01
 '''
 # event_path = '/home/sdeng/data/icews/detailed_event_json/THA_2010_w21h7_city.json'
 # lda_name = 'THA_50'
@@ -352,7 +352,7 @@ for i,row in df.iterrows():
 
         graph_data = {}
         # doc---word
-        doc_node, word_node, weight = doc_word_tfidf(tokens_list)
+        doc_node, word_node, weight = doc_word_tfidf(tokens_list,sample_words)
         # print('# doc nodes',len(set(doc_node)),len(set(word_node)))
         words_in_curr_sample = list(set(word_node))
         # print('words_in_curr_sample',len(words_in_curr_sample))
