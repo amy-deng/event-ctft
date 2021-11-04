@@ -67,7 +67,7 @@ with open(ngram_path,'r') as f:
 vocab = vocab[:top_k_ngram]
 print('vocab loaded',len(vocab))
 
-outf = dataset_path + '/data_{}_{}_tt85_sentpmi_12h.pkl'.format(start_date,stop_date)
+outf = dataset_path + '/data_{}_{}_tt85_sentpmi_6h.pkl'.format(start_date,stop_date)
 print(outf)
 
 word_id_map = {}
@@ -346,8 +346,8 @@ for i,row in df.iterrows():
         tokens_list, sent_token_list = document_sent_tokenize(story_text_lists)
         # words appeared in this example
         sample_words = list(set([item for sublist in tokens_list for item in sublist]))
-        if len(sample_words) > 1200:
-            sample_words = get_topwords(sent_token_list,1200)
+        if len(sample_words) > 600:
+            sample_words = get_topwords(sent_token_list,600)
         sample_words = [w for w in sample_words if w in vocab]
 
         graph_data = {}
