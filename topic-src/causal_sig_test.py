@@ -86,12 +86,15 @@ for end_date in splitted_date_lists:
         # print(sig_idx,'sig_idx')
         print(np.nonzero(sig_idx),'np.nonzero(sig_idx)')
         len_nonzero = len(np.nonzero(sig_idx)[0])
-        
         print(len_nonzero,'len_nonzero')
         topic_idx = sorted_idx[:len_nonzero]
+        print(topic_idx,'topic_idx')
         top_p = p_values[topic_idx]
+        print(top_p,'top_p')
         top_z = z_scores[topic_idx]
+        print(top_z,'top_z')
         top_effect = effect[topic_idx]
+        print(top_effect,'top_effect')
         # print(event_types[j],len_nonzero,top_p,topic_idx)
         for i in range(len(topic_idx)):
             r = [j,event_types[j],i,topic_idx[i],round(top_effect[i],5),round(top_z[i],5),round(top_p[i],5),end_date]
