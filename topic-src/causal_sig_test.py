@@ -79,12 +79,15 @@ for end_date in splitted_date_lists:
         # print('z_scores',z_scores.shape)
         # p_values = scipy.stats.norm.cdf(z_scores)
         p_values = scipy.stats.norm.sf(abs(z_scores))*2
-        print(p_values,'p_values')
+        # print(p_values,'p_values')
         sorted_idx = np.argsort(p_values)
         print(sorted_idx,'sorted_idx')
         sig_idx = np.where(p_values<sig_level,1,0)
-        print(sig_idx,'sig_idx')
+        # print(sig_idx,'sig_idx')
+        print(np.nonzero(sig_idx),'np.nonzero(sig_idx)')
         len_nonzero = len(np.nonzero(sig_idx)[0])
+        
+        print(len_nonzero,'len_nonzero')
         topic_idx = sorted_idx[:len_nonzero]
         top_p = p_values[topic_idx]
         top_z = z_scores[topic_idx]
