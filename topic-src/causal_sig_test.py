@@ -81,20 +81,20 @@ for end_date in splitted_date_lists:
         p_values = scipy.stats.norm.sf(abs(z_scores))*2
         # print(p_values,'p_values')
         sorted_idx = np.argsort(p_values)
-        print(sorted_idx,'sorted_idx')
+        # print(sorted_idx,'sorted_idx')
         sig_idx = np.where(p_values<sig_level,1,0)
         # print(sig_idx,'sig_idx')
-        print(np.nonzero(sig_idx),'np.nonzero(sig_idx)')
+        # print(np.nonzero(sig_idx),'np.nonzero(sig_idx)')
         len_nonzero = len(np.nonzero(sig_idx)[0])
-        print(len_nonzero,'len_nonzero')
+        # print(len_nonzero,'len_nonzero')
         topic_idx = sorted_idx[:len_nonzero]
-        print(topic_idx,'topic_idx')
+        # print(topic_idx,'topic_idx')
         top_p = p_values[topic_idx]
-        print(top_p,'top_p')
+        # print(top_p,'top_p')
         top_z = z_scores[topic_idx]
-        print(top_z,'top_z')
+        # print(top_z,'top_z')
         top_effect = effect[topic_idx]
-        print(top_effect,'top_effect')
+        # print(top_effect,'top_effect')
         # print(event_types[j],len_nonzero,top_p,topic_idx)
         for i in range(len(topic_idx)):
             r = [j,event_types[j],i,topic_idx[i],round(top_effect[i],5),round(top_z[i],5),round(top_p[i],5),end_date]
