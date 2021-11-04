@@ -320,14 +320,6 @@ class HeteroConvLayer(nn.Module):
     def forward(self, G, feat_dict):
         # print(G,feat_dict,'G,feat_dict')
         funcs={}
-        # for srctype, etype, dsttype in [['word','ww','word']]: 
-        #     Wh = self.weight[etype](feat_dict[srctype])
-        #     G.nodes[srctype].data['Wh_%s' % etype] = Wh
-        #     funcs[etype] = (fn.u_mul_e('Wh_%s' % etype, 'weight', 'm'), fn.mean('m', 'h'))
-        # G.multi_update_all(funcs, 'sum')
-        # funcs = {}
-        # feat_dict['word'] = G.nodes['word'].data['h']
-        # print(G.canonical_etypes)
         G.edges['tt'].data['weight'] = G.edges['tt'].data['weight'].float()
         for srctype, etype, dsttype in G.canonical_etypes:
             # print('srctype, etype, dsttype',srctype, etype, dsttype,feat_dict[srctype].shape) 
@@ -348,7 +340,7 @@ class HeteroConvNet(nn.Module):
         # print('1')
         h_dict = self.layer1(G, emb_dict)
         # print('relu')
-        h_dict = {k : F.leaky_relu(h) for k, h in h_dict.items()}
+        h_dict = {k : F.relu(h) for k, h in h_dict.items()}
         # print('2')
         h_dict = self.layer2(G, h_dict)
         # print('done')
