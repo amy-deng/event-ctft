@@ -223,8 +223,10 @@ def doc_word_tfidf(tokens_list, sample_words):
         for word in words:
             if word in doc_word_set:
                 continue
-            if word not in word_id_map:
-                continue 
+            # if word not in word_id_map:
+            #     continue 
+            if word not in sample_words: 
+                continue
             j = word_id_map[word]
             key = str(i) + ',' + str(j)
             freq = doc_word_freq[key]
