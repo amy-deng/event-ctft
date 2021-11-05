@@ -293,8 +293,8 @@ class HeteroLayerCausalCus2(nn.Module):
 class HeteroNetCausalCus2(nn.Module):
     def __init__(self, in_size, hidden_size, out_size, casual_setup, device):
         super().__init__() 
-        self.layer1 = HeteroLayerCausalCus2(in_size, hidden_size, casual_setup,device)
-        self.layer2 = HeteroLayerCausalCus2(hidden_size, out_size, casual_setup,device)
+        self.layer1 = HeteroLayerCausalCus2(in_size, hidden_size, casual_setup, device)
+        self.layer2 = HeteroLayerCausalCus2(hidden_size, out_size, casual_setup, device)
 
     def forward(self, G, emb_dict):
         h_dict = self.layer1(G, emb_dict)
@@ -812,7 +812,7 @@ class static_heto_graph_causal_cus(nn.Module):
 
 
 class static_heto_graph_causal_cus2(nn.Module):
-    def __init__(self, h_inp, vocab_size, h_dim, device, seq_len=7, num_topic=50, num_word=15000,dropout=0.5):
+    def __init__(self, h_inp, vocab_size, h_dim, device, seq_len=7, num_topic=50, num_word=15000,dropout=0.5, cau_setup='pos1'):
         super().__init__()
         self.h_inp = h_inp
         self.vocab_size = vocab_size
@@ -827,7 +827,7 @@ class static_heto_graph_causal_cus2(nn.Module):
         # self.word_embeds = nn.Parameter(torch.Tensor(num_word, h_dim)) # change it to blocks
         self.topic_embeds = nn.Parameter(torch.Tensor(num_topic, h_dim))
         
-        self.hconv = HeteroNetCausalCus2(h_inp, h_dim, h_dim, 'pos1',self.device)
+        self.hconv = HeteroNetCausalCus2(h_inp, h_dim, h_dim, cau_setup,self.device)
         # self.maxpooling  = nn.MaxPool1d(3)# 
         # self.maxpooling  = dglnn.MaxPooling()
         self.out_layer = nn.Linear(h_dim,1) 
