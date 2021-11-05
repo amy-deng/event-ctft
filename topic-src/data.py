@@ -41,7 +41,7 @@ class StaticGraphData(data.Dataset):
             # y_data = data_dict['y'] # tensor 
             # g_data = data_dict['graphs_list'] # dgl
             y_data = torch.cat(y_data,dim=0)
-            print(y_data.shape,'y_data',y_data)
+            # print(y_data.shape,'y_data',y_data)
             y_data = y_data[:,:horizon].sum(-1)
             y_data = torch.where(y_data > 0,1.,0.)
             self.len = len(y_data)

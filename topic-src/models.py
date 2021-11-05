@@ -517,7 +517,10 @@ class WordGraphLayer(nn.Module):
             }) 
     def forward(self, G, feat_dict):
         funcs={}
+
         for srctype, etype, dsttype in [['word','ww','word']]: 
+            # norm = dglnn.EdgeWeightNorm(norm='both')
+            # norm_edge_weight = norm(g, edge_weight)
             Wh = self.weight[etype](feat_dict[srctype])
             G.nodes[srctype].data['Wh_%s' % etype] = Wh
             funcs[etype] = (fn.u_mul_e('Wh_%s' % etype, 'weight', 'm'), fn.mean('m', 'h'))
@@ -980,7 +983,7 @@ class static_word_graph(nn.Module):
 
     def forward(self, g_list, y_data): 
         bg = dgl.batch(g_list).to(self.device)
-         
+        # bg = dgl.add_self_loop(bg)
         word_emb = self.word_embeds[bg.nodes['word'].data['id']].view(-1, self.word_embeds.shape[1])
         emb_dict = self.hconv(bg, {'word':word_emb})
         word_emb = emb_dict['word']

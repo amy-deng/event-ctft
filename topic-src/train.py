@@ -110,11 +110,10 @@ test_loader.len = len(test_indices)
                         # shuffle=False, collate_fn=collate_2)
 
 def prepare(args,word_embeds,device): 
-    if args.model == 'm0':
+    if args.model == 'word_hetero':
         model = static_heto_graph(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device)
-    elif args.model == 'm2':
+    elif args.model == 'hetero':
         model = static_heto_graph2(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device)
-    
     elif args.model == 'uni':
         model = static_heto_graph_causal_uni(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device)
     elif args.model == 'cus':
@@ -183,7 +182,7 @@ def train(train_loader):
 
     t2 = time.time()
     reduced_loss = total_loss / (train_loader.len / args.batch_size)
-    print("Epoch {:04d} | Loss {:.6f} | time {:.2f} {}".format(epoch, reduced_loss, t2 - t0, time.ctime()))
+    print("Epo {:04d} | Loss {:.6f} | time {:.2f} {}".format(epoch, reduced_loss, t2 - t0, time.ctime()))
     return reduced_loss
 
 @torch.no_grad()
