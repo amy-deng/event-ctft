@@ -68,7 +68,7 @@ with open(ngram_path,'r') as f:
 vocab = vocab[:top_k_ngram]
 print('vocab loaded',len(vocab))
 
-outf = dataset_path + '/hetero_{}_{}_12h.pkl'.format(start_date,stop_date)
+outf = dataset_path + '/hetero_{}_{}_1k.pkl'.format(start_date,stop_date)
 print(outf)
 
 word_id_map = {}
