@@ -133,7 +133,8 @@ def prepare(args,word_embeds,device):
     total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print('#params:', total_params)
     token = '{}_seed{}_sl{}_h{}_lr{}_bs{}_p{}_hd{}_tr{}_val_{}'.format(model_name, args.seed, args.seq_len,args.horizon,args.lr,args.batch_size,args.patience,args.n_hidden,args.train,args.val)
-
+    if args.shuffle is False:
+        token += '_noshuf'
     os.makedirs('models', exist_ok=True)
     os.makedirs('models/' + args.dataset, exist_ok=True)
     os.makedirs('models/{}/{}'.format(args.dataset, token), exist_ok=True)
