@@ -44,7 +44,7 @@ try:
     start_date = sys.argv[10]
     stop_date = sys.argv[11]
 except:
-    print("usage: <event_path> <out_path> <lda_name `THA_50`> <ngram_path> <top_k_ngram `15000`> <window 7> <horizon 7> <his_days_threshold 3> <causal_file> <start_date 2010-01-01> <stop_date 2017-01-01>")
+    print("usage: <event_path> <out_path> <lda_name `THA_50`> <ngram_path> <top_k_ngram `15000`> <window 7> <horizon 7> <his_days_threshold 3> <causal_file fixed> <start_date 2010-01-01> <stop_date 2017-01-01>")
     exit()
 
 country = event_path.split('/')[-1][:3]
@@ -68,7 +68,7 @@ with open(ngram_path,'r') as f:
 vocab = vocab[:top_k_ngram]
 print('vocab loaded',len(vocab))
 
-outf = dataset_path + '/data_static_{}_{}_tt85_sentpmi_12h.pkl'.format(start_date,stop_date)
+outf = dataset_path + '/hetero_static_{}_{}_2k.pkl'.format(start_date,stop_date)
 print(outf)
 
 word_id_map = {}
@@ -84,16 +84,60 @@ splitted_date_lists = [
 ]
 
 '''causal_file'''
+causal_file = '/home/sdeng/workspace/event-ctft/data/THA_topic/check_topic_causal_data_w7h14/causal_effect/effect_dict_pw3_biy1_nocheck_0.05.csv'
 causal_df = pd.read_csv(causal_file,sep=',')
 causal_df = causal_df.loc[causal_df['event-type']=='protest']
-causal_time_dict = {}
+causal_time_dict_3day = {}
 for end_date in splitted_date_lists:
     tmp = causal_df.loc[causal_df['end-date']==end_date]
     causal_topic_effect = tmp[['topic-id','effect']].values
     effect_all_topic = np.zeros(50)#[0. for i in range(50)]
     for topic_id, eff in causal_topic_effect:
         effect_all_topic[int(topic_id)] = round(eff,5)
-    causal_time_dict[end_date] = effect_all_topic
+    causal_time_dict_3day[end_date] = effect_all_topic
+
+causal_file = '/home/sdeng/workspace/event-ctft/data/THA_topic/check_topic_causal_data_w7h14/causal_effect/effect_dict_pw7_biy1_nocheck_0.05.csv'
+causal_df = pd.read_csv(causal_file,sep=',')
+causal_df = causal_df.loc[causal_df['event-type']=='protest']
+causal_time_dict_7day = {}
+for end_date in splitted_date_lists:
+    tmp = causal_df.loc[causal_df['end-date']==end_date]
+    causal_topic_effect = tmp[['topic-id','effect']].values
+    effect_all_topic = np.zeros(50)#[0. for i in range(50)]
+    for topic_id, eff in causal_topic_effect:
+        effect_all_topic[int(topic_id)] = round(eff,5)
+    causal_time_dict_7day[end_date] = effect_all_topic
+
+causal_file = '/home/sdeng/workspace/event-ctft/data/THA_topic/check_topic_causal_data_w7h14/causal_effect/effect_dict_pw14_biy1_nocheck_0.05.csv'
+causal_df = pd.read_csv(causal_file,sep=',')
+causal_df = causal_df.loc[causal_df['event-type']=='protest']
+causal_time_dict_14day = {}
+for end_date in splitted_date_lists:
+    tmp = causal_df.loc[causal_df['end-date']==end_date]
+    causal_topic_effect = tmp[['topic-id','effect']].values
+    effect_all_topic = np.zeros(50)#[0. for i in range(50)]
+    for topic_id, eff in causal_topic_effect:
+        effect_all_topic[int(topic_id)] = round(eff,5)
+    causal_time_dict_14day[end_date] = effect_all_topic
+causal_time_dict = {}
+for k in causal_time_dict_14day:
+    v3 = causal_time_dict_3day[k]
+    v7 = causal_time_dict_7day[k]
+    v14 = causal_time_dict_14day[k]
+    v = np.stack((v3,v7,v14),1) # (50,3)
+    causal_time_dict[k] = v
+    # print(v.shape,v3.shape,v7.shape,v14.shape,'====')
+    # break
+# causal_df = pd.read_csv(causal_file,sep=',')
+# causal_df = causal_df.loc[causal_df['event-type']=='protest']
+# causal_time_dict = {}
+# for end_date in splitted_date_lists:
+#     tmp = causal_df.loc[causal_df['end-date']==end_date]
+#     causal_topic_effect = tmp[['topic-id','effect']].values
+#     effect_all_topic = np.zeros(50)#[0. for i in range(50)]
+#     for topic_id, eff in causal_topic_effect:
+#         effect_all_topic[int(topic_id)] = round(eff,5)
+#     causal_time_dict[end_date] = effect_all_topic
 
 '''non-causal since we defined the significance level, 
 then middle parts are considered random, 
@@ -118,16 +162,16 @@ def word_word_pmi_sent(tokens_list, sample_words, window_size=20):
     '''
     tokens_list = [['thailand', 'district', 'injury', 'reported', 'explosion', 'damaged'],['thailand','bomb', 'patrolman']]
     '''
-    windows = tokens_list
-    # windows = [] # get all moving windows
-    # for tokens in tokens_list:
-    #     length = len(tokens)
-    #     if length <= window_size:
-    #         windows.append(tokens)
-    #     else:
-    #         for j in range(length - window_size + 1):
-    #             window = tokens[j: j + window_size]
-    #             windows.append(window)
+    # windows = tokens_list
+    windows = [] # get all moving windows
+    for tokens in tokens_list:
+        length = len(tokens)
+        if length <= window_size:
+            windows.append(tokens)
+        else:
+            for j in range(length - window_size + 1):
+                window = tokens[j: j + window_size]
+                windows.append(window)
     # print(len(windows),windows[:3])
     word_window_freq = {} # get word freq in windows
     for window in windows:
@@ -414,8 +458,9 @@ for i,row in df.iterrows():
     g.nodes['word'].data['id'] = torch.tensor(words_in_curr_sample).long()
     g.nodes['topic'].data['id'] = g.nodes('topic').long()
     topic_graph_nodes = g.nodes('topic').numpy()
-    curr_causal_weight = torch.from_numpy(causal_weight[topic_graph_nodes])
-    g.nodes['topic'].data['effect'] = curr_causal_weight
+    # curr_causal_weight = torch.from_numpy(causal_weight[topic_graph_nodes])
+    # g.nodes['topic'].data['effect'] = curr_causal_weight
+    g.nodes['topic'].data['effect'] = torch.from_numpy(causal_weight[topic_graph_nodes]).to_sparse()
     g.edges['ww'].data['weight'] = edge_ww
     g.edges['wd'].data['weight'] = edge_dw
     g.edges['td'].data['weight'] = edge_dt

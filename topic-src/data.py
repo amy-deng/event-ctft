@@ -28,6 +28,7 @@ class StaticGraphData(data.Dataset):
       def __init__(self, path, dataset, datafiles, horizon):
             # data, times = utils.load_quadruples(path + dataset, set_name + '.txt')
             datafile_list = datafiles.split(',')
+            datafile_list.sort()
             y_data = []
             g_data = []
             for datafile in datafile_list:

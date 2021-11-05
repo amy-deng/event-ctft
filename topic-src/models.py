@@ -340,12 +340,66 @@ class HeteroConvNet(nn.Module):
         # print('1')
         h_dict = self.layer1(G, emb_dict)
         # print('relu')
-        h_dict = {k : F.relu(h) for k, h in h_dict.items()}
+        h_dict = {k : F.leaky_relu(h) for k, h in h_dict.items()}
         # print('2')
         h_dict = self.layer2(G, h_dict)
         # print('done')
         return h_dict
 
+ 
+class HeteroConvLayerCausalCus(nn.Module):
+    def __init__(self, word_in_size, topic_in_size, out_size):
+        super().__init__()
+        self.weight = nn.ModuleDict({
+                'ww': nn.Linear(word_in_size, out_size),
+                'wt': nn.Linear(word_in_size, out_size),
+                'wd': nn.Linear(word_in_size, out_size),
+                'td': nn.Linear(topic_in_size, out_size),
+                'tt': nn.Linear(topic_in_size, out_size),
+                'td_cau': nn.Linear(topic_in_size, out_size,bias=True),
+                'td_noi': nn.Linear(topic_in_size, out_size,bias=True),
+                'tt_cau': nn.Linear(topic_in_size, out_size,bias=True),
+                'tt_noi': nn.Linear(topic_in_size, out_size,bias=True),
+            }) 
+
+    def forward(self, G, feat_dict):
+        # print(G,feat_dict,'G,feat_dict')
+        funcs={}
+        G.edges['tt'].data['weight'] = G.edges['tt'].data['weight'].float()
+        for srctype, etype, dsttype in G.canonical_etypes:
+            node_emb = feat_dict[srctype]
+            if srctype == 'topic':
+                v = G.nodes['topic'].data['effect'] 
+                causal_mask = (v!=0)*1.0 #(v>0)+(v<0)*1
+                # causal_mask = (v>0)*1.0*self.pos_cause + (v<0)*1.0*self.neg_cause 
+                random_mask = torch.bernoulli(torch.tensor([0.1]*len(causal_mask)).to(self.device)) * (causal_mask==0)#.view(-1, 1, -1)
+                causal_mask = causal_mask.view(-1, 1)
+                random_mask = random_mask.view(-1, 1)
+                Wh = self.weight[etype](node_emb) + self.weight['%s_cau' % etype](node_emb * causal_mask) - self.weight['%s_noi' % etype](node_emb * random_mask)
+            else:
+                # print('srctype, etype, dsttype',srctype, etype, dsttype) 
+                Wh = self.weight[etype](node_emb)
+
+            # print('srctype, etype, dsttype',srctype, etype, dsttype,feat_dict[srctype].shape) 
+            Wh = self.weight[etype](feat_dict[srctype])
+            G.nodes[srctype].data['Wh_%s' % etype] = Wh
+            funcs[etype] = (fn.u_mul_e('Wh_%s' % etype, 'weight', 'm'), fn.mean('m', 'h'))
+
+        G.multi_update_all(funcs, 'sum')
+        return {ntype : G.nodes[ntype].data['h'] for ntype in G.ntypes}
+
+
+class HeteroConvNetCausalCus(nn.Module):
+    def __init__(self, in_size, hidden_size, out_size, device):
+        super().__init__() 
+        self.layer1 = HeteroConvLayerCausalCus(in_size, hidden_size, device)
+        self.layer2 = HeteroConvLayerCausalCus(hidden_size, out_size, device)
+
+    def forward(self, G, emb_dict):
+        h_dict = self.layer1(G, emb_dict)
+        h_dict = {k : F.leaky_relu(h) for k, h in h_dict.items()}
+        h_dict = self.layer2(G, h_dict)
+        return h_dict
 
 class WordGraphNet(nn.Module):
     def __init__(self, in_size, hidden_size, out_size):
@@ -727,7 +781,7 @@ class static_heto_graph0(nn.Module):
         y_pred = torch.sigmoid(y_pred)
         return loss, y_pred
 
-class static_graph(nn.Module):
+class static_word_graph(nn.Module):
     def __init__(self, h_inp, vocab_size, h_dim, device, seq_len=7, num_topic=50, num_word=15000,dropout=0.5):
         super().__init__()
         self.h_inp = h_inp
