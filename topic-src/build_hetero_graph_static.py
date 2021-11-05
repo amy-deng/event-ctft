@@ -43,8 +43,9 @@ try:
     causal_file = sys.argv[9] # ../data/THA_topic/check_topic_causal_data_w7h7/causal_effect/effect_dict_pw7_biy1_0.05.csv
     start_date = sys.argv[10]
     stop_date = sys.argv[11]
+    vocab_size = int(sys.argv[12])
 except:
-    print("usage: <event_path> <out_path> <lda_name `THA_50`> <ngram_path> <top_k_ngram `15000`> <window 7> <horizon 7> <his_days_threshold 3> <causal_file fixed> <start_date 2010-01-01> <stop_date 2017-01-01>")
+    print("usage: <event_path> <out_path> <lda_name `THA_50`> <ngram_path> <top_k_ngram `15000`> <window 7> <horizon 7> <his_days_threshold 3> <causal_file fixed> <start_date 2010-01-01> <stop_date 2017-01-01> <vocab_size>")
     exit()
 
 country = event_path.split('/')[-1][:3]
@@ -68,7 +69,10 @@ with open(ngram_path,'r') as f:
 vocab = vocab[:top_k_ngram]
 print('vocab loaded',len(vocab))
 
-outf = dataset_path + '/hetero_static_{}_{}_2k.pkl'.format(start_date,stop_date)
+if vocab_size > 0:
+    outf = dataset_path + '/hetero_static_{}_{}_{}.pkl'.format(start_date,stop_date,vocab_size)
+else:
+    outf = dataset_path + '/hetero_static_{}_{}.pkl'.format(start_date,stop_date)
 print(outf)
 
 word_id_map = {}
@@ -402,8 +406,9 @@ for i,row in df.iterrows():
     tokens_list, sent_token_list = document_sent_tokenize(story_text_lists)
     # words appeared in this example
     sample_words = list(set([item for sublist in tokens_list for item in sublist]))
-    if len(sample_words) > 2000:
-        sample_words = get_topwords(sent_token_list,2000)
+    if vocab_size > 0:
+        if len(sample_words) > vocab_size:
+            sample_words = get_topwords(sent_token_list,vocab_size)
     sample_words = [w for w in sample_words if w in vocab]
 
     graph_data = {}
