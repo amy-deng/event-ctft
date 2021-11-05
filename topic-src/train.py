@@ -83,7 +83,15 @@ split2 = int(np.floor((args.val+args.train) * dataset_size))
 if args.shuffle:
     np.random.seed(args.seed)
     np.random.shuffle(indices)
-train_indices, val_indices, test_indices = indices[:split1], indices[split1:split2], indices[split2:]
+    train_indices, val_indices, test_indices = indices[:split1], indices[split1:split2], indices[split2:]
+else:
+    test_indices = indices[split2:]
+    train_val_indices = indices[:split2]
+    np.random.seed(args.seed)
+    np.random.shuffle(train_val_indices)
+    train_indices, val_indices = train_val_indices[:split1], train_val_indices[split1:split2]
+    
+# print((train_indices),(val_indices),(test_indices))
 print(len(train_indices),len(val_indices),len(test_indices))
 # Creating PT data samplers and loaders:
 train_sampler = SubsetRandomSampler(train_indices)
