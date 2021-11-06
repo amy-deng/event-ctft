@@ -501,10 +501,10 @@ class HeteroConvLayerCausalCus(nn.Module):
 
 
 class HeteroConvNetCausalCus(nn.Module):
-    def __init__(self, in_size, hidden_size, out_size, casual_setup, device):
+    def __init__(self, word_in_size, topic_in_size, hidden_size, out_size, casual_setup, device):
         super().__init__() 
-        self.layer1 = HeteroConvLayerCausalCus(in_size, hidden_size, casual_setup, device)
-        self.layer2 = HeteroConvLayerCausalCus(hidden_size, out_size, casual_setup, device)
+        self.layer1 = HeteroConvLayerCausalCus(word_in_size, topic_in_size, hidden_size, casual_setup, device)
+        self.layer2 = HeteroConvLayerCausalCus(hidden_size, hidden_size, out_size, casual_setup, device)
 
     def forward(self, G, emb_dict):
         h_dict = self.layer1(G, emb_dict)
@@ -916,7 +916,7 @@ class static_heto_graph_causal_cus3(nn.Module):
         # self.word_embeds = nn.Parameter(torch.Tensor(num_word, h_dim)) # change it to blocks
         self.topic_embeds = nn.Parameter(torch.Tensor(num_topic, h_dim))
         
-        self.hconv = HeteroConvLayerCausalCus(h_inp, h_dim, h_dim, cau_setup, self.device)
+        self.hconv = HeteroConvNetCausalCus(h_inp, h_dim, h_dim, h_dim, cau_setup, self.device)
         # self.maxpooling  = nn.MaxPool1d(3)# 
         # self.maxpooling  = dglnn.MaxPooling()
         self.out_layer = nn.Linear(h_dim,1) 
