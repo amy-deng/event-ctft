@@ -129,8 +129,10 @@ def prepare(args,word_embeds,device):
         model = static_heto_graph_causal_cus(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device)
     elif args.model == 'cus2':
         model = static_heto_graph_causal_cus2(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device,cau_setup=args.cau_setup)
-    elif args.model == 'cus3':
+    elif args.model == 'cus3': # uniform message passing
         model = static_heto_graph_causal_cus3(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device,cau_setup=args.cau_setup)
+    elif args.model == 'cus4': # uniform message passing no noise part
+        model = static_heto_graph_causal_cus4(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device,cau_setup=args.cau_setup)
     
     elif args.model == 'm1':
         model = static_heto_graph0(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device)
