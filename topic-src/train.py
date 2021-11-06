@@ -129,6 +129,8 @@ def prepare(args,word_embeds,device):
         model = static_heto_graph_causal_cus(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device)
     elif args.model == 'cus2':
         model = static_heto_graph_causal_cus2(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device,cau_setup=args.cau_setup)
+    elif args.model == 'cus3':
+        model = static_heto_graph_causal_cus3(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device,cau_setup=args.cau_setup)
     
     elif args.model == 'm1':
         model = static_heto_graph0(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device)
@@ -144,7 +146,7 @@ def prepare(args,word_embeds,device):
     token = '{}_seed{}_sl{}_h{}_lr{}_bs{}_p{}_hd{}_tr{}_val_{}'.format(model_name, args.seed, args.seq_len,args.horizon,args.lr,args.batch_size,args.patience,args.n_hidden,args.train,args.val)
     if args.shuffle is False:
         token += '_noshuf'
-    if args.model == 'cus2':
+    if args.model in ['cus2','cus3']:
         token += args.cau_setup
     os.makedirs('models', exist_ok=True)
     os.makedirs('models/' + args.dataset, exist_ok=True)
