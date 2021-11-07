@@ -541,6 +541,9 @@ class HeteroConvLayerCausalCus_nonoise(nn.Module):
             node_emb = feat_dict[srctype]
             if srctype == 'topic':
                 effect = G.nodes['topic'].data['effect'].to_dense().float()  # sparse
+                # v1 = (effect!=0) * 1.
+                # v2 = (effect > 0)+(effect < 0)*(-1.)
+                # print(((v1==v2)*1.0).mean())
                 if self.causal_setup == 'pos1':
                     effect = (effect!=0) * 1.
                 elif self.causal_setup == 'sign1':

@@ -148,7 +148,7 @@ def prepare(args,word_embeds,device):
     token = '{}_seed{}_sl{}_h{}_lr{}_bs{}_p{}_hd{}_tr{}_val_{}'.format(model_name, args.seed, args.seq_len,args.horizon,args.lr,args.batch_size,args.patience,args.n_hidden,args.train,args.val)
     if args.shuffle is False:
         token += '_noshuf'
-    if args.model in ['cus2','cus3']:
+    if args.model in ['cus3','cus4']:
         token += args.cau_setup
     os.makedirs('models', exist_ok=True)
     os.makedirs('models/' + args.dataset, exist_ok=True)
