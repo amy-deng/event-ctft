@@ -1175,7 +1175,6 @@ class temp_heto_graph(nn.Module):
         self.criterion = F.binary_cross_entropy_with_logits #soft_cross_entropy
         self.init_weights()
 
-
     def init_weights(self):
         for p in self.parameters():
             if p.data.ndimension() >= 2:
@@ -1227,7 +1226,7 @@ class temp_heto_graph(nn.Module):
         doc_emb_split = torch.split(global_doc_info, g_len.tolist())
         # print(len(doc_emb_split),'len doc_emb_split',doc_emb_split[0].shape)
 
-        embed_seq_tensor = torch.zeros(num_non_zero, self.seq_len, self.h_dim)
+        embed_seq_tensor = torch.zeros(num_non_zero, self.seq_len, self.h_dim).to(self.device)
 
         for i, embeds in enumerate(doc_emb_split): 
             embed_seq_tensor[i, torch.arange(len(embeds)), :] = embeds
