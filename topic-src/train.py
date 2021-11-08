@@ -139,7 +139,8 @@ def prepare(args,word_embeds,device):
         model = static_word_graph(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device)
     elif args.model == 'temp_hetero':
         model = temp_heto_graph(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device)
-
+    elif args.model == 'temp_word_hetero':
+        model = temp_word_hetero(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device)
     model_name = model.__class__.__name__
 
     optimizer = torch.optim.Adam(
