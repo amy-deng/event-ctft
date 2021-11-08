@@ -25,7 +25,7 @@ parser.add_argument("--seq-len", type=int, default=7)
 parser.add_argument("--horizon", type=int, default=7)
 parser.add_argument("--batch-size", type=int, default=32)
 parser.add_argument("--rnn-layers", type=int, default=1)
-# parser.add_argument("--maxpool", type=int, default=1)
+parser.add_argument("--pool", type=str, default='max')
 parser.add_argument("--patience", type=int, default=12)
 # parser.add_argument("--use-gru", type=int, default=1, help='1 use gru 0 rnn')
 # parser.add_argument("--attn", type=str, default='', help='dot/add/genera; default general')
@@ -120,9 +120,9 @@ test_loader.len = len(test_indices)
 
 def prepare(args,word_embeds,device): 
     if args.model == 'word_hetero':
-        model = static_heto_graph(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device)
+        model = static_heto_graph(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device,pool=args.pool)
     elif args.model == 'hetero':
-        model = static_heto_graph2(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device)
+        model = static_heto_graph2(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device,pool=args.pool)
     elif args.model == 'uni':
         model = static_heto_graph_causal_uni(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device)
     elif args.model == 'cus':
@@ -136,18 +136,18 @@ def prepare(args,word_embeds,device):
     elif args.model == 'm1':
         model = static_heto_graph0(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device)
     elif args.model == 'word':
-        model = static_word_graph(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device)
+        model = static_word_graph(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device,pool=args.pool)
     elif args.model == 'temp_hetero':
-        model = temp_heto_graph(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device)
-    elif args.model == 'temp_word_hetero':
-        model = temp_word_hetero(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device)
+        model = temp_heto_graph(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device,pool=args.pool)
+    # elif args.model == 'temp_word_hetero':
+    #     model = temp_word_hetero(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device,pool=args.pool)
     model_name = model.__class__.__name__
 
     optimizer = torch.optim.Adam(
         model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
     total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print('#params:', total_params)
-    token = '{}_seed{}_sl{}_h{}_lr{}_bs{}_p{}_hd{}_tr{}_val_{}'.format(model_name, args.seed, args.seq_len,args.horizon,args.lr,args.batch_size,args.patience,args.n_hidden,args.train,args.val)
+    token = '{}_seed{}_sl{}_h{}_lr{}_bs{}_p{}_hd{}_tr{}_val_{}_{}'.format(model_name, args.seed, args.seq_len,args.horizon,args.lr,args.batch_size,args.patience,args.n_hidden,args.train,args.val,args.pool)
     if args.shuffle is False:
         token += '_noshuf'
     if args.model in ['cus3','cus4']:

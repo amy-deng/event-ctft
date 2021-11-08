@@ -613,7 +613,7 @@ class WordGraphLayer(nn.Module):
 # a static graph model
  
 class static_heto_graph(nn.Module):
-    def __init__(self, h_inp, vocab_size, h_dim, device, seq_len=7, num_topic=50, num_word=15000,dropout=0.5):
+    def __init__(self, h_inp, vocab_size, h_dim, device, seq_len=7, num_topic=50, num_word=15000,dropout=0.5,pool='max'):
         super().__init__()
         self.h_inp = h_inp
         self.vocab_size = vocab_size
@@ -622,6 +622,7 @@ class static_heto_graph(nn.Module):
         # self.num_rels = num_rels
         self.seq_len = seq_len
         self.device = device
+        self.pool = pool
         self.dropout = nn.Dropout(dropout)
         self.word_embeds = None
         # initialize rel and ent embedding
@@ -658,7 +659,10 @@ class static_heto_graph(nn.Module):
         }
         emb_dict = self.hconv(bg,emb_dict)
         bg.nodes['doc'].data['emb'] = emb_dict['doc']
-        global_doc_info = dgl.max_nodes(bg, feat='emb',ntype='doc')
+        if self.pool == 'max':
+            global_doc_info = dgl.max_nodes(bg, feat='emb',ntype='doc')
+        elif self.pool == 'mean':
+            global_doc_info = dgl.mean_nodes(bg, feat='emb',ntype='doc')
         y_pred = self.out_layer(global_doc_info)
         # print(y_pred.shape,'y_pred',y_pred,y_data.shape,'y_data')
         loss = self.criterion(y_pred.view(-1), y_data)
@@ -667,7 +671,7 @@ class static_heto_graph(nn.Module):
 
 
 class static_heto_graph2(nn.Module):
-    def __init__(self, h_inp, vocab_size, h_dim, device, seq_len=7, num_topic=50, num_word=15000,dropout=0.5):
+    def __init__(self, h_inp, vocab_size, h_dim, device, seq_len=7, num_topic=50, num_word=15000,dropout=0.5,pool='max'):
         super().__init__()
         self.h_inp = h_inp
         self.vocab_size = vocab_size
@@ -676,6 +680,7 @@ class static_heto_graph2(nn.Module):
         # self.num_rels = num_rels
         self.seq_len = seq_len
         self.device = device
+        self.pool = pool
         self.dropout = nn.Dropout(dropout)
         self.word_embeds = None
         # initialize rel and ent embedding
@@ -711,7 +716,10 @@ class static_heto_graph2(nn.Module):
         }
         emb_dict = self.hconv(bg,emb_dict)
         bg.nodes['doc'].data['emb'] = emb_dict['doc']
-        global_doc_info = dgl.max_nodes(bg, feat='emb',ntype='doc')
+        if self.pool == 'max':
+            global_doc_info = dgl.max_nodes(bg, feat='emb',ntype='doc')
+        elif self.pool == 'mean':
+            global_doc_info = dgl.mean_nodes(bg, feat='emb',ntype='doc')
         y_pred = self.out_layer(global_doc_info)
         # print(y_pred.shape,'y_pred',y_pred,y_data.shape,'y_data')
         loss = self.criterion(y_pred.view(-1), y_data)
@@ -1102,7 +1110,7 @@ class static_heto_graph0(nn.Module):
         return loss, y_pred
 
 class static_word_graph(nn.Module):
-    def __init__(self, h_inp, vocab_size, h_dim, device, seq_len=7, num_topic=50, num_word=15000,dropout=0.5):
+    def __init__(self, h_inp, vocab_size, h_dim, device, seq_len=7, num_topic=50, num_word=15000,dropout=0.5,pool='max'):
         super().__init__()
         self.h_inp = h_inp
         self.vocab_size = vocab_size
@@ -1111,6 +1119,7 @@ class static_word_graph(nn.Module):
         # self.num_rels = num_rels
         self.seq_len = seq_len
         self.device = device
+        self.pool = pool
         self.dropout = nn.Dropout(dropout)
         self.word_embeds = None 
         self.hconv = WordGraphNet(h_inp, h_dim, h_dim) 
@@ -1137,7 +1146,10 @@ class static_word_graph(nn.Module):
         word_emb = self.word_embeds[bg.nodes['word'].data['id']].view(-1, self.word_embeds.shape[1])
         emb_dict = self.hconv(bg, {'word':word_emb})
         bg.nodes['word'].data['emb'] = emb_dict['word']
-        global_word_info = dgl.max_nodes(bg, feat='emb',ntype='word')
+        if self.pool == 'max':
+            global_word_info = dgl.max_nodes(bg, feat='emb',ntype='word')
+        elif self.pool == 'mean':
+            global_word_info = dgl.mean_nodes(bg, feat='emb',ntype='word')
         y_pred = self.out_layer(global_word_info)
         loss = self.criterion(y_pred.view(-1), y_data)
         y_pred = torch.sigmoid(y_pred) 
@@ -1245,7 +1257,7 @@ class temp_word_hetero(nn.Module):
         return loss, y_pred
 
 class temp_heto_graph(nn.Module):
-    def __init__(self, h_inp, vocab_size, h_dim, device, seq_len=7, num_topic=50, num_word=15000,dropout=0.5):
+    def __init__(self, h_inp, vocab_size, h_dim, device, seq_len=7, num_topic=50, num_word=15000,dropout=0.5,pool='max'):
         super().__init__()
         self.h_inp = h_inp
         self.vocab_size = vocab_size
@@ -1254,6 +1266,7 @@ class temp_heto_graph(nn.Module):
         # self.num_rels = num_rels
         self.seq_len = seq_len
         self.device = device
+        self.pool = pool
         self.dropout = nn.Dropout(dropout)
         self.word_embeds = None
         # initialize rel and ent embedding
@@ -1316,7 +1329,11 @@ class temp_heto_graph(nn.Module):
         }
         emb_dict = self.hconv(bg,emb_dict)
         bg.nodes['doc'].data['emb'] = emb_dict['doc'] 
-        global_doc_info = dgl.max_nodes(bg, feat='emb',ntype='doc')
+        if self.pool == 'max':
+            global_doc_info = dgl.max_nodes(bg, feat='emb',ntype='doc')
+        elif self.pool == 'mean':
+            global_doc_info = dgl.mean_nodes(bg, feat='emb',ntype='doc')
+        
         # print('global_doc_info',global_doc_info.shape)
         # doc_len = [g.num_nodes('doc') for g in g_list]
         doc_emb_split = torch.split(global_doc_info, g_len.tolist())
