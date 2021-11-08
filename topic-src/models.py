@@ -1188,11 +1188,12 @@ class temp_heto_graph(nn.Module):
         # sort by len, 
         # g_list = [[0,1,2,3],[0,1,2,3,4,5],[0,1,2,3,4,5,6,7]]
         # g_list_len = torch.LongTensor(list(map(len, g_list)))
-        g_list_len = torch.IntTensor(list(map(len, g_list))).to(self.device)
+        g_list_len = torch.IntTensor(list(map(len, g_list)))#.to(self.device)
         # print('g_list_len',g_list_len)
-        g_list_len = g_list_len.to(self.device)
+        # g_list_len = g_list_len.to(self.device)
         g_len, idx = g_list_len.sort(0, descending=True)
         num_non_zero = len(torch.nonzero(g_len)) # on zero, this step can be removed
+        g_len = g_len.int()
         g_len_non_zero = g_len[:num_non_zero]
         if torch.max(g_list_len) == 0:
             print('all are empty list in g_list')
