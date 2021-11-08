@@ -1166,7 +1166,7 @@ class temp_word_hetero(nn.Module):
         self.topic_embeds = nn.Parameter(torch.Tensor(num_topic, h_dim))
         # self.hconv = HeteroConvNet(h_inp, h_dim, h_dim, h_dim)
         self.hconv = HeteroNet(h_inp, h_dim, h_dim)
-        self.rnn = nn.GRU(h_dim, h_dim, num_layers=2, batch_first=True, dropout=dropout)
+        self.rnn = nn.RNN(h_dim, h_dim, num_layers=2, batch_first=True, dropout=dropout)
         # self.maxpooling  = nn.MaxPool1d(3)# 
         # self.maxpooling  = dglnn.MaxPooling()
         self.out_layer = nn.Linear(h_dim,1) 
@@ -1261,7 +1261,7 @@ class temp_heto_graph(nn.Module):
         self.topic_embeds = nn.Parameter(torch.Tensor(num_topic, h_dim))
         
         self.hconv = HeteroConvNet(h_inp, h_dim, h_dim, h_dim)
-        self.rnn = nn.GRU(h_dim, h_dim, num_layers=2, batch_first=True, dropout=dropout)
+        self.rnn = nn.RNN(h_dim, h_dim, num_layers=2, batch_first=True, dropout=dropout)
         # self.maxpooling  = nn.MaxPool1d(3)# 
         # self.maxpooling  = dglnn.MaxPooling()
         self.out_layer = nn.Linear(h_dim,1) 
