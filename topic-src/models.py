@@ -71,10 +71,10 @@ class HeteroConvLayer2(nn.Module):
             # print('cano_etype',cano_etype)
             # print('srctype',srctype,etype,G.nodes[srctype].data['h'].shape)
             G.nodes[srctype].data['h'] = self.weight[etype](G.nodes[srctype].data['h'])  
-            dst_degs = G.in_degrees(G.nodes(dsttype), cano_etype).clamp(min=1).float()
-            G.nodes[dsttype].data['norm'] = (1. / dst_degs) 
-            # * G.nodes[dsttype].data['weight'] 
-            G.apply_edges(lambda edges: {'weight': edges.dst['norm']*edges.data['weight'] }, etype=cano_etype)
+            # dst_degs = G.in_degrees(G.nodes(dsttype), cano_etype).clamp(min=1).float()
+            # G.nodes[dsttype].data['norm'] = (1. / dst_degs) 
+            # # * G.nodes[dsttype].data['weight'] 
+            # G.apply_edges(lambda edges: {'weight': edges.dst['norm']*edges.data['weight'] }, etype=cano_etype)
 
             funcs[etype] = (fn.u_mul_e('h', 'weight', 'm'), fn.mean('m', 'h')) 
 
