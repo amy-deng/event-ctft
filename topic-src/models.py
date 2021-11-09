@@ -108,6 +108,33 @@ class HeteroConvLayer(nn.Module):
         G.multi_update_all(funcs, 'sum')
         return {ntype : G.nodes[ntype].data['h'] for ntype in G.ntypes}
  
+class HeteroTopicLayer(nn.Module):
+    def __init__(self, word_in_size, topic_in_size, out_size):
+        super().__init__()
+        self.weight = nn.ModuleDict({
+                'ww': nn.Linear(word_in_size, out_size),
+                'wt': nn.Linear(word_in_size, out_size),
+                # 'wd': nn.Linear(word_in_size, out_size),
+                # 'td': nn.Linear(topic_in_size, out_size),
+                'tt': nn.Linear(topic_in_size, out_size),
+            }) 
+
+    def forward(self, G, feat_dict):
+        # print(G,feat_dict,'G,feat_dict')
+        funcs={}
+        G.edges['tt'].data['weight'] = G.edges['tt'].data['weight'].float()
+        for srctype, etype, dsttype in G.canonical_etypes:
+            if etype in ['wd','td']:
+                continue
+            # print('srctype, etype, dsttype',srctype, etype, dsttype,feat_dict[srctype].shape) 
+            Wh = self.weight[etype](feat_dict[srctype])
+            G.nodes[srctype].data['Wh_%s' % etype] = Wh
+            funcs[etype] = (fn.u_mul_e('Wh_%s' % etype, 'weight', 'm'), fn.mean('m', 'h'))
+
+        G.multi_update_all(funcs, 'sum')
+        return {ntype : G.nodes[ntype].data['h'] for ntype in ['word','topic']}
+ 
+ 
  
 class HeteroConvCausalLayer0(nn.Module):
     def __init__(self, word_in_size, topic_in_size, out_size, device):
@@ -157,20 +184,33 @@ class HeteroConvCausalLayer1(nn.Module):
                 'ww': nn.Linear(word_in_size, out_size),
                 'wt': nn.Linear(word_in_size, out_size),
                 'wd': nn.Linear(word_in_size, out_size),
-                # 'td': nn.Linear(topic_in_size, out_size),
-                # 'tt': nn.Linear(topic_in_size, out_size),
-                'td_cau': nn.Linear(topic_in_size, out_size, bias=True),
-                'td_noi': nn.Linear(topic_in_size, out_size, bias=True),
-                'tt_cau': nn.Linear(topic_in_size, out_size, bias=True),
-                'tt_noi': nn.Linear(topic_in_size, out_size, bias=True),
+                'td': nn.Linear(topic_in_size, out_size),
+                'tt': nn.Linear(topic_in_size, out_size),
+                # 'td_cau': nn.Linear(topic_in_size, out_size, bias=True),
+                # 'td_noi': nn.Linear(topic_in_size, out_size, bias=True),
+                # 'tt_cau': nn.Linear(topic_in_size, out_size, bias=True),
+                # 'tt_noi': nn.Linear(topic_in_size, out_size, bias=True),
                 # 'cau': nn.Linear(topic_in_size, out_size, bias=True),
                 # 'noi': nn.Linear(topic_in_size, out_size, bias=True),
-                'td_cau_trans': nn.Linear(3, 1,bias=False),
+                # 'td_cau_trans': nn.Linear(3, 1,bias=False),
                 # 'td_noi_trans': nn.Linear(3, 1,bias=False),
-                'tt_cau_trans': nn.Linear(3, 1,bias=False),
+                # 'tt_cau_trans': nn.Linear(3, 1,bias=False),
                 # 'tt_noi_trans': nn.Linear(3, 1,bias=False),
+                # 'td_cau_weight':nn.Linear(3, 1)
             }) 
+        self.td_cau_weight = nn.Parameter(torch.Tensor(3, topic_in_size, out_size))
+        self.tt_cau_weight = nn.Parameter(torch.Tensor(3, topic_in_size, out_size))
         self.device = device
+        self.init_weights()
+
+
+    def init_weights(self):
+        for p in self.parameters():
+            if p.data.ndimension() >= 2:
+                nn.init.xavier_uniform_(p.data, gain=nn.init.calculate_gain('relu'))
+            else:
+                stdv = 1. / math.sqrt(p.size(0))
+                p.data.uniform_(-stdv, stdv)
 
     def forward(self, G, feat_dict):
         # print(G,feat_dict,'G,feat_dict')
@@ -180,15 +220,33 @@ class HeteroConvCausalLayer1(nn.Module):
             node_emb = feat_dict[srctype]
             if srctype == 'topic':
                 effect = G.nodes['topic'].data['effect'].to_dense().float()  # sparse
-                effect = (effect!=0) * 1.
+                # print(effect.shape)
+                num_time = effect.size(-1)
+                # effect = (effect!=0) * 1.
+                effect = (effect > 0)+(effect < 0)*(-1.) 
+                # print(effect.shape,'effect',node_emb.shape)
+                # for i in range(num_time):
+                node_emb_repeated = node_emb.unsqueeze(0).repeat(num_time,1,1)
+                # print(node_emb_repeated.shape)
+                if etype == 'td':
+                    Wh = torch.bmm(node_emb_repeated,self.td_cau_weight)
+                else:
+                    Wh = torch.bmm(node_emb_repeated,self.tt_cau_weight)
+                # print(Wh.shape,'Wh')
+                Wh = Wh * torch.t(effect).unsqueeze(-1)
+                # print(Wh.shape,'Wh2',Wh.nonzero().size())
+                # print(Wh.sum(-1).nonzero().size(),'======')
                 # random_mask = torch.bernoulli(0.1*torch.ones(effect.size()).to(self.device)) * (effect==0)#.view(-1, 1, -1)
-                effect_gate = torch.sigmoid(self.weight['%s_cau_trans' % etype](effect))
+                # effect_gate = torch.sigmoid(self.weight['%s_cau_trans' % etype](effect))
                 # noise_gate = torch.sigmoid(self.weight['%s_noi_trans' % etype](random_mask),0)
                 # print(effect_w.shape,noise_w.shape,'noise_w')
                 # causal_gate * node_emb 
-                Wh =  torch.tanh(self.weight['%s_cau' % etype](node_emb))*effect_gate + \
-                    torch.tanh(self.weight['%s_noi' % etype](node_emb))*(1-effect_gate)
+                # Wh =  torch.tanh(self.weight['%s_cau' % etype](node_emb))*effect_gate + \
+                #     torch.tanh(self.weight['%s_noi' % etype](node_emb))*(1-effect_gate)
                 # ∂*f(x) + (1-∂)*g(x)
+                Wh = self.weight[etype](node_emb) + Wh.mean(0)
+                # W_etype x h + 1/|t| (sum (W_etype' x h) * I(causal? 1 or -1))
+                # print(Wh.shape,'Wh2',Wh)
             else:
                 # print('srctype, etype, dsttype',srctype, etype, dsttype) 
                 Wh = self.weight[etype](node_emb)
@@ -201,6 +259,60 @@ class HeteroConvCausalLayer1(nn.Module):
         return {ntype : G.nodes[ntype].data['h'] for ntype in G.ntypes}
 
 
+class TopicConvCausalLayer0(nn.Module):
+    def __init__(self, word_in_size, topic_in_size, out_size, device):
+        super().__init__()
+        self.weight = nn.ModuleDict({
+                'ww': nn.Linear(word_in_size, out_size),
+                'wt': nn.Linear(word_in_size, out_size),
+                'tt': nn.Linear(topic_in_size, out_size), 
+            }) 
+        # self.td_cau_weight = nn.Parameter(torch.Tensor(3, topic_in_size, out_size))
+        self.tt_cau_weight = nn.Parameter(torch.Tensor(3, topic_in_size, out_size))
+        self.device = device
+        self.init_weights()
+
+
+    def init_weights(self):
+        for p in self.parameters():
+            if p.data.ndimension() >= 2:
+                nn.init.xavier_uniform_(p.data, gain=nn.init.calculate_gain('relu'))
+            else:
+                stdv = 1. / math.sqrt(p.size(0))
+                p.data.uniform_(-stdv, stdv)
+
+    def forward(self, G, feat_dict):
+        # print(G,feat_dict,'G,feat_dict')
+        funcs={}
+        # G.edges['tt'].data['weight'] = G.edges['tt'].data['weight'].float()
+        for srctype, etype, dsttype in G.canonical_etypes:
+            if etype in ['td','wd']:
+                continue
+            node_emb = feat_dict[srctype]
+            if srctype == 'topic':
+                effect = G.nodes['topic'].data['effect'].to_dense().float()  # sparse
+                # print(effect.shape)
+                num_time = effect.size(-1)
+                effect = (effect > 0)+(effect < 0)*(-1.) 
+                node_emb_repeated = node_emb.unsqueeze(0).repeat(num_time,1,1)
+                # print(node_emb_repeated.shape)
+                Wh = torch.bmm(node_emb_repeated,self.tt_cau_weight)
+                # print(Wh.shape,'Wh')
+                Wh = Wh * torch.t(effect).unsqueeze(-1) 
+                Wh = self.weight[etype](node_emb) + Wh.mean(0)
+                # W_etype x h + 1/|t| (sum (W_etype' x h) * I(causal? 1 or -1))
+            else:
+                # print('srctype, etype, dsttype',srctype, etype, dsttype) 
+                Wh = self.weight[etype](node_emb)
+            # print('srctype, etype, dsttype',srctype, etype, dsttype,feat_dict[srctype].shape) 
+            # Wh = self.weight[etype](feat_dict[srctype])
+            G.nodes[srctype].data['Wh_%s' % etype] = Wh
+            funcs[etype] = (fn.u_mul_e('Wh_%s' % etype, 'weight', 'm'), fn.mean('m', 'h'))
+
+        G.multi_update_all(funcs, 'sum')
+        return {ntype : G.nodes[ntype].data['h'] for ntype in ['word','topic']}
+
+
 class HeteroCausalBeta(nn.Module):
     def __init__(self, word_in_size, topic_in_size, hidden_size, out_size, device, dropout, layer='word'):
         super().__init__()  
@@ -210,12 +322,19 @@ class HeteroCausalBeta(nn.Module):
         elif layer == 'hetero':
             self.layer1 = HeteroConvLayer(word_in_size, topic_in_size, hidden_size)
             self.layer2 = HeteroConvLayer(hidden_size, hidden_size, out_size)
+        elif layer == 'topic':
+            self.layer1 = HeteroTopicLayer(word_in_size, topic_in_size, hidden_size)
+            self.layer2 = HeteroTopicLayer(hidden_size, hidden_size, out_size)
         elif layer == 'cau0':
             self.layer1 = HeteroConvCausalLayer0(word_in_size, topic_in_size, hidden_size, device)
             self.layer2 = HeteroConvCausalLayer0(hidden_size, hidden_size, out_size, device)
         elif layer == 'cau1':
             self.layer1 = HeteroConvCausalLayer1(word_in_size, topic_in_size, hidden_size, device)
             self.layer2 = HeteroConvCausalLayer1(hidden_size, hidden_size, out_size, device)
+        elif layer == 'tcau0':
+            self.layer1 = TopicConvCausalLayer0(word_in_size, topic_in_size, hidden_size, device)
+            self.layer2 = TopicConvCausalLayer0(hidden_size, hidden_size, out_size, device)
+            
         self.drop = nn.Dropout(dropout)
         # self.norms = nn.ModuleDict({
         #     'word':nn.LayerNorm(hidden_size,elementwise_affine=True),
@@ -394,7 +513,113 @@ class static_heto_cau1(nn.Module):
         y_pred = torch.sigmoid(y_pred)
         return loss, y_pred
  
+class static_topic_cau0(nn.Module):
+    def __init__(self, h_inp, vocab_size, h_dim, device, seq_len=7, num_topic=50, num_word=15000,dropout=0.5,pool='max'):
+        super().__init__()
+        self.h_inp = h_inp
+        self.vocab_size = vocab_size
+        self.h_dim = h_dim
+        self.num_topic = num_topic
+        # self.num_rels = num_rels
+        self.seq_len = seq_len
+        self.device = device
+        self.pool = pool
+        self.dropout = nn.Dropout(dropout)
+        self.word_embeds = None
+        # initialize rel and ent embedding
+        # self.word_embeds = nn.Parameter(torch.Tensor(num_word, h_dim)) # change it to blocks
+        self.topic_embeds = nn.Parameter(torch.Tensor(num_topic, h_dim))
+        self.hconv = HeteroCausalBeta(h_inp, h_dim, h_dim, h_dim, self.device, dropout,layer='tcau0')
+        self.out_layer = nn.Linear(h_dim,1) 
+        self.threshold = 0.5
+        self.out_func = torch.sigmoid
+        self.criterion = F.binary_cross_entropy_with_logits #soft_cross_entropy
+        self.init_weights()
 
+
+    def init_weights(self):
+        for p in self.parameters():
+            if p.data.ndimension() >= 2:
+                nn.init.xavier_uniform_(p.data, gain=nn.init.calculate_gain('relu'))
+            else:
+                stdv = 1. / math.sqrt(p.size(0))
+                p.data.uniform_(-stdv, stdv)
+
+    def forward(self, g_list, y_data): 
+        bg = dgl.batch(g_list).to(self.device) 
+        word_emb = self.word_embeds[bg.nodes['word'].data['id']].view(-1, self.word_embeds.shape[1])
+        topic_emb = self.topic_embeds[bg.nodes['topic'].data['id']].view(-1, self.topic_embeds.shape[1])
+        emb_dict = {
+            'word':word_emb,
+            'topic':topic_emb,
+        }
+        emb_dict = self.hconv(bg,emb_dict)
+        bg.nodes['topic'].data['emb'] = emb_dict['topic']
+        if self.pool == 'max':
+            global_info = dgl.max_nodes(bg, feat='emb',ntype='topic')
+        elif self.pool == 'mean':
+            global_info = dgl.mean_nodes(bg, feat='emb',ntype='topic')
+        y_pred = self.out_layer(global_info)
+        # print(y_pred.shape,'y_pred',y_pred,y_data.shape,'y_data')
+        loss = self.criterion(y_pred.view(-1), y_data)
+        y_pred = torch.sigmoid(y_pred)
+        return loss, y_pred
+ 
+ 
+
+class static_topic_graph(nn.Module):
+    def __init__(self, h_inp, vocab_size, h_dim, device, seq_len=7, num_topic=50, num_word=15000,dropout=0.5,pool='max'):
+        super().__init__()
+        self.h_inp = h_inp
+        self.vocab_size = vocab_size
+        self.h_dim = h_dim
+        self.num_topic = num_topic
+        # self.num_rels = num_rels
+        self.seq_len = seq_len
+        self.device = device
+        self.pool = pool
+        self.dropout = nn.Dropout(dropout)
+        self.word_embeds = None
+        # initialize rel and ent embedding
+        # self.word_embeds = nn.Parameter(torch.Tensor(num_word, h_dim)) # change it to blocks
+        self.topic_embeds = nn.Parameter(torch.Tensor(num_topic, h_dim))
+        # self.hconv = HeteroConvNet(h_inp, h_dim, h_dim, h_dim)
+        self.hconv = HeteroCausalBeta(h_inp, h_dim, h_dim, h_dim, self.device, dropout,layer='topic')
+        self.out_layer = nn.Linear(h_dim,1) 
+        self.threshold = 0.5
+        self.out_func = torch.sigmoid
+        self.criterion = F.binary_cross_entropy_with_logits #soft_cross_entropy
+        self.init_weights()
+
+
+    def init_weights(self):
+        for p in self.parameters():
+            if p.data.ndimension() >= 2:
+                nn.init.xavier_uniform_(p.data, gain=nn.init.calculate_gain('relu'))
+            else:
+                stdv = 1. / math.sqrt(p.size(0))
+                p.data.uniform_(-stdv, stdv)
+
+    def forward(self, g_list, y_data): 
+        bg = dgl.batch(g_list).to(self.device) 
+        word_emb = self.word_embeds[bg.nodes['word'].data['id']].view(-1, self.word_embeds.shape[1])
+        topic_emb = self.topic_embeds[bg.nodes['topic'].data['id']].view(-1, self.topic_embeds.shape[1])
+        emb_dict = {
+            'word':word_emb,
+            'topic':topic_emb,
+        }
+        emb_dict = self.hconv(bg,emb_dict)
+        bg.nodes['topic'].data['emb'] = emb_dict['topic']
+        if self.pool == 'max':
+            global_info = dgl.max_nodes(bg, feat='emb',ntype='topic')
+        elif self.pool == 'mean':
+            global_info = dgl.mean_nodes(bg, feat='emb',ntype='topic')
+        y_pred = self.out_layer(global_info)
+        # print(y_pred.shape,'y_pred',y_pred,y_data.shape,'y_data')
+        loss = self.criterion(y_pred.view(-1), y_data)
+        y_pred = torch.sigmoid(y_pred)
+        return loss, y_pred
+ 
 class static_heto_graph(nn.Module):
     def __init__(self, h_inp, vocab_size, h_dim, device, seq_len=7, num_topic=50, num_word=15000,dropout=0.5,pool='max'):
         super().__init__()

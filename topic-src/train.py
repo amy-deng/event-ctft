@@ -18,7 +18,7 @@ parser.add_argument("--lr", type=float, default=1e-3, help="learning rate")
 parser.add_argument("--weight_decay", type=float, default=1e-5, help="weight_decay")
 parser.add_argument("-d", "--dataset", type=str, default='THA_w7h7_minday3', help="dataset to use")
 parser.add_argument("-df", "--datafiles", type=str, default='data_static_2014-02-01_2014-02-05_tt85_sentpmi_1k', help="dataset to use")
-
+parser.add_argument("-cf", "--causalfiles", type=str, default='', help="causality to use")
 parser.add_argument("--grad-norm", type=float, default=1.0, help="norm to clip gradient to")
 parser.add_argument("--max-epochs", type=int, default=100, help="maximum epochs")
 parser.add_argument("--seq-len", type=int, default=7)
@@ -76,7 +76,7 @@ emb_size = word_embeds.size(1)
 # valid_dataset_loader = StaticGraphData(args.dp, args.dataset,set_name='valid')
 # test_dataset_loader = StaticGraphData(args.dp, args.dataset,set_name='test')
 
-static_graph_dataset = StaticGraphData(args.dp, args.dataset,args.datafiles, args.horizon)
+static_graph_dataset = StaticGraphData(args.dp, args.dataset,args.datafiles, args.horizon,args.causalfiles)
 
 dataset_size = len(static_graph_dataset)
 indices = list(range(dataset_size))
@@ -122,6 +122,10 @@ test_loader.len = len(test_indices)
 def prepare(args,word_embeds,device): 
     if args.model == 'hetero':
         model = static_heto_graph(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device, pool=args.pool)
+    elif args.model == 'topic':
+        model = static_topic_graph(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device, pool=args.pool)
+    elif args.model == 'tcau0':
+        model = static_topic_cau0(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device, pool=args.pool)
     elif args.model == 'hetero2':
         model = static_heto_graph2(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device, pool=args.pool)
     elif args.model == 'cau0':
