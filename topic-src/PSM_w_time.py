@@ -10,6 +10,10 @@ from matplotlib import pyplot as plt
 import scipy
 '''
 python PSM_w_time.py ../data THA_topic check_topic_causal_data_w7h7 5 1
+python PSM_w_time.py ../data THA_topic check_topic_causal_data_w7h14 3 1
+python PSM_w_time.py ../data THA_topic check_topic_causal_data_w7h14 7 1
+python PSM_w_time.py ../data THA_topic check_topic_causal_data_w7h14 14 1
+
 for each event find causes
 '''
 try:
@@ -25,7 +29,7 @@ except:
     exit()
 
 
-file_list = glob.glob('{}/{}/{}/*.pkl'.format(out_path, dataset_name, raw_data_name))
+file_list = glob.glob('{}/{}/{}/topic_*.pkl'.format(out_path, dataset_name, raw_data_name))
 
 save_path = '{}/{}/{}/causal_effect'.format(out_path, dataset_name, raw_data_name)
 os.makedirs(save_path, exist_ok=True)
