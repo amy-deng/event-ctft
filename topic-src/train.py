@@ -36,6 +36,7 @@ parser.add_argument("--train", type=float, default=0.7, help="")
 parser.add_argument("--val", type=float, default=0.15, help="")
 parser.add_argument('--shuffle', action="store_false")
 parser.add_argument("--cau_setup", type=str, default="pos1", help="pos1,sign1,raw")
+parser.add_argument("--special", type=str, default="", help="to distinguash data")
 
 args = parser.parse_args()
 print(args)
@@ -144,8 +145,10 @@ def prepare(args,word_embeds,device):
     token = '{}_seed{}_sl{}_h{}_lr{}_bs{}_p{}_hd{}_tr{}_val_{}_{}'.format(model_name, args.seed, args.seq_len,args.horizon,args.lr,args.batch_size,args.patience,args.n_hidden,args.train,args.val,args.pool)
     if args.shuffle is False:
         token += '_noshuf'
-    if args.model in ['cus3','cus4']:
-        token += args.cau_setup
+    if args.special != "":
+        token += args.special
+    # if args.model in ['cus3','cus4']:
+    #     token += args.cau_setup
     os.makedirs('models', exist_ok=True)
     os.makedirs('models/' + args.dataset, exist_ok=True)
     os.makedirs('models/{}/{}'.format(args.dataset, token), exist_ok=True)
