@@ -29,7 +29,7 @@ parser.add_argument("--pool", type=str, default='mean')
 parser.add_argument("--patience", type=int, default=12)
 # parser.add_argument("--use-gru", type=int, default=1, help='1 use gru 0 rnn')
 # parser.add_argument("--attn", type=str, default='', help='dot/add/genera; default general')
-parser.add_argument("--seed", type=int, default=999, help='random seed')
+parser.add_argument("--seed", type=int, default=2021, help='random seed')
 parser.add_argument("--runs", type=int, default=5, help='number of runs')
 parser.add_argument("-m","--model", type=str, default="m0", help="model name")
 parser.add_argument("--train", type=float, default=0.7, help="")
@@ -119,29 +119,18 @@ test_loader.len = len(test_indices)
                         # shuffle=False, collate_fn=collate_2)
 
 def prepare(args,word_embeds,device): 
-    if args.model == 'word_hetero':
-        model = static_heto_graph(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device,pool=args.pool)
-    elif args.model == 'hetero':
-        model = static_heto_graph2(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device,pool=args.pool)
-    elif args.model == 'uni':
-        model = static_heto_graph_causal_uni(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device)
-    elif args.model == 'cus':
-        model = static_heto_graph_causal_cus(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device)
-    elif args.model == 'cus2':
-        model = static_heto_graph_causal_cus2(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device,cau_setup=args.cau_setup)
-    elif args.model == 'cus3': # uniform message passing
-        model = static_heto_graph_causal_cus3(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device,cau_setup=args.cau_setup)
-    elif args.model == 'cus4': # uniform message passing no noise part
-        model = static_heto_graph_causal_cus4(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device,cau_setup=args.cau_setup)
-    elif args.model == 'm1':
-        model = static_heto_graph0(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device)
+    if args.model == 'hetero':
+        model = static_heto_graph(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device, pool=args.pool)
+    elif args.model == 'cau0':
+        model = static_heto_cau0(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device, pool=args.pool)
+    elif args.model == 'cau1':
+        model = static_heto_cau1(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device, pool=args.pool) 
     elif args.model == 'word':
         model = static_word_graph(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device,pool=args.pool)
     elif args.model == 'temp_hetero':
         model = temp_heto_graph(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device,pool=args.pool)
     elif args.model == 'temp_word':
         model = temp_word_graph(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device,pool=args.pool)
-    
     elif args.model == 'hgt':
         model = static_hgt(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device,pool=args.pool)
     # elif args.model == 'temp_word_hetero':
