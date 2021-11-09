@@ -1198,7 +1198,7 @@ class static_hgt(nn.Module):
             bg.node_dict[ntype] = len(bg.node_dict)
         for etype in bg.etypes:
             bg.edge_dict[etype] = len(bg.edge_dict)
-            bg.edges[etype].data['id'] = torch.ones(bg.number_of_edges(etype), dtype=torch.long) * bg.edge_dict[etype] 
+            bg.edges[etype].data['id'] = torch.ones(bg.number_of_edges(etype), dtype=torch.long).to(self.device) * bg.edge_dict[etype] 
 
         # print(bg.node_dict)
         # print(bg.edge_dict)
