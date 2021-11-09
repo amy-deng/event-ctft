@@ -39,12 +39,11 @@ class WordConvLayer2(nn.Module):
         for cano_etype in [('word','ww','word')]:
             srctype, etype, dsttype = cano_etype 
             G.nodes[srctype].data['h'] = self.weight[etype](G.nodes[srctype].data['h'])  
-            dst_degs = G.in_degrees(G.nodes(dsttype), cano_etype).clamp(min=1).float()
-            G.nodes[dsttype].data['norm'] = (1. / dst_degs) 
-            # print(G.nodes[dsttype].data['norm'])
-            # print(G.edges[etype].data['weight'])
-            G.apply_edges(lambda edges: {'weight': edges.dst['norm']*edges.data['weight'] }, etype=cano_etype)
-
+            # dst_degs = G.in_degrees(G.nodes(dsttype), cano_etype).clamp(min=1).float()
+            # G.nodes[dsttype].data['norm'] = (1. / dst_degs) 
+            # print('norm   ',G.nodes[dsttype].data['norm'].shape)
+            # print('weight   ',G.edges[etype].data['weight'].shape)
+            # G.apply_edges(lambda edges: {'weight': edges.dst['norm'] * edges.data['weight']}, etype=cano_etype)
             funcs[etype] = (fn.u_mul_e('h', 'weight', 'm'), fn.mean('m', 'h')) 
 
         G.multi_update_all(funcs, 'sum')
