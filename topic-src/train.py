@@ -122,12 +122,16 @@ test_loader.len = len(test_indices)
 def prepare(args,word_embeds,device): 
     if args.model == 'hetero':
         model = static_heto_graph(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device, pool=args.pool)
+    elif args.model == 'hetero2':
+        model = static_heto_graph2(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device, pool=args.pool)
     elif args.model == 'cau0':
         model = static_heto_cau0(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device, pool=args.pool)
     elif args.model == 'cau1':
         model = static_heto_cau1(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device, pool=args.pool) 
     elif args.model == 'word':
         model = static_word_graph(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device,pool=args.pool)
+    elif args.model == 'word2':
+        model = static_word_graph2(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device,pool=args.pool)
     elif args.model == 'temp_hetero':
         model = temp_heto_graph(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device,pool=args.pool)
     elif args.model == 'temp_word':
