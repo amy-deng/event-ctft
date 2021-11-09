@@ -41,6 +41,8 @@ class WordConvLayer2(nn.Module):
             G.nodes[srctype].data['h'] = self.weight[etype](G.nodes[srctype].data['h'])  
             dst_degs = G.in_degrees(G.nodes(dsttype), cano_etype).clamp(min=1).float()
             G.nodes[dsttype].data['norm'] = (1. / dst_degs) 
+            # print(G.nodes[dsttype].data['norm'])
+            # print(G.edges[etype].data['weight'])
             G.apply_edges(lambda edges: {'weight': edges.dst['norm']*edges.data['weight'] }, etype=cano_etype)
 
             funcs[etype] = (fn.u_mul_e('h', 'weight', 'm'), fn.mean('m', 'h')) 
@@ -855,7 +857,8 @@ class temp_heto_graph(nn.Module):
         self.topic_embeds = nn.Parameter(torch.Tensor(num_topic, h_dim))
         
         # self.hconv = HeteroConvNet(h_inp, h_dim, h_dim, h_dim)
-        self.hconv = HeteroCausalBeta(h_inp, h_dim, h_dim, h_dim,self.device, dropout,layer='hetero')
+        self.hconv = HeteroCausalBeta2(h_dim, h_dim, h_dim,self.device, dropout,layer='hetero')
+        self.adapt_inp = nn.Linear(h_inp,h_dim)
         self.rnn = nn.RNN(h_dim, h_dim, num_layers=2, batch_first=True, dropout=dropout)
         # self.maxpooling  = nn.MaxPool1d(3)# 
         # self.maxpooling  = dglnn.MaxPooling()
@@ -903,18 +906,17 @@ class temp_heto_graph(nn.Module):
         word_emb = self.word_embeds[bg.nodes['word'].data['id']].view(-1, self.word_embeds.shape[1])
         topic_emb = self.topic_embeds[bg.nodes['topic'].data['id']].view(-1, self.topic_embeds.shape[1])
         doc_emb = torch.zeros((bg.number_of_nodes('doc'), self.h_dim)).to(self.device)
-        emb_dict = {
-            'word':word_emb,
-            'topic':topic_emb,
-            'doc':doc_emb
-        }
-        emb_dict = self.hconv(bg,emb_dict)
-        bg.nodes['doc'].data['emb'] = emb_dict['doc'] 
-        if self.pool == 'max':
-            global_doc_info = dgl.max_nodes(bg, feat='emb',ntype='doc')
-        elif self.pool == 'mean':
-            global_doc_info = dgl.mean_nodes(bg, feat='emb',ntype='doc')
         
+        bg.nodes['word'].data['h'] = self.adapt_inp(word_emb)
+        bg.nodes['topic'].data['h'] = topic_emb
+        bg.nodes['doc'].data['h'] = doc_emb
+ 
+        self.hconv(bg)
+
+        if self.pool == 'max':
+            global_doc_info = dgl.max_nodes(bg, feat='h',ntype='doc')
+        elif self.pool == 'mean':
+            global_doc_info = dgl.mean_nodes(bg, feat='h',ntype='doc')
         # print('global_doc_info',global_doc_info.shape)
         # doc_len = [g.num_nodes('doc') for g in g_list]
         doc_emb_split = torch.split(global_doc_info, g_len.tolist())
@@ -953,7 +955,8 @@ class temp_word_graph(nn.Module):
         self.topic_embeds = nn.Parameter(torch.Tensor(num_topic, h_dim))
         
         # self.hconv = WordGraphNet(h_inp, h_dim, h_dim)
-        self.hconv = HeteroCausalBeta(h_inp, h_dim, h_dim, h_dim,self.device, dropout,layer='word')
+        self.hconv = HeteroCausalBeta2(h_dim, h_dim, h_dim,self.device, dropout,layer='word')
+        self.adapt_inp = nn.Linear(h_inp,h_dim)
         self.rnn = nn.RNN(h_dim, h_dim, num_layers=2, batch_first=True, dropout=dropout)
         # self.maxpooling  = nn.MaxPool1d(3)# 
         # self.maxpooling  = dglnn.MaxPooling()
@@ -996,22 +999,15 @@ class temp_word_graph(nn.Module):
                 num_doc.append(g_t.num_nodes('doc'))
         
         bg = dgl.batch(g_list_sorted_flat).to(self.device) 
- 
+
         word_emb = self.word_embeds[bg.nodes['word'].data['id']].view(-1, self.word_embeds.shape[1])
-        topic_emb = self.topic_embeds[bg.nodes['topic'].data['id']].view(-1, self.topic_embeds.shape[1])
-        doc_emb = torch.zeros((bg.number_of_nodes('doc'), self.h_dim)).to(self.device)
-        emb_dict = {
-            'word':word_emb,
-            'topic':topic_emb,
-            'doc':doc_emb
-        }
-        emb_dict = self.hconv(bg,emb_dict)
+        bg.nodes['word'].data['h'] = self.adapt_inp(word_emb)
+        self.hconv(bg)
         # bg.nodes['doc'].data['emb'] = emb_dict['doc']
-        bg.nodes['word'].data['emb'] = emb_dict['word'] 
         if self.pool == 'max':
-            global_doc_info = dgl.max_nodes(bg, feat='emb',ntype='word')
+            global_doc_info = dgl.max_nodes(bg, feat='h',ntype='word')
         elif self.pool == 'mean':
-            global_doc_info = dgl.mean_nodes(bg, feat='emb',ntype='word')
+            global_doc_info = dgl.mean_nodes(bg, feat='h',ntype='word')
         
         # print('global_doc_info',global_doc_info.shape)
         # doc_len = [g.num_nodes('doc') for g in g_list]
