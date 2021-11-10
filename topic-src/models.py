@@ -203,7 +203,6 @@ class HeteroConvCausalLayer1(nn.Module):
         self.device = device
         self.init_weights()
 
-
     def init_weights(self):
         for p in self.parameters():
             if p.data.ndimension() >= 2:
@@ -216,7 +215,8 @@ class HeteroConvCausalLayer1(nn.Module):
         # print(G,feat_dict,'G,feat_dict')
         funcs={}
         # G.edges['tt'].data['weight'] = G.edges['tt'].data['weight'].float()
-        for srctype, etype, dsttype in G.canonical_etypes:
+        for cano_etype in G.canonical_etypes:
+            srctype, etype, dsttype = cano_etype
             node_emb = feat_dict[srctype]
             if srctype == 'topic':
                 effect = G.nodes['topic'].data['effect'].to_dense().float()  # sparse
@@ -243,10 +243,16 @@ class HeteroConvCausalLayer1(nn.Module):
                 Wh =  torch.tanh(self.weight['%s_cau' % etype](node_emb))*effect_gate + \
                     torch.tanh(self.weight['%s_noi' % etype](node_emb))*(1-effect_gate)
                 # ∂*f(x) + (1-∂)*g(x) 
-                print(Wh)
+                # print(Wh)
             else:
                 # print('srctype, etype, dsttype',srctype, etype, dsttype) 
                 Wh = self.weight[etype](node_emb)
+
+            dst_degs = G.in_degrees(G.nodes(dsttype), cano_etype).clamp(min=1.).float()
+            G.nodes[dsttype].data['norm'] = (1. / dst_degs) 
+            # print(G.nodes[dsttype].data['norm'].dtype,'===')
+            # * G.nodes[dsttype].data['weight'] 
+            G.apply_edges(lambda edges: {'weight': edges.dst['norm']*edges.data['weight'].float() }, etype=cano_etype)
             # print('srctype, etype, dsttype',srctype, etype, dsttype,feat_dict[srctype].shape) 
             # Wh = self.weight[etype](feat_dict[srctype])
             G.nodes[srctype].data['Wh_%s' % etype] = Wh
@@ -860,7 +866,7 @@ class static_hgt(nn.Module):
         # self.word_embeds = nn.Parameter(torch.Tensor(num_word, h_dim)) # change it to blocks
         self.topic_embeds = nn.Parameter(torch.Tensor(num_topic, h_dim))
         # self.hconv = HGT(h_inp, h_dim, h_dim, n_layers=2, n_heads=4, use_norm = True)
-        self.hconv = HGT(h_dim, h_dim, h_dim, n_layers=2, n_heads=4, use_norm = True)
+        self.hconv = HGT(h_dim, h_dim, h_dim, n_layers=2, n_heads=4, use_norm = False)
 
         # self.maxpooling  = nn.MaxPool1d(3)# 
         # self.maxpooling  = dglnn.MaxPooling()
@@ -902,9 +908,9 @@ class static_hgt(nn.Module):
         #     'topic':topic_emb,
         #     'doc':doc_emb
         # }
-        bg.nodes['word'].data['inp'] = word_emb
-        bg.nodes['topic'].data['inp'] = topic_emb
-        bg.nodes['doc'].data['inp'] = doc_emb
+        bg.nodes['word'].data['h'] = word_emb
+        bg.nodes['topic'].data['h'] = topic_emb
+        bg.nodes['doc'].data['h'] = doc_emb
         emb = self.hconv(bg,'doc')
         # print(emb.shape,'emb_dict')
         bg.nodes['doc'].data['emb'] = emb
@@ -1054,16 +1060,19 @@ class HGT(nn.Module):
 
     def forward(self, G, out_key):
         for ntype in G.ntypes:
-            n_id = G.node_dict[ntype]
-            G.nodes[ntype].data['h'] = torch.tanh(self.adapt_ws[n_id](G.nodes[ntype].data['inp']))
+            if ntype == 'word':
+                n_id = G.node_dict[ntype]
+                G.nodes[ntype].data['h'] = torch.tanh(self.adapt_ws[n_id](G.nodes[ntype].data['h']))
         for i in range(self.n_layers):
             self.gcs[i](G, 'h', 'h')
         return G.nodes[out_key].data['h']
         # return self.out(G.nodes[out_key].data['h'])
+
     def __repr__(self):
         return '{}(n_inp={}, n_hid={}, n_out={}, n_layers={})'.format(
             self.__class__.__name__, self.n_inp, self.n_hid,
             self.n_out, self.n_layers)
+
 
 # a temporal graph model
 
