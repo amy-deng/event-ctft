@@ -459,7 +459,7 @@ for i,row in df.iterrows():
     y_list.append(ys)  
     city_list.append(city)
     date_list.append(date)
-    print('i={} \t {} \t {} \t {} day_has_data \t cur_end_date:{} {}'.format(i,date,city,len(g_list),cur_end_date,time.ctime()))
+    print('i={} \t {} \t {} \t {} day_has_data \t cur_end_date: {}'.format(i,date,city,len(g_list),time.ctime()))
     # if len(all_g_list) >= 3:
         # break
 
