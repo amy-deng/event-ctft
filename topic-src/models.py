@@ -1077,7 +1077,7 @@ class HGT(nn.Module):
             self.__class__.__name__, self.n_inp, self.n_hid,
             self.n_out, self.n_layers)
 
-
+# python train.py --datafiles data_static_2014-01-01_2015-01-01_tt85_ww10_3 --horizon 5 --gpu 4 --seed 999 --train 0.6 --val 0.2 -m hgt --n-hidden 32 --special 14
 # a temporal graph model
 
 # batch all graph first, use hetero conv, then use a rnn
@@ -1257,6 +1257,111 @@ class temp_word_graph(nn.Module):
         doc_emb_split = torch.split(global_doc_info, g_len.tolist())
         # print(len(doc_emb_split),'len doc_emb_split',doc_emb_split[0].shape)
         embed_seq_tensor = torch.zeros(num_non_zero, self.seq_len, self.h_dim).to(self.device)
+        for i, embeds in enumerate(doc_emb_split): 
+            embed_seq_tensor[i, torch.arange(len(embeds)), :] = embeds
+        packed_input = torch.nn.utils.rnn.pack_padded_sequence(embed_seq_tensor,
+                                                               g_len,
+                                                               batch_first=True)
+        # print(packed_input,'packed_input')
+        output, hn = self.rnn(packed_input)
+        # print(hn.shape,'hn','output')
+        hn = hn[-1] 
+        y_pred = self.out_layer(hn)
+        # print(y_pred.shape,'y_pred',y_pred,y_data.shape,'y_data')
+        loss = self.criterion(y_pred.view(-1), y_data_sorted)
+        y_pred = torch.sigmoid(y_pred)
+        return loss, y_pred
+
+
+class temp_word_graph2(nn.Module):
+    def __init__(self, h_inp, vocab_size, h_dim, device, seq_len=7, num_topic=50, num_word=15000,dropout=0.5,pool='max'):
+        super().__init__()
+        self.h_inp = h_inp
+        self.vocab_size = vocab_size
+        self.h_dim = h_dim
+        self.num_topic = num_topic
+        # self.num_rels = num_rels
+        self.seq_len = seq_len
+        self.device = device
+        self.pool = pool
+        self.dropout = nn.Dropout(dropout)
+        self.word_embeds = None
+        # initialize rel and ent embedding
+        # self.word_embeds = nn.Parameter(torch.Tensor(num_word, h_dim)) # change it to blocks
+        self.topic_embeds = nn.Parameter(torch.Tensor(num_topic, h_dim))
+        
+        # self.hconv = WordGraphNet(h_inp, h_dim, h_dim)
+        self.hconv = HeteroCausalBeta2(h_dim, h_dim, 1, self.device, dropout,layer='word')
+        self.adapt_inp = nn.Linear(h_inp,h_dim)
+        self.rnn = nn.RNN(vocab_size, h_dim, num_layers=1, batch_first=True, dropout=dropout)
+        # self.maxpooling  = nn.MaxPool1d(3)# 
+        # self.maxpooling  = dglnn.MaxPooling()
+        self.out_layer = nn.Linear(h_dim,1) 
+        self.threshold = 0.5
+        self.out_func = torch.sigmoid
+        self.criterion = F.binary_cross_entropy_with_logits #soft_cross_entropy
+        self.init_weights()
+
+    def init_weights(self):
+        for p in self.parameters():
+            if p.data.ndimension() >= 2:
+                nn.init.xavier_uniform_(p.data, gain=nn.init.calculate_gain('relu'))
+            else:
+                stdv = 1. / math.sqrt(p.size(0))
+                p.data.uniform_(-stdv, stdv)
+
+    def forward(self, g_list, y_data): 
+        # g_list: [[g,g,g],[g,g,g,g,g]]
+        # sort by len, 
+        # g_list = [[0,1,2,3],[0,1,2,3,4,5],[0,1,2,3,4,5,6,7]]
+        # g_list_len = torch.LongTensor(list(map(len, g_list)))
+        g_list_len = torch.IntTensor(list(map(len, g_list)))#.to(self.device)
+        # print('g_list_len',g_list_len)
+        # g_list_len = g_list_len.to(self.device)
+        g_len, idx = g_list_len.sort(0, descending=True)
+        num_non_zero = len(torch.nonzero(g_len)) # on zero, this step can be removed
+        g_len = g_len.int()
+        g_len_non_zero = g_len[:num_non_zero]
+        if torch.max(g_list_len) == 0:
+            print('all are empty list in g_list')
+            exit()  
+
+        y_data_sorted = y_data[idx]
+        g_list_sorted_flat = []
+        num_doc = []
+        for id in idx:
+            g_list_sorted_flat += g_list[id]
+            for g_t in g_list[id]:
+                num_doc.append(g_t.num_nodes('doc'))
+        
+        bg = dgl.batch(g_list_sorted_flat).to(self.device) 
+
+        word_emb = self.word_embeds[bg.nodes['word'].data['id']].view(-1, self.word_embeds.shape[1])
+        bg.nodes['word'].data['h'] = self.adapt_inp(word_emb)
+        self.hconv(bg)
+        embed_tensor = torch.zeros(len(g_list_sorted_flat), 15000).to(self.device)
+        ids = bg.nodes['word'].data['id']
+        learned_emb = bg.nodes['word'].data['h'] 
+        word_len = [g.num_nodes('word') for g in g_list_sorted_flat] # word len for each sperate graph
+        learned_emb_split = torch.split(learned_emb, word_len)
+        ids_split = torch.split(ids, word_len)
+        # for i in range(len(word_len)):
+        for i, embeds in enumerate(learned_emb_split): 
+            # print(embeds.shape,i,ids_split[i].shape)
+            id = ids_split[i]
+            embed_tensor[i, id] = embeds.view(-1)
+        # print(ids,'ids',embed_tensor,embed_tensor.shape)
+        # bg.nodes['doc'].data['emb'] = emb_dict['doc']
+        # if self.pool == 'max':
+        #     global_doc_info = dgl.max_nodes(bg, feat='h',ntype='word')
+        # elif self.pool == 'mean':
+        #     global_doc_info = dgl.mean_nodes(bg, feat='h',ntype='word')
+        
+        # print('global_doc_info',global_doc_info.shape)
+        # doc_len = [g.num_nodes('doc') for g in g_list]
+        doc_emb_split = torch.split(embed_tensor, g_len.tolist())
+        # print(len(doc_emb_split),'len doc_emb_split',doc_emb_split[0].shape)
+        embed_seq_tensor = torch.zeros(num_non_zero, self.seq_len, 15000).to(self.device)
         for i, embeds in enumerate(doc_emb_split): 
             embed_seq_tensor[i, torch.arange(len(embeds)), :] = embeds
         packed_input = torch.nn.utils.rnn.pack_padded_sequence(embed_seq_tensor,

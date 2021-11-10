@@ -16,6 +16,14 @@ python causal_sig_test.py ../data THA_topic check_topic_causal_data_w7h14 effect
 python causal_sig_test.py ../data THA_topic check_topic_causal_data_w7h14 effect_dict_pw7_biy1_nocheck 0.1
 python causal_sig_test.py ../data THA_topic check_topic_causal_data_w7h14 effect_dict_pw3_biy1_nocheck 0.1
 
+python causal_sig_test.py ../data THA_topic check_topic_causal_data_w7h14 effect_dict_pw14_biy1 0.
+python causal_sig_test.py ../data THA_topic check_topic_causal_data_w7h14 effect_dict_pw7_biy1 0.1
+python causal_sig_test.py ../data THA_topic check_topic_causal_data_w7h14 effect_dict_pw3_biy1 0.1
+
+
+python causal_sig_test.py ../data THA_topic check_topic_causal_data_w7h14 effect_dict_pw14_biy1 0.05
+python causal_sig_test.py ../data THA_topic check_topic_causal_data_w7h14 effect_dict_pw7_biy1 0.05
+python causal_sig_test.py ../data THA_topic check_topic_causal_data_w7h14 effect_dict_pw3_biy1 0.05
 for each event find causes
 '''
 try:
