@@ -88,7 +88,7 @@ class StaticGraphData(data.Dataset):
             else:
                   self.causal_time_dict = {}
             # print('causal_time_dict',self.causal_time_dict)
-            # causal_file = '/home/sdeng/workspace/event-ctft/data/THA_topic/check_topic_causal_data_w7h14/causal_effect/effect_dict_pw3_biy1_nocheck_0.05.csv'
+            # causal_file = '../data/THA_topic/check_topic_causal_data_w7h14/causal_effect/effect_dict_pw3_biy1_nocheck_0.05.csv'
             # causal_df = pd.read_csv(causal_file,sep=',')
             # causal_df = causal_df.loc[causal_df['event-type']=='protest']
             # causal_time_dict_3day = {}
@@ -100,7 +100,7 @@ class StaticGraphData(data.Dataset):
             #             effect_all_topic[int(topic_id)] = round(eff,5)
             #       causal_time_dict_3day[end_date] = effect_all_topic
 
-            # causal_file = '/home/sdeng/workspace/event-ctft/data/THA_topic/check_topic_causal_data_w7h14/causal_effect/effect_dict_pw7_biy1_nocheck_0.05.csv'
+            # causal_file = '../data/THA_topic/check_topic_causal_data_w7h14/causal_effect/effect_dict_pw7_biy1_nocheck_0.05.csv'
             # causal_df = pd.read_csv(causal_file,sep=',')
             # causal_df = causal_df.loc[causal_df['event-type']=='protest']
             # causal_time_dict_7day = {}
@@ -112,7 +112,7 @@ class StaticGraphData(data.Dataset):
             #             effect_all_topic[int(topic_id)] = round(eff,5)
             #       causal_time_dict_7day[end_date] = effect_all_topic
 
-            # causal_file = '/home/sdeng/workspace/event-ctft/data/THA_topic/check_topic_causal_data_w7h14/causal_effect/effect_dict_pw14_biy1_nocheck_0.05.csv'
+            # causal_file = '../data/THA_topic/check_topic_causal_data_w7h14/causal_effect/effect_dict_pw14_biy1_nocheck_0.05.csv'
             # causal_df = pd.read_csv(causal_file,sep=',')
             # causal_df = causal_df.loc[causal_df['event-type']=='protest']
             # causal_time_dict_14day = {}
