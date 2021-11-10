@@ -220,10 +220,10 @@ class HeteroConvCausalLayer1(nn.Module):
             node_emb = feat_dict[srctype]
             if srctype == 'topic':
                 effect = G.nodes['topic'].data['effect'].to_dense().float()  # sparse
-                print(effect.shape,effect.sum(),effect.mean(),effect.min(),effect.max())
+                # print(effect.shape,effect.sum(),effect.mean(),effect.min(),effect.max())
                 # num_time = effect.size(-1)
                 # effect = (effect!=0) * 1.
-                # effect = (effect > 0)+(effect < 0)*(-1.) 
+                effect = (effect > 0)+(effect < 0)*(-1.) 
                 # print(effect.shape,'effect',node_emb.shape)
                 # for i in range(num_time):
                 # node_emb_repeated = node_emb.unsqueeze(0).repeat(num_time,1,1)
@@ -238,11 +238,12 @@ class HeteroConvCausalLayer1(nn.Module):
                 # print(Wh.sum(-1).nonzero().size(),'======')
                 # random_mask = torch.bernoulli(0.1*torch.ones(effect.size()).to(self.device)) * (effect==0)#.view(-1, 1, -1)
                 effect_gate = torch.sigmoid(self.weight['%s_cau_trans' % etype](effect))
-                print(effect_gate)
+                # print(effect_gate)
                 # causal_gate * node_emb 
                 Wh =  torch.tanh(self.weight['%s_cau' % etype](node_emb))*effect_gate + \
                     torch.tanh(self.weight['%s_noi' % etype](node_emb))*(1-effect_gate)
                 # ∂*f(x) + (1-∂)*g(x) 
+                print(Wh)
             else:
                 # print('srctype, etype, dsttype',srctype, etype, dsttype) 
                 Wh = self.weight[etype](node_emb)
