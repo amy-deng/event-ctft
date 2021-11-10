@@ -176,7 +176,7 @@ class HeteroConvCausalLayer0(nn.Module):
         G.multi_update_all(funcs, 'sum')
         return {ntype : G.nodes[ntype].data['h'] for ntype in G.ntypes}
 
-
+ 
 class HeteroConvCausalLayer1(nn.Module):
     def __init__(self, word_in_size, topic_in_size, out_size, device):
         super().__init__()
@@ -186,21 +186,23 @@ class HeteroConvCausalLayer1(nn.Module):
                 'wd': nn.Linear(word_in_size, out_size),
                 'td': nn.Linear(topic_in_size, out_size),
                 'tt': nn.Linear(topic_in_size, out_size),
-                'td_cau': nn.Linear(topic_in_size, out_size, bias=True),
-                'td_noi': nn.Linear(topic_in_size, out_size, bias=True),
-                'tt_cau': nn.Linear(topic_in_size, out_size, bias=True),
-                'tt_noi': nn.Linear(topic_in_size, out_size, bias=True),
+                # 'td_cau': nn.Linear(topic_in_size, out_size, bias=True),
+                # 'td_noi': nn.Linear(topic_in_size, out_size, bias=True),
+                # 'tt_cau': nn.Linear(topic_in_size, out_size, bias=True),
+                # 'tt_noi': nn.Linear(topic_in_size, out_size, bias=True),
                 # 'cau': nn.Linear(topic_in_size, out_size, bias=True),
                 # 'noi': nn.Linear(topic_in_size, out_size, bias=True),
-                'td_cau_trans': nn.Linear(3, 1,bias=True),
+                # 'td_cau_trans': nn.Linear(3, 1,bias=True),
                 # 'td_noi_trans': nn.Linear(3, topic_in_size,bias=False),
-                'tt_cau_trans': nn.Linear(3, 1,bias=True),
+                # 'tt_cau_trans': nn.Linear(3, 1,bias=True),
                 # 'tt_noi_trans': nn.Linear(3, topic_in_size,bias=False),
                 # 'td_cau_weight':nn.Linear(3, 1)
             }) 
         # self.td_cau_weight = nn.Parameter(torch.Tensor(3, topic_in_size, out_size))
         # self.tt_cau_weight = nn.Parameter(torch.Tensor(3, topic_in_size, out_size))
         self.device = device
+        self.weight_causal = nn.Linear(out_size, out_size,bias=False)
+        self.weight_noise = nn.Linear(out_size, out_size,bias=False)
         self.init_weights()
 
     def init_weights(self):
@@ -214,16 +216,19 @@ class HeteroConvCausalLayer1(nn.Module):
     def forward(self, G, feat_dict):
         # print(G,feat_dict,'G,feat_dict')
         funcs={}
-        # G.edges['tt'].data['weight'] = G.edges['tt'].data['weight'].float()
+        G.edges['tt'].data['weight'] = G.edges['tt'].data['weight'].float()
         for cano_etype in G.canonical_etypes:
             srctype, etype, dsttype = cano_etype
             node_emb = feat_dict[srctype]
             if srctype == 'topic':
-                effect = G.nodes['topic'].data['effect'].to_dense().float()  # sparse
+                effect = G.nodes['topic'].data['effect'].view(-1,1)#.to_dense().float()  # sparse
                 # print(effect.shape,effect.sum(),effect.mean(),effect.min(),effect.max())
                 # num_time = effect.size(-1)
                 # effect = (effect!=0) * 1.
-                effect = (effect > 0)+(effect < 0)*(-1.) 
+                pos_mask = (effect > 0)*(1.)#.view(-1,1)
+                neg_mask = (effect < 0)*(1.)#.view(-1,1) 
+                Wh = self.weight[etype](node_emb) + self.weight_causal(node_emb * pos_mask) - self.weight_noise(node_emb * neg_mask)
+                # effect = (effect > 0)+(effect < 0)*(-1.) 
                 # print(effect.shape,'effect',node_emb.shape)
                 # for i in range(num_time):
                 # node_emb_repeated = node_emb.unsqueeze(0).repeat(num_time,1,1)
@@ -237,22 +242,20 @@ class HeteroConvCausalLayer1(nn.Module):
                 # print(Wh.shape,'Wh2',Wh.nonzero().size())
                 # print(Wh.sum(-1).nonzero().size(),'======')
                 # random_mask = torch.bernoulli(0.1*torch.ones(effect.size()).to(self.device)) * (effect==0)#.view(-1, 1, -1)
-                effect_gate = torch.sigmoid(self.weight['%s_cau_trans' % etype](effect))
-                # print(effect_gate)
-                # causal_gate * node_emb 
-                Wh =  torch.tanh(self.weight['%s_cau' % etype](node_emb))*effect_gate + \
-                    torch.tanh(self.weight['%s_noi' % etype](node_emb))*(1-effect_gate)
+                # effect_gate = torch.sigmoid(self.weight['%s_cau_trans' % etype](effect))
+                # # print(effect_gate)
+                # # causal_gate * node_emb 
+                # Wh =  torch.tanh(self.weight['%s_cau' % etype](node_emb))*effect_gate + \
+                #     torch.tanh(self.weight['%s_noi' % etype](node_emb))*(1-effect_gate)
                 # ∂*f(x) + (1-∂)*g(x) 
                 # print(Wh)
             else:
                 # print('srctype, etype, dsttype',srctype, etype, dsttype) 
                 Wh = self.weight[etype](node_emb)
 
-            dst_degs = G.in_degrees(G.nodes(dsttype), cano_etype).clamp(min=1.).float()
-            G.nodes[dsttype].data['norm'] = (1. / dst_degs) 
-            # print(G.nodes[dsttype].data['norm'].dtype,'===')
-            # * G.nodes[dsttype].data['weight'] 
-            G.apply_edges(lambda edges: {'weight': edges.dst['norm']*edges.data['weight'].float() }, etype=cano_etype)
+            # dst_degs = G.in_degrees(G.nodes(dsttype), cano_etype).clamp(min=1.).float()
+            # G.nodes[dsttype].data['norm'] = (1. / dst_degs) 
+            # G.apply_edges(lambda edges: {'weight': edges.dst['norm']*edges.data['weight'].float() }, etype=cano_etype)
             # print('srctype, etype, dsttype',srctype, etype, dsttype,feat_dict[srctype].shape) 
             # Wh = self.weight[etype](feat_dict[srctype])
             G.nodes[srctype].data['Wh_%s' % etype] = Wh
@@ -260,6 +263,7 @@ class HeteroConvCausalLayer1(nn.Module):
 
         G.multi_update_all(funcs, 'sum')
         return {ntype : G.nodes[ntype].data['h'] for ntype in G.ntypes}
+
 
 
 class TopicConvCausalLayer0(nn.Module):
