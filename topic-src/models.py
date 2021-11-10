@@ -192,9 +192,9 @@ class HeteroConvCausalLayer1(nn.Module):
                 'tt_noi': nn.Linear(topic_in_size, out_size, bias=True),
                 # 'cau': nn.Linear(topic_in_size, out_size, bias=True),
                 # 'noi': nn.Linear(topic_in_size, out_size, bias=True),
-                'td_cau_trans': nn.Linear(3, topic_in_size,bias=True),
+                'td_cau_trans': nn.Linear(3, 1,bias=True),
                 # 'td_noi_trans': nn.Linear(3, topic_in_size,bias=False),
-                'tt_cau_trans': nn.Linear(3, topic_in_size,bias=True),
+                'tt_cau_trans': nn.Linear(3, 1,bias=True),
                 # 'tt_noi_trans': nn.Linear(3, topic_in_size,bias=False),
                 # 'td_cau_weight':nn.Linear(3, 1)
             }) 
@@ -240,8 +240,8 @@ class HeteroConvCausalLayer1(nn.Module):
                 effect_gate = torch.sigmoid(self.weight['%s_cau_trans' % etype](effect))
                 # print(effect_gate)
                 # causal_gate * node_emb 
-                Wh =  torch.tanh(self.weight['%s_cau' % etype](node_emb))*effect_gate + \
-                    torch.tanh(self.weight['%s_noi' % etype](node_emb))*(1-effect_gate)
+                Wh =  0.5*(torch.tanh(self.weight['%s_cau' % etype](node_emb))*effect_gate + \
+                    torch.tanh(self.weight['%s_noi' % etype](node_emb))*(1-effect_gate))
                 # ∂*f(x) + (1-∂)*g(x) 
                 # print(Wh)
             else:
