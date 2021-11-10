@@ -336,19 +336,27 @@ class HeteroCausalBeta(nn.Module):
             self.layer2 = TopicConvCausalLayer0(hidden_size, hidden_size, out_size, device)
             
         self.drop = nn.Dropout(dropout)
-        # self.norms = nn.ModuleDict({
-        #     'word':nn.LayerNorm(hidden_size,elementwise_affine=True),
-        #     'topic':nn.LayerNorm(hidden_size,elementwise_affine=True),
-        #     'doc':nn.LayerNorm(hidden_size,elementwise_affine=True)
-        # })
+        self.layer = layer
+        if layer == 'cau1':
+            self.norms = nn.ModuleDict({
+                'word':nn.LayerNorm(hidden_size,elementwise_affine=True),
+                'topic':nn.LayerNorm(hidden_size,elementwise_affine=True),
+                'doc':nn.LayerNorm(hidden_size,elementwise_affine=True)
+            })
         
     def forward(self, G, emb_dict):
         h_dict = self.layer1(G, emb_dict)
-        # h_dict = {k : self.drop(self.norms[k](F.leaky_relu(h))) for k, h in h_dict.items()}
-        h_dict = {k : self.drop(F.relu(h)) for k, h in h_dict.items()}
+        if self.layer == 'cau1':
+            h_dict = {k : self.drop(self.norms[k](F.leaky_relu(h))) for k, h in h_dict.items()}
+        else:
+            h_dict = {k : self.drop(F.relu(h)) for k, h in h_dict.items()}
         # h_dict = {k : F.leaky_relu(h) for k, h in h_dict.items()}
         h_dict = self.layer2(G, h_dict)
-        h_dict = {k : self.drop(F.relu(h)) for k, h in h_dict.items()}
+        if self.layer == 'cau1':
+            h_dict = {k : self.drop(self.norms[k](F.leaky_relu(h))) for k, h in h_dict.items()}
+        else:
+            h_dict = {k : self.drop(F.relu(h)) for k, h in h_dict.items()}
+        # h_dict = {k : self.drop(F.relu(h)) for k, h in h_dict.items()}
         return h_dict
 
 class HeteroCausalBeta2(nn.Module):
