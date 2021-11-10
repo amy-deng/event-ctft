@@ -345,10 +345,10 @@ class HeteroCausalBeta(nn.Module):
     def forward(self, G, emb_dict):
         h_dict = self.layer1(G, emb_dict)
         # h_dict = {k : self.drop(self.norms[k](F.leaky_relu(h))) for k, h in h_dict.items()}
-        # h_dict = {k : self.drop(F.leaky_relu(h)) for k, h in h_dict.items()}
-        h_dict = {k : F.leaky_relu(h) for k, h in h_dict.items()}
+        h_dict = {k : self.drop(F.relu(h)) for k, h in h_dict.items()}
+        # h_dict = {k : F.leaky_relu(h) for k, h in h_dict.items()}
         h_dict = self.layer2(G, h_dict)
-        # h_dict = {k : self.drop(F.relu(h)) for k, h in h_dict.items()}
+        h_dict = {k : self.drop(F.relu(h)) for k, h in h_dict.items()}
         return h_dict
 
 class HeteroCausalBeta2(nn.Module):
