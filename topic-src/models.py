@@ -186,20 +186,20 @@ class HeteroConvCausalLayer1(nn.Module):
                 'wd': nn.Linear(word_in_size, out_size),
                 'td': nn.Linear(topic_in_size, out_size),
                 'tt': nn.Linear(topic_in_size, out_size),
-                # 'td_cau': nn.Linear(topic_in_size, out_size, bias=True),
-                # 'td_noi': nn.Linear(topic_in_size, out_size, bias=True),
-                # 'tt_cau': nn.Linear(topic_in_size, out_size, bias=True),
-                # 'tt_noi': nn.Linear(topic_in_size, out_size, bias=True),
+                'td_cau': nn.Linear(topic_in_size, out_size, bias=True),
+                'td_noi': nn.Linear(topic_in_size, out_size, bias=True),
+                'tt_cau': nn.Linear(topic_in_size, out_size, bias=True),
+                'tt_noi': nn.Linear(topic_in_size, out_size, bias=True),
                 # 'cau': nn.Linear(topic_in_size, out_size, bias=True),
                 # 'noi': nn.Linear(topic_in_size, out_size, bias=True),
-                # 'td_cau_trans': nn.Linear(3, 1,bias=False),
-                # 'td_noi_trans': nn.Linear(3, 1,bias=False),
-                # 'tt_cau_trans': nn.Linear(3, 1,bias=False),
-                # 'tt_noi_trans': nn.Linear(3, 1,bias=False),
+                'td_cau_trans': nn.Linear(3, topic_in_size,bias=False),
+                # 'td_noi_trans': nn.Linear(3, topic_in_size,bias=False),
+                'tt_cau_trans': nn.Linear(3, topic_in_size,bias=False),
+                # 'tt_noi_trans': nn.Linear(3, topic_in_size,bias=False),
                 # 'td_cau_weight':nn.Linear(3, 1)
             }) 
-        self.td_cau_weight = nn.Parameter(torch.Tensor(3, topic_in_size, out_size))
-        self.tt_cau_weight = nn.Parameter(torch.Tensor(3, topic_in_size, out_size))
+        # self.td_cau_weight = nn.Parameter(torch.Tensor(3, topic_in_size, out_size))
+        # self.tt_cau_weight = nn.Parameter(torch.Tensor(3, topic_in_size, out_size))
         self.device = device
         self.init_weights()
 
@@ -221,32 +221,28 @@ class HeteroConvCausalLayer1(nn.Module):
             if srctype == 'topic':
                 effect = G.nodes['topic'].data['effect'].to_dense().float()  # sparse
                 # print(effect.shape,effect)
-                num_time = effect.size(-1)
+                # num_time = effect.size(-1)
                 # effect = (effect!=0) * 1.
-                effect = (effect > 0)+(effect < 0)*(-1.) 
+                # effect = (effect > 0)+(effect < 0)*(-1.) 
                 # print(effect.shape,'effect',node_emb.shape)
                 # for i in range(num_time):
-                node_emb_repeated = node_emb.unsqueeze(0).repeat(num_time,1,1)
-                # print(node_emb_repeated.shape)
-                if etype == 'td':
-                    Wh = torch.bmm(node_emb_repeated,self.td_cau_weight)
-                else:
-                    Wh = torch.bmm(node_emb_repeated,self.tt_cau_weight)
-                Wh = Wh * torch.t(effect).unsqueeze(-1)
-                print(Wh,'Wh')
+                # node_emb_repeated = node_emb.unsqueeze(0).repeat(num_time,1,1)
+                # # print(node_emb_repeated.shape)
+                # if etype == 'td':
+                #     Wh = torch.bmm(node_emb_repeated,self.td_cau_weight)
+                # else:
+                #     Wh = torch.bmm(node_emb_repeated,self.tt_cau_weight)
+                # Wh = Wh * torch.t(effect).unsqueeze(-1)
+                # print(Wh,'Wh')
                 # print(Wh.shape,'Wh2',Wh.nonzero().size())
                 # print(Wh.sum(-1).nonzero().size(),'======')
                 # random_mask = torch.bernoulli(0.1*torch.ones(effect.size()).to(self.device)) * (effect==0)#.view(-1, 1, -1)
-                # effect_gate = torch.sigmoid(self.weight['%s_cau_trans' % etype](effect))
-                # noise_gate = torch.sigmoid(self.weight['%s_noi_trans' % etype](random_mask),0)
-                # print(effect_w.shape,noise_w.shape,'noise_w')
+                effect_gate = torch.sigmoid(self.weight['%s_cau_trans' % etype](effect))
+ 
                 # causal_gate * node_emb 
-                # Wh =  torch.tanh(self.weight['%s_cau' % etype](node_emb))*effect_gate + \
-                #     torch.tanh(self.weight['%s_noi' % etype](node_emb))*(1-effect_gate)
-                # ∂*f(x) + (1-∂)*g(x)
-                Wh = self.weight[etype](node_emb) + Wh.mean(0)
-                # W_etype x h + 1/|t| (sum (W_etype' x h) * I(causal? 1 or -1))
-                # print(Wh.shape,'Wh2 ====== sum',Wh)
+                Wh =  torch.tanh(self.weight['%s_cau' % etype](node_emb))*effect_gate + \
+                    torch.tanh(self.weight['%s_noi' % etype](node_emb))*(1-effect_gate)
+                # ∂*f(x) + (1-∂)*g(x) 
             else:
                 # print('srctype, etype, dsttype',srctype, etype, dsttype) 
                 Wh = self.weight[etype](node_emb)
