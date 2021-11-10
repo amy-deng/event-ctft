@@ -172,9 +172,7 @@ def word_word_pmi_doc(tokens_list, sample_words):
     # for l in tokens_list:
     #     l = set(l) # unique
     #     new_words_l.append([w for w in l if w in nodes])
-
     windows = tokens_list
-
     # windows = [] # get all moving windows
     # for tokens in tokens_list:
     #     length = len(tokens)
@@ -238,6 +236,7 @@ def word_word_pmi_doc(tokens_list, sample_words):
         row.append(i)
         col.append(j)
         weight.append(pmi)
+    print(weight)
     return row, col, weight
     
 def word_word_pmi_sent(tokens_list, sample_words, window_size=20):
