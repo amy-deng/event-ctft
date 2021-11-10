@@ -192,9 +192,9 @@ class HeteroConvCausalLayer1(nn.Module):
                 'tt_noi': nn.Linear(topic_in_size, out_size, bias=True),
                 # 'cau': nn.Linear(topic_in_size, out_size, bias=True),
                 # 'noi': nn.Linear(topic_in_size, out_size, bias=True),
-                'td_cau_trans': nn.Linear(3, topic_in_size,bias=False),
+                'td_cau_trans': nn.Linear(3, topic_in_size,bias=True),
                 # 'td_noi_trans': nn.Linear(3, topic_in_size,bias=False),
-                'tt_cau_trans': nn.Linear(3, topic_in_size,bias=False),
+                'tt_cau_trans': nn.Linear(3, topic_in_size,bias=True),
                 # 'tt_noi_trans': nn.Linear(3, topic_in_size,bias=False),
                 # 'td_cau_weight':nn.Linear(3, 1)
             }) 
