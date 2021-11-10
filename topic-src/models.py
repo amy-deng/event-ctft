@@ -238,7 +238,7 @@ class HeteroConvCausalLayer1(nn.Module):
                 # print(Wh.sum(-1).nonzero().size(),'======')
                 # random_mask = torch.bernoulli(0.1*torch.ones(effect.size()).to(self.device)) * (effect==0)#.view(-1, 1, -1)
                 effect_gate = torch.sigmoid(self.weight['%s_cau_trans' % etype](effect))
- 
+                print(effect_gate)
                 # causal_gate * node_emb 
                 Wh =  torch.tanh(self.weight['%s_cau' % etype](node_emb))*effect_gate + \
                     torch.tanh(self.weight['%s_noi' % etype](node_emb))*(1-effect_gate)
