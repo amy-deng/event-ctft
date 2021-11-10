@@ -233,7 +233,7 @@ class HeteroConvCausalLayer1(nn.Module):
                 else:
                     Wh = torch.bmm(node_emb_repeated,self.tt_cau_weight)
                 Wh = Wh * torch.t(effect).unsqueeze(-1)
-                # print(Wh.shape,'Wh')
+                print(Wh,'Wh')
                 # print(Wh.shape,'Wh2',Wh.nonzero().size())
                 # print(Wh.sum(-1).nonzero().size(),'======')
                 # random_mask = torch.bernoulli(0.1*torch.ones(effect.size()).to(self.device)) * (effect==0)#.view(-1, 1, -1)
@@ -246,7 +246,7 @@ class HeteroConvCausalLayer1(nn.Module):
                 # ∂*f(x) + (1-∂)*g(x)
                 Wh = self.weight[etype](node_emb) + Wh.mean(0)
                 # W_etype x h + 1/|t| (sum (W_etype' x h) * I(causal? 1 or -1))
-                # print(Wh.shape,'Wh2',Wh)
+                print(Wh.shape,'Wh2 ====== sum',Wh)
             else:
                 # print('srctype, etype, dsttype',srctype, etype, dsttype) 
                 Wh = self.weight[etype](node_emb)
@@ -336,26 +336,26 @@ class HeteroCausalBeta(nn.Module):
             self.layer2 = TopicConvCausalLayer0(hidden_size, hidden_size, out_size, device)
             
         self.drop = nn.Dropout(dropout)
-        self.layer = layer
-        if layer == 'cau1':
-            self.norms = nn.ModuleDict({
-                'word':nn.LayerNorm(hidden_size,elementwise_affine=True),
-                'topic':nn.LayerNorm(hidden_size,elementwise_affine=True),
-                'doc':nn.LayerNorm(hidden_size,elementwise_affine=True)
-            })
+        # self.layer = layer
+        # if layer == 'cau1':
+        #     self.norms = nn.ModuleDict({
+        #         'word':nn.LayerNorm(hidden_size,elementwise_affine=True),
+        #         'topic':nn.LayerNorm(hidden_size,elementwise_affine=True),
+        #         'doc':nn.LayerNorm(hidden_size,elementwise_affine=True)
+        #     })
         
     def forward(self, G, emb_dict):
         h_dict = self.layer1(G, emb_dict)
-        if self.layer == 'cau1':
-            h_dict = {k : self.drop(self.norms[k](F.leaky_relu(h))) for k, h in h_dict.items()}
-        else:
-            h_dict = {k : self.drop(F.relu(h)) for k, h in h_dict.items()}
+        # if self.layer == 'cau1':
+        #     h_dict = {k : self.drop(self.norms[k](F.leaky_relu(h))) for k, h in h_dict.items()}
+        # else:
+        h_dict = {k : self.drop(F.relu(h)) for k, h in h_dict.items()}
         # h_dict = {k : F.leaky_relu(h) for k, h in h_dict.items()}
         h_dict = self.layer2(G, h_dict)
-        if self.layer == 'cau1':
-            h_dict = {k : self.drop(self.norms[k](F.leaky_relu(h))) for k, h in h_dict.items()}
-        else:
-            h_dict = {k : self.drop(F.relu(h)) for k, h in h_dict.items()}
+        # if self.layer == 'cau1':
+        #     h_dict = {k : self.drop(self.norms[k](F.leaky_relu(h))) for k, h in h_dict.items()}
+        # else:
+        h_dict = {k : self.drop(F.relu(h)) for k, h in h_dict.items()}
         # h_dict = {k : self.drop(F.relu(h)) for k, h in h_dict.items()}
         return h_dict
 
