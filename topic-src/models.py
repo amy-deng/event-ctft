@@ -220,7 +220,7 @@ class HeteroConvCausalLayer1(nn.Module):
             node_emb = feat_dict[srctype]
             if srctype == 'topic':
                 effect = G.nodes['topic'].data['effect'].to_dense().float()  # sparse
-                # print(effect.shape,effect)
+                print(effect.shape,effect.sum(),effect.mean(),effect.min(),effect.max())
                 # num_time = effect.size(-1)
                 # effect = (effect!=0) * 1.
                 # effect = (effect > 0)+(effect < 0)*(-1.) 
