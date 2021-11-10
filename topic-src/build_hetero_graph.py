@@ -69,9 +69,9 @@ with open(ngram_path,'r') as f:
 vocab = vocab[:top_k_ngram]
 print('vocab loaded',len(vocab))
 if vocab_size > 0:
-    outf = dataset_path + '/hetero_{}_{}_{}.pkl'.format(start_date,stop_date,vocab_size)
+    outf = dataset_path + '/hetero_{}_{}_{}2.pkl'.format(start_date,stop_date,vocab_size)
 else:
-    outf = dataset_path + '/hetero_{}_{}.pkl'.format(start_date,stop_date)
+    outf = dataset_path + '/hetero_{}_{}2.pkl'.format(start_date,stop_date)
 print(outf)
 
 word_id_map = {}
@@ -85,8 +85,7 @@ splitted_date_lists = [
     '2014-01-01','2014-07-01','2015-01-01','2015-07-01','2016-01-01','2016-07-01',
     '2017-01-01','2017-07-01'
 ]
-
-'''causal_file'''
+'''
 causal_file = '/home/sdeng/workspace/event-ctft/data/THA_topic/check_topic_causal_data_w7h14/causal_effect/effect_dict_pw3_biy1_nocheck_0.05.csv'
 causal_df = pd.read_csv(causal_file,sep=',')
 causal_df = causal_df.loc[causal_df['event-type']=='protest']
@@ -129,7 +128,7 @@ for k in causal_time_dict_14day:
     v14 = causal_time_dict_14day[k]
     v = np.stack((v3,v7,v14),1) # (50,3)
     causal_time_dict[k] = v 
-
+'''
 '''non-causal since we defined the significance level, 
 then middle parts are considered random, 
 maybe just randomly denoise those topics in approach design'''
@@ -149,20 +148,20 @@ def get_topwords(docs, top_n=800):
     return top_features
 
 
-def word_word_pmi(tokens_list, sample_words, window_size=20):
+def word_word_pmi_sent(tokens_list, sample_words): # , window_size=20
     '''
     tokens_list = [['thailand', 'district', 'injury', 'reported', 'explosion', 'damaged'],['thailand','bomb', 'patrolman']]
     '''
-    # windows = tokens_list
-    windows = [] # get all moving windows
-    for tokens in tokens_list:
-        length = len(tokens)
-        if length <= window_size:
-            windows.append(tokens)
-        else:
-            for j in range(length - window_size + 1):
-                window = tokens[j: j + window_size]
-                windows.append(window)
+    windows = tokens_list
+    # windows = [] # get all moving windows
+    # for tokens in tokens_list:
+    #     length = len(tokens)
+    #     if length <= window_size:
+    #         windows.append(tokens)
+    #     else:
+    #         for j in range(length - window_size + 1):
+    #             window = tokens[j: j + window_size]
+    #             windows.append(window)
     # print(len(windows),windows[:3])
     word_window_freq = {} # get word freq in windows
     for window in windows:
@@ -365,11 +364,11 @@ for i,row in df.iterrows():
             ys.append(0)
 
     # 1. get causal topic
-    for end_date in splitted_date_lists: # check date in which range
-        if date < end_date:
-            cur_end_date = end_date
-            break
-    causal_weight = causal_time_dict[cur_end_date]
+    # for end_date in splitted_date_lists: # check date in which range
+    #     if date < end_date:
+    #         cur_end_date = end_date
+    #         break
+    # causal_weight = causal_time_dict[cur_end_date]
      
     # 2. build hetero graph for each day
     g_list = []
@@ -403,7 +402,7 @@ for i,row in df.iterrows():
         edge_dw = torch.tensor(weight)
 
         # word---word
-        word_i, word_j, weight = word_word_pmi(sent_token_list, sample_words) # window-size=20
+        word_i, word_j, weight = word_word_pmi_sent(sent_token_list, sample_words) # window-size=20
         word_graph_node_i = [vocab_graph_node_map[v] for v in word_i]
         word_graph_node_j = [vocab_graph_node_map[v] for v in word_j]
         graph_data[('word','ww','word')]=(torch.tensor(word_graph_node_i),torch.tensor(word_graph_node_j))
@@ -439,10 +438,10 @@ for i,row in df.iterrows():
         # g.nodes['word'].data['id'] = torch.from_numpy(vocab_ids).long()
         g.nodes['word'].data['id'] = torch.tensor(words_in_curr_sample).long()
         g.nodes['topic'].data['id'] = g.nodes('topic').long()
-        topic_graph_nodes = g.nodes('topic').numpy()
-        # curr_causal_weight = torch.from_numpy(causal_weight[topic_graph_nodes])
-        # g.nodes['topic'].data['effect'] = curr_causal_weight
-        g.nodes['topic'].data['effect'] = torch.from_numpy(causal_weight[topic_graph_nodes]).to_sparse()
+        # topic_graph_nodes = g.nodes('topic').numpy()
+        # # curr_causal_weight = torch.from_numpy(causal_weight[topic_graph_nodes])
+        # # g.nodes['topic'].data['effect'] = curr_causal_weight
+        # g.nodes['topic'].data['effect'] = torch.from_numpy(causal_weight[topic_graph_nodes]).to_sparse()
         g.edges['ww'].data['weight'] = edge_ww
         g.edges['wd'].data['weight'] = edge_dw
         g.edges['td'].data['weight'] = edge_dt
