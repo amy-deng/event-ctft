@@ -220,7 +220,7 @@ class HeteroConvCausalLayer1(nn.Module):
             node_emb = feat_dict[srctype]
             if srctype == 'topic':
                 effect = G.nodes['topic'].data['effect'].to_dense().float()  # sparse
-                # print(effect.shape)
+                print(effect.shape,effect)
                 num_time = effect.size(-1)
                 # effect = (effect!=0) * 1.
                 effect = (effect > 0)+(effect < 0)*(-1.) 
@@ -233,7 +233,7 @@ class HeteroConvCausalLayer1(nn.Module):
                 else:
                     Wh = torch.bmm(node_emb_repeated,self.tt_cau_weight)
                 Wh = Wh * torch.t(effect).unsqueeze(-1)
-                print(Wh,'Wh')
+                # print(Wh,'Wh')
                 # print(Wh.shape,'Wh2',Wh.nonzero().size())
                 # print(Wh.sum(-1).nonzero().size(),'======')
                 # random_mask = torch.bernoulli(0.1*torch.ones(effect.size()).to(self.device)) * (effect==0)#.view(-1, 1, -1)
