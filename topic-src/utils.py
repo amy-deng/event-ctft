@@ -20,11 +20,11 @@ def eval_bi_classifier(y_true, y_score, y_pred_bi=None):
     r = {}
     try:
         r['auroc'] = metrics.roc_auc_score(y_true, y_score)
+        precision, recall, thresholds = metrics.precision_recall_curve(y_true, y_score)
+        aupr = metrics.auc(recall, precision)
+        r['aupr'] = aupr
     except:
         pass
-    precision, recall, thresholds = metrics.precision_recall_curve(y_true, y_score)
-    aupr = metrics.auc(recall, precision)
-    r['aupr'] = aupr
     if y_pred_bi is None:# or True:
         y_pred_bi = np.where(y_score>0.5,1,0)
     prec, rec, f1, _ = metrics.precision_recall_fscore_support(y_true, y_pred_bi, average="binary")  

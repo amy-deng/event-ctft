@@ -232,8 +232,8 @@ class HeteroConvCausalLayer1(nn.Module):
                     Wh = torch.bmm(node_emb_repeated,self.td_cau_weight)
                 else:
                     Wh = torch.bmm(node_emb_repeated,self.tt_cau_weight)
-                # print(Wh.shape,'Wh')
                 Wh = Wh * torch.t(effect).unsqueeze(-1)
+                # print(Wh.shape,'Wh')
                 # print(Wh.shape,'Wh2',Wh.nonzero().size())
                 # print(Wh.sum(-1).nonzero().size(),'======')
                 # random_mask = torch.bernoulli(0.1*torch.ones(effect.size()).to(self.device)) * (effect==0)#.view(-1, 1, -1)
