@@ -198,12 +198,12 @@ def word_word_pmi_norm(tokens_list, sample_words, window_size=20): # , window_si
     tokens_list = [['thailand', 'district', 'injury', 'reported', 'explosion', 'damaged'],['thailand','bomb', 'patrolman']]
     '''
 
-    unique_tokens_list = []
-    for l in tokens_list:
-        unique_tokens_list.append(list(set(l)))# unique
+    # unique_tokens_list = []
+    # for l in tokens_list:
+    #     unique_tokens_list.append(list(set(l)))# unique
 
     windows = [] # get all moving windows
-    for tokens in unique_tokens_list:
+    for tokens in tokens_list:
         length = len(tokens)
         if length <= window_size:
             windows.append(tokens)
@@ -226,6 +226,7 @@ def word_word_pmi_norm(tokens_list, sample_words, window_size=20): # , window_si
     # print(len(appeared))
     word_pair_count = {}
     for window in windows:
+        word_pair_str_appeared = set()
         for i in range(1, len(window)):
             for j in range(0, i):
                 word_i = window[i]
@@ -239,15 +240,20 @@ def word_word_pmi_norm(tokens_list, sample_words, window_size=20): # , window_si
                 if word_i_id == word_j_id:
                     continue
                 word_pair_str = str(word_i_id) + ',' + str(word_j_id)
+                if word_pair_str in word_pair_str_appeared:
+                    print('skip')
+                    continue
                 if word_pair_str in word_pair_count:
                     word_pair_count[word_pair_str] += 1
                 else:
                     word_pair_count[word_pair_str] = 1
+                word_pair_str_appeared.add(word_pair_str)
                 word_pair_str = str(word_j_id) + ',' + str(word_i_id) # two orders
                 if word_pair_str in word_pair_count:
                     word_pair_count[word_pair_str] += 1
                 else:
                     word_pair_count[word_pair_str] = 1
+                word_pair_str_appeared.add(word_pair_str)
     row, col, weight = [], [], [] # pmi as weight
     num_window = len(windows)
     for key in word_pair_count:
