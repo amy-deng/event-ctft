@@ -362,15 +362,19 @@ for i,row in df.iterrows():
         if len(sample_words) > vocab_size:
             sample_words = get_topwords(tokens_list,vocab_size)
     sample_words = [w for w in sample_words if w in vocab]
-
+    print(sample_words)
+    words_in_curr_sample = [word_id_map[w] for w in sample_words] # [5,6,7,10,8,...]
+    words_in_curr_sample.sort()
+    vocab_graph_node_map = dict(zip(words_in_curr_sample,range(len(words_in_curr_sample)))) # word id : real index
+    
     graph_data = {}
     # doc---word
     doc_node, word_node, weight = doc_word_tfidf(tokens_list,sample_words)
     # print('# doc nodes',len(set(doc_node)),len(set(word_node)))
-    words_in_curr_sample = list(set(word_node))
+    # words_in_curr_sample = list(set(word_node))
     # print('words_in_curr_sample',len(words_in_curr_sample))
-    words_in_curr_sample.sort()
-    vocab_graph_node_map = dict(zip(words_in_curr_sample,range(len(words_in_curr_sample))))
+    # words_in_curr_sample.sort()
+    # vocab_graph_node_map = dict(zip(words_in_curr_sample,range(len(words_in_curr_sample))))
     word_graph_node = [vocab_graph_node_map[v] for v in word_node]
     # graph_data[('doc','dw','word')]=(torch.tensor(doc_node),torch.tensor(word_graph_node))
     graph_data[('word','wd','doc')]=(torch.tensor(word_graph_node),torch.tensor(doc_node))
