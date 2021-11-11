@@ -449,7 +449,7 @@ for i,row in df.iterrows():
     city_list.append(city)
     date_list.append(date)
     iii+=1
-    print('iii={} \t {} \t {} \t {} day_has_data \t  {}'.format(iii,date,city,1,time.ctime()))
+    print('iii={} \t {} \t {} \t {} day_has_data \t  {} vocab {}'.format(iii,date,city,1,time.ctime()),len(sample_words))
  
 
 y_list = torch.tensor(y_list)
