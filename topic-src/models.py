@@ -793,7 +793,7 @@ class static_word_graph(nn.Module):
 
     def forward(self, g_list, y_data): 
         bg = dgl.batch(g_list).to(self.device)
-        # bg = dgl.add_self_loop(bg)
+        # bg = dgl.add_self_loop(bg,etype='tt')
         word_emb = self.word_embeds[bg.nodes['word'].data['id']].view(-1, self.word_embeds.shape[1])
         emb_dict = self.hconv(bg, {'word':word_emb})
         bg.nodes['word'].data['emb'] = emb_dict['word']
