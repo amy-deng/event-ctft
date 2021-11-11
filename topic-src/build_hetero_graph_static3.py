@@ -241,7 +241,7 @@ def word_word_pmi_norm(tokens_list, sample_words, window_size=20): # , window_si
                     continue
                 word_pair_str = str(word_i_id) + ',' + str(word_j_id)
                 if word_pair_str in word_pair_str_appeared:
-                    print('skip')
+                    # print('skip')
                     continue
                 if word_pair_str in word_pair_count:
                     word_pair_count[word_pair_str] += 1
@@ -269,7 +269,7 @@ def word_word_pmi_norm(tokens_list, sample_words, window_size=20): # , window_si
             continue
         try:
             npmi = pmi / (-math.log(count/num_window))
-            print('count=',count,'num_window=',num_window,'word_freq_i=',word_freq_i,'word_freq_j=',word_freq_j,'pmi=',pmi,'npmi=',npmi)
+            # print('count=',count,'num_window=',num_window,'word_freq_i=',word_freq_i,'word_freq_j=',word_freq_j,'pmi=',pmi,'npmi=',npmi)
         except:
             print('count=',count,'num_window=',num_window,'word_freq_i=',word_freq_i,'word_freq_j=',word_freq_j,'pmi=',pmi)
             # print('npmi=',npmi)
