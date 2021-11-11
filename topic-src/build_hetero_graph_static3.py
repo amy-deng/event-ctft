@@ -19,7 +19,7 @@ from dgl.data.utils import save_graphs,load_graphs
 ### testing
  
 '''
-python build_hetero_graph_static.py /home/sdeng/data/icews/detailed_event_json/THA_2010_w21h7_city.json ../data THA_50 /home/sdeng/data/icews/corpus/ngrams/THA_1gram_tfidf.txt 15000 7 7 3 ../data/THA_topic/check_topic_causal_data_w7h7/causal_effect/effect_dict_pw7_biy1_0.05.csv 2014-01-01 2015-01-01
+python build_hetero_graph_static3.py /home/sdeng/data/icews/detailed_event_json/THA_2010_w21h7_city.json ../data THA_50 /home/sdeng/data/icews/corpus/ngrams/THA_1gram_tfidf.txt 15000 7 7 3 2014 2015
 '''
 try:
     event_path = sys.argv[1] # /home/sdeng/data/icews/detailed_event_json/THA_2010_w21h7_city.json
@@ -67,7 +67,7 @@ print(outf)
 
 start_date = '{}-01-01'.format(start_year)
 if stop_year == '2017':
-    stop_date = '{}-04-01'.format(start_year)
+    stop_date = '{}-03-26'.format(start_year)
 else:
     stop_date = '{}-01-01'.format(start_year)
 
