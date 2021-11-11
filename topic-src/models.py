@@ -404,6 +404,7 @@ class WordGraphLayer(nn.Module):
         self.weight = nn.ModuleDict({
                 'ww': nn.Linear(in_size, out_size),
             }) 
+            
     def forward(self, G, feat_dict):
         funcs={}
 
@@ -1376,6 +1377,8 @@ class temp_word_graph2(nn.Module):
         loss = self.criterion(y_pred.view(-1), y_data_sorted)
         y_pred = torch.sigmoid(y_pred)
         return loss, y_pred
+
+
 
 
 

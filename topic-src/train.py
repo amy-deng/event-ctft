@@ -13,14 +13,15 @@ parser = argparse.ArgumentParser(description='')
 parser.add_argument("--dp", type=str, default="../data", help="data path")
 parser.add_argument("--dropout", type=float, default=0.2, help="dropout probability")
 parser.add_argument("--n-hidden", type=int, default=32, help="number of hidden units")
+parser.add_argument("--n-layers", type=int, default=2, help="number of hidden layers")
 parser.add_argument("--gpu", type=int, default=0, help="gpu")
 parser.add_argument("--lr", type=float, default=1e-3, help="learning rate")
-parser.add_argument("--weight_decay", type=float, default=1e-5, help="weight_decay")
+parser.add_argument("--weight_decay", type=float, default=1e-5, help="weight for L2 loss")
 parser.add_argument("-d", "--dataset", type=str, default='THA_w7h7_minday3', help="dataset to use")
 parser.add_argument("-df", "--datafiles", type=str, default='data_static_2014-02-01_2014-02-05_tt85_sentpmi_1k', help="dataset to use")
 parser.add_argument("-cf", "--causalfiles", type=str, default='', help="causality to use")
 parser.add_argument("--grad-norm", type=float, default=1.0, help="norm to clip gradient to")
-parser.add_argument("--max-epochs", type=int, default=100, help="maximum epochs")
+parser.add_argument("--n-epochs", type=int, default=100, help="number of training epochs")
 parser.add_argument("--seq-len", type=int, default=7)
 parser.add_argument("--horizon", type=int, default=7)
 parser.add_argument("--batch-size", type=int, default=32)
@@ -51,6 +52,7 @@ from torch.utils.data import DataLoader
 from torch.utils.data.sampler import SubsetRandomSampler
 
 from models import *
+from gcn import *
 from utils import *
 from data import *
 
@@ -120,6 +122,9 @@ test_loader.len = len(test_indices)
                         # shuffle=False, collate_fn=collate_2)
 
 def prepare(args,word_embeds,device): 
+    if args.model == 'gcn':
+        model = GCN(in_feats=emb_size, n_hidden=args.n_hidden, n_layers=args.n_layers, activation=F.relu, 
+        vocab_size=vocab_size, device=device, num_word=15000, dropout=args.dropout,pool=args.pool)
     if args.model == 'hetero':
         model = static_heto_graph(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device, pool=args.pool)
     elif args.model == 'topic':
@@ -231,9 +236,7 @@ def eval(data_loader, set_name='valid'):
     # print("{} Loss: {:.6f}".format(set_name, reduced_loss))
     return reduced_loss, eval_dict
 
-# for epoch in range(1, args.max_epochs+1):
-#     train(train_loader, train_dataset_loader)
-
+ 
 
 for i in range(args.runs):
     model, optimizer, result_file, token = prepare(args, word_embeds, device)
@@ -248,7 +251,7 @@ for i in range(args.runs):
     value_large = float('-inf')
     try:
         print('begin training ...')
-        for epoch in range(0, args.max_epochs):
+        for epoch in range(0, args.n_epochs):
             epoch_start_time = time.time()
             train_loss = train(train_loader)
             valid_loss, eval_dict = eval(valid_loader, set_name='val')
@@ -308,30 +311,4 @@ wrt = csv.writer(f)
 wrt.writerow([token] + [line_count] + res)
 f.close()
 print(token)
-# checkpoint = torch.load(model_state_file, map_location=lambda storage, loc: storage)
-# model.load_state_dict(checkpoint['state_dict'])
-# bad_counter = 0
-# loss_small =  float("inf")
-# try:
-#     print("start training...")
-#     for epoch in range(1, args.max_epochs+1):
-#         train_loss = train(train_loader, train_dataset_loader)
-#         # evaluate(train_eval_loader, train_dataset_loader, set_name='Train') # eval on train set
-#         valid_loss, recall, f1, f2 = evaluate(
-#             valid_loader, valid_dataset_loader, set_name='Valid') # eval on valid set
-
-#         if valid_loss < loss_small:
-#             loss_small = valid_loss
-#             bad_counter = 0
-#             print('save better model...')
-#             torch.save({'state_dict': model.state_dict(), 'epoch': epoch, 'global_emb': None}, model_state_file)
-#             # evaluate(test_loader, test_dataset_loader, set_name='Test')
-#         else:
-#             bad_counter += 1
-#         if bad_counter == args.patience:
-#             break
-#     print("training done")
-
-# except KeyboardInterrupt:
-#     print('-' * 80)
-#     print('Exiting from training early, epoch', epoch)
+ 

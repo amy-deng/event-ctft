@@ -197,8 +197,13 @@ def word_word_pmi_norm(tokens_list, sample_words, window_size=20): # , window_si
     '''
     tokens_list = [['thailand', 'district', 'injury', 'reported', 'explosion', 'damaged'],['thailand','bomb', 'patrolman']]
     '''
+
+    unique_tokens_list = []
+    for l in tokens_list:
+        unique_tokens_list.append(list(set(l)))# unique
+        
     windows = [] # get all moving windows
-    for tokens in tokens_list:
+    for tokens in unique_tokens_list:
         length = len(tokens)
         if length <= window_size:
             windows.append(tokens)
@@ -420,10 +425,12 @@ for i,row in df.iterrows():
         continue
     day_has_data = 0
     story_list = row['story_list'][-window:]
+    n_doc = 0
     for v in story_list:
         if len(v) > 0:
             day_has_data += 1
-    if day_has_data < his_days_threshold:
+        n_doc += len(v)
+    if day_has_data < his_days_threshold or n_doc <= 5:  
         continue
     
     # print(date,type(date),str(date))
