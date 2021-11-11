@@ -70,7 +70,7 @@ start_date = '{}-01-01'.format(start_year)
 if stop_year == '2017':
     stop_date = '{}-03-26'.format(start_year)
 else:
-    stop_date = '{}-01-11'.format(start_year)
+    stop_date = '{}-01-01'.format(start_year)
 
 word_id_map = {}
 for i in range(len(vocab)):
@@ -362,7 +362,7 @@ for i,row in df.iterrows():
         if len(sample_words) > vocab_size:
             sample_words = get_topwords(tokens_list,vocab_size)
     sample_words = [w for w in sample_words if w in vocab]
-    print(sample_words)
+    # print(sample_words)
     words_in_curr_sample = [word_id_map[w] for w in sample_words] # [5,6,7,10,8,...]
     words_in_curr_sample.sort()
     vocab_graph_node_map = dict(zip(words_in_curr_sample,range(len(words_in_curr_sample)))) # word id : real index
