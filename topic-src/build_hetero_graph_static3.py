@@ -14,7 +14,8 @@ from scipy import sparse
 from scipy.spatial.distance import cdist
 import dgl
 from dgl.data.utils import save_graphs,load_graphs
- 
+from numpy import linalg
+
 #### build datasets
 ### testing
  
