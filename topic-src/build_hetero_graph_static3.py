@@ -258,8 +258,7 @@ def word_word_pmi_norm(tokens_list, sample_words, window_size=20): # , window_si
             continue
         try:
             npmi = pmi / (-math.log(count/num_window))
-            print('count=',count,'num_window=',num_window,'word_freq_i=',word_freq_i,'word_freq_j=',word_freq_j,'pmi=',pmi,'npmi=',npmi)
-
+            # print('count=',count,'num_window=',num_window,'word_freq_i=',word_freq_i,'word_freq_j=',word_freq_j,'pmi=',pmi,'npmi=',npmi)
         except:
             print('count=',count,'num_window=',num_window,'word_freq_i=',word_freq_i,'word_freq_j=',word_freq_j,'pmi=',pmi)
             # print('npmi=',npmi)
@@ -456,8 +455,8 @@ for i,row in df.iterrows():
     if len(story_text_lists) <= 0:
         # print('story_ids_day',len(story_ids_day),'story_text_lists',len(story_text_lists))
         continue
-    # tokens_list = clean_document_list(story_text_lists)
-    tokens_list, sent_token_list = document_sent_tokenize(story_text_lists)
+    tokens_list = clean_document_list(story_text_lists)
+    # tokens_list, sent_token_list = document_sent_tokenize(story_text_lists)
     # words appeared in this example
     sample_words = list(set([item for sublist in tokens_list for item in sublist]))
     if vocab_size > 0:
@@ -544,7 +543,7 @@ for i,row in df.iterrows():
     city_list.append(city)
     date_list.append(date)
     iii+=1
-    print('iii={} \t {} \t {} \t {} day_has_data \t  {} vocab {}'.format(iii,date,city,1,time.ctime(),len(sample_words)))
+    print('iii={} \t {} \t {} \t {} day_has_data \t  {} vocab {} doc {}'.format(iii,date,city,1,time.ctime(),len(sample_words),len(tokens_list)))
  
 
 y_list = torch.tensor(y_list)
