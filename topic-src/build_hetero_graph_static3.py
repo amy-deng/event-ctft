@@ -193,6 +193,94 @@ def word_word_pmi_sent_norm(tokens_list, sample_words, window_size=10): # , wind
         self_loop.add(node)
     return row, col, weight
      
+def word_word_pmi_sent_norm2(tokens_list, sample_words, window_size=10): # , window_size=20
+    '''
+    tokens_list = [['thailand', 'district', 'injury', 'reported', 'explosion', 'damaged'],['thailand','bomb', 'patrolman']]
+    '''
+    # windows = tokens_list
+    # windows = []
+    # for l in tokens_list:
+    #     windows.append(list(set(l)))# unique
+    windows = [] # get all moving windows
+    for tokens in tokens_list:
+        length = len(tokens)
+        if length <= window_size:
+            windows.append(tokens)
+        else:
+            for j in range(length - window_size + 1):
+                window = tokens[j: j + window_size]
+                windows.append(window)
+    # print(len(windows),windows[:3])
+    word_window_freq = {} # get word freq in windows
+    for window in windows:
+        appeared = set()
+        for i in range(len(window)):
+            if window[i] in appeared:
+                continue
+            if window[i] in word_window_freq:
+                word_window_freq[window[i]] += 1
+            else:
+                word_window_freq[window[i]] = 1
+            appeared.add(window[i])
+    # print(len(appeared))
+    word_pair_count = {}
+    for window in windows:
+        for i in range(1, len(window)):
+            for j in range(0, i):
+                word_i = window[i]
+                word_j = window[j]
+                if word_i not in word_id_map or word_j not in word_id_map:
+                    continue
+                if word_i not in sample_words or word_j not in sample_words:
+                    continue
+                word_i_id = word_id_map[word_i]
+                word_j_id = word_id_map[word_j]
+                if word_i_id == word_j_id:
+                    continue
+                word_pair_str = str(word_i_id) + ',' + str(word_j_id)
+                if word_pair_str in word_pair_count:
+                    word_pair_count[word_pair_str] += 1
+                else:
+                    word_pair_count[word_pair_str] = 1
+                word_pair_str = str(word_j_id) + ',' + str(word_i_id) # two orders
+                if word_pair_str in word_pair_count:
+                    word_pair_count[word_pair_str] += 1
+                else:
+                    word_pair_count[word_pair_str] = 1
+    row, col, weight = [], [], [] # pmi as weight
+    num_window = len(windows)
+    for key in word_pair_count:
+        temp = key.split(',')
+        i = int(temp[0])
+        j = int(temp[1])
+        count = word_pair_count[key]
+        word_freq_i = word_window_freq[vocab[i]]
+        word_freq_j = word_window_freq[vocab[j]]
+        # https://towardsdatascience.com/word2vec-for-phrases-learning-embeddings-for-more-than-one-word-727b6cf723cf
+        pmi = math.log((1.0 * count * num_window) / (1.0 * word_freq_i * word_freq_j)) 
+        if pmi <= 0:
+            continue
+        try:
+            npmi = pmi / (-math.log(count/num_window))
+            print('count=',count,'num_window=',num_window,'word_freq_i=',word_freq_i,'word_freq_j=',word_freq_j,'pmi=',pmi,'npmi=',npmi)
+
+        except:
+            print('count=',count,'num_window=',num_window,'word_freq_i=',word_freq_i,'word_freq_j=',word_freq_j,'pmi=',pmi)
+            # print('npmi=',npmi)
+            exit()
+        row.append(i)
+        col.append(j)
+        weight.append(npmi)
+    self_loop = set() # add self loop
+    for node in row:
+        if node in self_loop:
+            continue
+        row.append(node)
+        col.append(node)
+        weight.append(1.)
+        self_loop.add(node)
+    return row, col, weight
+   
 def doc_word_tfidf(tokens_list, sample_words):
     word_doc_list = {} # document frequency DF
     for i in range(len(tokens_list)):
@@ -400,7 +488,8 @@ for i,row in df.iterrows():
     edge_dw = torch.tensor(weight)
 
     # word---word
-    word_i, word_j, weight = word_word_pmi_sent_norm(sent_token_list, sample_words) # window-size=20
+    # word_i, word_j, weight = word_word_pmi_sent_norm(sent_token_list, sample_words) # window-size=20
+    word_i, word_j, weight = word_word_pmi_sent_norm2(tokens_list, sample_words) # window-size=20
     word_graph_node_i = [vocab_graph_node_map[v] for v in word_i]
     word_graph_node_j = [vocab_graph_node_map[v] for v in word_j]
     graph_data[('word','ww','word')]=(torch.tensor(word_graph_node_i),torch.tensor(word_graph_node_j))
