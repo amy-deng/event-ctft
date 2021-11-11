@@ -69,7 +69,7 @@ start_date = '{}-01-01'.format(start_year)
 if stop_year == '2017':
     stop_date = '{}-03-26'.format(start_year)
 else:
-    stop_date = '{}-01-01'.format(start_year)
+    stop_date = '{}-01-11'.format(start_year)
 
 word_id_map = {}
 for i in range(len(vocab)):
