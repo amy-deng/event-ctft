@@ -109,7 +109,10 @@ def word_word_pmi_sent_norm(tokens_list, sample_words, window_size=10): # , wind
     '''
     tokens_list = [['thailand', 'district', 'injury', 'reported', 'explosion', 'damaged'],['thailand','bomb', 'patrolman']]
     '''
-    windows = tokens_list
+    # windows = tokens_list
+    windows = []
+    for l in tokens_list:
+        windows.append(list(set(l)))# unique
     # windows = [] # get all moving windows
     # for tokens in tokens_list:
     #     length = len(tokens)
@@ -171,6 +174,8 @@ def word_word_pmi_sent_norm(tokens_list, sample_words, window_size=10): # , wind
             continue
         try:
             npmi = pmi / (-math.log(count/num_window))
+            print('count=',count,'num_window=',num_window,'word_freq_i=',word_freq_i,'word_freq_j=',word_freq_j,'pmi=',pmi)
+
         except:
             print('count=',count,'num_window=',num_window,'word_freq_i=',word_freq_i,'word_freq_j=',word_freq_j,'pmi=',pmi)
             # print('npmi=',npmi)
