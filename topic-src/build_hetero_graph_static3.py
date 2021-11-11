@@ -193,14 +193,10 @@ def word_word_pmi_sent_norm(tokens_list, sample_words, window_size=10): # , wind
         self_loop.add(node)
     return row, col, weight
      
-def word_word_pmi_sent_norm2(tokens_list, sample_words, window_size=10): # , window_size=20
+def word_word_pmi_norm(tokens_list, sample_words, window_size=20): # , window_size=20
     '''
     tokens_list = [['thailand', 'district', 'injury', 'reported', 'explosion', 'damaged'],['thailand','bomb', 'patrolman']]
     '''
-    # windows = tokens_list
-    # windows = []
-    # for l in tokens_list:
-    #     windows.append(list(set(l)))# unique
     windows = [] # get all moving windows
     for tokens in tokens_list:
         length = len(tokens)
@@ -489,7 +485,7 @@ for i,row in df.iterrows():
 
     # word---word
     # word_i, word_j, weight = word_word_pmi_sent_norm(sent_token_list, sample_words) # window-size=20
-    word_i, word_j, weight = word_word_pmi_sent_norm2(tokens_list, sample_words) # window-size=20
+    word_i, word_j, weight = word_word_pmi_norm(tokens_list, sample_words, window_size=20)
     word_graph_node_i = [vocab_graph_node_map[v] for v in word_i]
     word_graph_node_j = [vocab_graph_node_map[v] for v in word_j]
     graph_data[('word','ww','word')]=(torch.tensor(word_graph_node_i),torch.tensor(word_graph_node_j))
