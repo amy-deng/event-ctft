@@ -11,7 +11,7 @@ from sklearn.utils import shuffle
  
 parser = argparse.ArgumentParser(description='')
 parser.add_argument("--dp", type=str, default="../data", help="data path")
-parser.add_argument("--dropout", type=float, default=0.2, help="dropout probability")
+parser.add_argument("--dropout", type=float, default=0.5, help="dropout probability")
 parser.add_argument("--n-hidden", type=int, default=32, help="number of hidden units")
 parser.add_argument("--n-layers", type=int, default=2, help="number of hidden layers")
 parser.add_argument("--gpu", type=int, default=0, help="gpu")
@@ -37,7 +37,8 @@ parser.add_argument("--train", type=float, default=0.7, help="")
 parser.add_argument("--val", type=float, default=0.15, help="")
 parser.add_argument('--shuffle', action="store_false")
 parser.add_argument("--cau_setup", type=str, default="pos1", help="pos1,sign1,raw")
-parser.add_argument("--special", type=str, default="", help="to distinguash data")
+parser.add_argument("--note", type=str, default="", help="")
+parser.add_argument("--n-topics", type=int, default=50, help='number of topics')
 
 args = parser.parse_args()
 print(args)
@@ -53,6 +54,7 @@ from torch.utils.data.sampler import SubsetRandomSampler
 
 from models import *
 from gcn import *
+from hgt import *
 from utils import *
 from data import *
 
@@ -124,7 +126,7 @@ test_loader.len = len(test_indices)
 def prepare(args,word_embeds,device): 
     if args.model == 'gcn':
         model = GCN(in_feats=emb_size, n_hidden=args.n_hidden, n_layers=args.n_layers, activation=F.relu, 
-        vocab_size=vocab_size, device=device, num_word=15000, dropout=args.dropout,pool=args.pool)
+        vocab_size=vocab_size, device=device, dropout=args.dropout,pool=args.pool)
     if args.model == 'hetero':
         model = static_heto_graph(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device, pool=args.pool)
     elif args.model == 'topic':
@@ -146,20 +148,22 @@ def prepare(args,word_embeds,device):
     elif args.model == 'temp_word':
         model = temp_word_graph2(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device,pool=args.pool)
     elif args.model == 'hgt':
-        model = static_hgt(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device,pool=args.pool)
+        model = HGT(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=4, device=device, 
+        num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True)
+        # model = static_hgt(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device,pool=args.pool)
     # elif args.model == 'temp_word_hetero':
     #     model = temp_word_hetero(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device,pool=args.pool)
     model_name = model.__class__.__name__
-
+    # print(model)
     optimizer = torch.optim.Adam(
         model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
     total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print('#params:', total_params)
-    token = '{}_seed{}_sl{}_h{}_lr{}_bs{}_p{}_hd{}_tr{}_val_{}_{}'.format(model_name, args.seed, args.seq_len,args.horizon,args.lr,args.batch_size,args.patience,args.n_hidden,args.train,args.val,args.pool)
+    token = '{}_seed{}topic{}w{}h{}lr{}bs{}p{}hid{}l{}tr{}va{}po{}'.format(model_name, args.seed, args.n_topics, args.seq_len, args.horizon,args.lr,args.batch_size,args.patience,args.n_hidden,args.n_layers,args.train,args.val,args.pool)
     if args.shuffle is False:
         token += '_noshuf'
-    if args.special != "":
-        token += args.special
+    if args.note != "":
+        token += args.note
     # if args.model in ['cus3','cus4']:
     #     token += args.cau_setup
     os.makedirs('models', exist_ok=True)
@@ -178,16 +182,7 @@ def prepare(args,word_embeds,device):
         word_embeds = word_embeds.cuda()
     model.word_embeds = word_embeds
     return model, optimizer, result_file, token
-
-# for i, batch in enumerate(train_loader):
-#     g_data, y_data = batch
-#     # g_data = torch.stack(g_data, dim=0)
-#     y_data = torch.stack(y_data, dim=0)
-#     print(i,y_data.shape,'y_data',y_data)
-#     print(len(g_data),'g_data')
-
-    
-    # loss = model(batch_data, true_r)
+ 
 
 epoch = 0
 def train(train_loader):

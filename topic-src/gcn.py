@@ -40,13 +40,13 @@ class GCNLayer(nn.Module):
             h = self.dropout(h)
         h = torch.mm(h, self.weight)
         # normalization by square root of src degree
-        h = h * g.nodes['word'].data['norm']
+        h = h * g.nodes['word'].data['norm'].unsqueeze(1)
         g.nodes['word'].data['h'] = h
         g.update_all(fn.copy_src(src='h', out='m'),
                           fn.sum(msg='m', out='h'),etype='ww')
         h = g.nodes['word'].data.pop('h')
         # normalization by square root of dst degree
-        h = h * g.nodes['word'].data['norm']
+        h = h * g.nodes['word'].data['norm'].unsqueeze(1)
         # bias
         if self.bias is not None:
             h = h + self.bias
@@ -80,7 +80,7 @@ class GCN_0(nn.Module):
 
 
 class GCN(nn.Module):
-    def __init__(self, in_feats, n_hidden, n_layers, activation, vocab_size, device, seq_len=7, num_word=15000,dropout=0.5,pool='max'):
+    def __init__(self, in_feats, n_hidden, n_layers, activation, device, seq_len=7, vocab_size=15000,dropout=0.5,pool='max'):
         super().__init__()
         self.in_feats = in_feats
         self.vocab_size = vocab_size
