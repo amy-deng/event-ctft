@@ -85,7 +85,7 @@ splitted_date_lists = [
 ]
  
 # https://github.com/dmlc/dgl/blob/ddc2faa547da03e0b791648677ed06ce1daf3e0d/examples/pytorch/gcn/gcn_spmv.py
-def norm(g,ntype,etype):
+def norm_edges(g,ntype,etype):
     # in_deg = g.in_degrees(etype='ww',range(g.number_of_nodes('word'))).float()
     degs = g.in_degrees(etype=etype).float()
     norm = torch.pow(degs, -0.5)
@@ -166,9 +166,10 @@ def word_word_pmi_sent_norm(tokens_list, sample_words, window_size=10): # , wind
         word_freq_i = word_window_freq[vocab[i]]
         word_freq_j = word_window_freq[vocab[j]]
         # https://towardsdatascience.com/word2vec-for-phrases-learning-embeddings-for-more-than-one-word-727b6cf723cf
-        npmi = math.log((1.0 * count * num_window) / (1.0 * word_freq_i * word_freq_j)) / (-math.log(count/num_window))
-        if npmi <= 0:
+        pmi = math.log((1.0 * count * num_window) / (1.0 * word_freq_i * word_freq_j)) 
+        if pmi <= 0:
             continue
+        npmi = pmi / (-math.log(count/num_window))
         row.append(i)
         col.append(j)
         weight.append(npmi)
@@ -434,8 +435,8 @@ for i,row in df.iterrows():
     g.edges['td'].data['weight'] = edge_dt
     g.edges['tt'].data['weight'] = edge_tt
     g.edges['wt'].data['weight'] = edge_tw
-    norm(g,ntype='word',etype='ww')
-    norm(g,ntype='topic',etype='tt')
+    norm_edges(g,ntype='word',etype='ww')
+    norm_edges(g,ntype='topic',etype='tt')
     g.ids = {}
     idx = 0
     for id in words_in_curr_sample:

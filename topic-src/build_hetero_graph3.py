@@ -90,7 +90,14 @@ splitted_date_lists = [
     '2014-01-01','2014-07-01','2015-01-01','2015-07-01','2016-01-01','2016-07-01',
     '2017-01-01','2017-07-01'
 ]
-
+# https://github.com/dmlc/dgl/blob/ddc2faa547da03e0b791648677ed06ce1daf3e0d/examples/pytorch/gcn/gcn_spmv.py
+def norm_edges(g,ntype,etype):
+    # in_deg = g.in_degrees(etype='ww',range(g.number_of_nodes('word'))).float()
+    degs = g.in_degrees(etype=etype).float()
+    norm = torch.pow(degs, -0.5)
+    norm[torch.isinf(norm)] = 0
+    g.nodes[ntype].data['norm'] = norm
+    
 def get_topwords(docs, top_n=800):
     vectorizer = TfidfVectorizer(
                 analyzer='word',
@@ -435,6 +442,8 @@ for i,row in df.iterrows():
         g.edges['td'].data['weight'] = edge_dt
         g.edges['tt'].data['weight'] = edge_tt
         g.edges['wt'].data['weight'] = edge_tw
+        norm_edges(g,ntype='word',etype='ww')
+        norm_edges(g,ntype='topic',etype='tt')
         g.ids = {}
         idx = 0
         for id in words_in_curr_sample:
