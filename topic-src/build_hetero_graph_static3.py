@@ -174,7 +174,7 @@ def word_word_pmi_sent_norm(tokens_list, sample_words, window_size=10): # , wind
             continue
         try:
             npmi = pmi / (-math.log(count/num_window))
-            print('count=',count,'num_window=',num_window,'word_freq_i=',word_freq_i,'word_freq_j=',word_freq_j,'pmi=',pmi)
+            print('count=',count,'num_window=',num_window,'word_freq_i=',word_freq_i,'word_freq_j=',word_freq_j,'pmi=',pmi,'npmi=',npmi)
 
         except:
             print('count=',count,'num_window=',num_window,'word_freq_i=',word_freq_i,'word_freq_j=',word_freq_j,'pmi=',pmi)
