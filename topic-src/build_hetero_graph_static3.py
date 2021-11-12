@@ -459,7 +459,7 @@ for i,row in df.iterrows():
     #         cur_end_date = end_date
     #         break
     # causal_weight = causal_time_dict[cur_end_date]
-     
+    
     # continue
     # 2. build hetero graph for each day
     g_list = []
@@ -467,6 +467,10 @@ for i,row in df.iterrows():
     story_text_lists = news_df.loc[news_df['StoryID'].isin(story_list_flatten)]['Text'].values
     if len(story_text_lists) <= 0:
         # print('story_ids_day',len(story_ids_day),'story_text_lists',len(story_text_lists))
+        continue
+    iii+=1
+    if iii < 813:
+        print(iii)
         continue
     tokens_list = clean_document_list(story_text_lists)
     # if len(tokens_list) <= 5:
@@ -530,7 +534,7 @@ for i,row in df.iterrows():
     # graph_data[('topic','tw','word')]=(torch.tensor(topic_node),torch.tensor(word_graph_node))
     graph_data[('word','wt','topic')]=(torch.tensor(word_graph_node),torch.tensor(topic_node))
     edge_tw = torch.tensor(weight)
-
+    print('graph_data',graph_data)#debug
     g = dgl.heterograph(graph_data)
     # g.nodes['word'].data['id'] = torch.from_numpy(vocab_ids).long()
     g.nodes['word'].data['id'] = torch.tensor(words_in_curr_sample).long()
@@ -557,7 +561,7 @@ for i,row in df.iterrows():
     y_list.append(ys)  
     city_list.append(city)
     date_list.append(date)
-    iii+=1
+    
     print('iii={} \t {} \t {} \t {} day_has_data \t  {} vocab {} doc {}'.format(iii,date,city,1,time.ctime(),len(sample_words),len(tokens_list)))
  
 
