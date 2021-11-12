@@ -48,8 +48,6 @@ class SemanticAttention(nn.Module):
         return (beta * z).sum(1)                       # (N, D * K)
 
 
-                      # (N, D * K)
-
 class HANLayer(nn.Module):
     """
     HAN layer.
@@ -137,7 +135,7 @@ class HANLayer(nn.Module):
         # print(semantic_embeddings_topic.shape,'semantic_embeddings_topic')
         # semantic_embeddings = torch.stack(semantic_embeddings, dim=1)                  
         # print(semantic_embeddings.shape,'semantic_embeddings====')
-        feat_dict = {'word':semantic_embeddings_word, 'doc':semantic_embeddings_doc, 'topic':semantic_embeddings_topic}
+        feat_dict = {'word':F.relu(semantic_embeddings_word), 'doc':F.relu(semantic_embeddings_doc), 'topic':F.relu(semantic_embeddings_topic)}
         return feat_dict                          
 
 # class HAN(nn.Module):
