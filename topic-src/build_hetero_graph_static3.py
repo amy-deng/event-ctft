@@ -470,7 +470,7 @@ for i,row in df.iterrows():
         continue
     iii+=1
     if iii < 813:
-        print(iii)
+        print(iii,len(story_text_lists))
         continue
     tokens_list = clean_document_list(story_text_lists)
     # if len(tokens_list) <= 5:
@@ -535,6 +535,10 @@ for i,row in df.iterrows():
     graph_data[('word','wt','topic')]=(torch.tensor(word_graph_node),torch.tensor(topic_node))
     edge_tw = torch.tensor(weight)
     print('graph_data',graph_data)#debug
+    # save it 
+    with open('error.pkl','wb') as f:
+        pickle.dump(graph_data, f)
+    print('saved')
     g = dgl.heterograph(graph_data)
     # g.nodes['word'].data['id'] = torch.from_numpy(vocab_ids).long()
     g.nodes['word'].data['id'] = torch.tensor(words_in_curr_sample).long()
