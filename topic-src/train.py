@@ -170,6 +170,9 @@ def prepare(args,word_embeds,device):
     elif args.model == 'hgt':
         model = HGT(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=4, device=device, 
         num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True)
+    elif args.model == 'hgtall':
+        model = HGTAll(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=4, device=device, 
+        num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True)
         # model = static_hgt(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device,pool=args.pool)
     # elif args.model == 'temp_word_hetero':
     #     model = temp_word_hetero(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device,pool=args.pool)
