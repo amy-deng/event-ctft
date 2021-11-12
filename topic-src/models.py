@@ -703,6 +703,7 @@ class HeteroBasic(nn.Module):
         y_pred = torch.sigmoid(y_pred)
         return loss, y_pred
  
+
 class static_heto_graph2(nn.Module):
     def __init__(self, h_inp, vocab_size, h_dim, device, seq_len=7, num_topic=50, num_word=15000,dropout=0.5,pool='max'):
         super().__init__()

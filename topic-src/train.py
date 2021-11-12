@@ -53,9 +53,10 @@ from torch.utils.data import DataLoader
 from torch.utils.data.sampler import SubsetRandomSampler
 
 from models import *
-from gcn import *
-from hgt import *
-from gcn_hetero import *
+from model_gcn import *
+from model_hgt import *
+from model_gcn_hetero import *
+from model_han import *
 from utils import *
 from data import *
 
@@ -133,6 +134,12 @@ def prepare(args,word_embeds,device):
         vocab_size=vocab_size, device=device, dropout=args.dropout,pool=args.pool)
     elif args.model == 'gcnetall':
         model = GCNHetAll(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, activation=F.relu, 
+        vocab_size=vocab_size, device=device, dropout=args.dropout,pool=args.pool) 
+    elif args.model == 'han':
+        model = HAN(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, activation=F.relu, 
+        vocab_size=vocab_size, device=device, dropout=args.dropout,pool=args.pool) 
+    elif args.model == 'hanall':
+        model = HANAll(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, activation=F.relu, 
         vocab_size=vocab_size, device=device, dropout=args.dropout,pool=args.pool) 
     elif args.model == 'hetero':
         model = HeteroBasic(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device, pool=args.pool)

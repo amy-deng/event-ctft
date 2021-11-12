@@ -469,6 +469,8 @@ for i,row in df.iterrows():
         # print('story_ids_day',len(story_ids_day),'story_text_lists',len(story_text_lists))
         continue
     tokens_list = clean_document_list(story_text_lists)
+    # if len(tokens_list) <= 5:
+    #     continue
     # tokens_list, sent_token_list = document_sent_tokenize(story_text_lists)
     # words appeared in this example
     sample_words = list(set([item for sublist in tokens_list for item in sublist]))
