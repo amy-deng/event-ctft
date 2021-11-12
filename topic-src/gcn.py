@@ -17,6 +17,8 @@ class GCNLayer(nn.Module):
                  dropout,
                  bias=True):
         super(GCNLayer, self).__init__()
+        self.in_feats = in_feats
+        self.out_feats = out_feats
         self.weight = nn.Parameter(torch.Tensor(in_feats, out_feats))
         if bias:
             self.bias = nn.Parameter(torch.Tensor(out_feats))
@@ -35,24 +37,28 @@ class GCNLayer(nn.Module):
         if self.bias is not None:
             self.bias.data.uniform_(-stdv, stdv)
 
-    def forward(self, g, h):
+    def forward(self, g, h, ntype, etype):
         if self.dropout:
             h = self.dropout(h)
         h = torch.mm(h, self.weight)
         # normalization by square root of src degree
-        h = h * g.nodes['word'].data['norm'].unsqueeze(1)
-        g.nodes['word'].data['h'] = h
+        h = h * g.nodes[ntype].data['norm'].unsqueeze(1)
+        g.nodes[ntype].data['h'] = h
         g.update_all(fn.copy_src(src='h', out='m'),
-                          fn.sum(msg='m', out='h'),etype='ww')
-        h = g.nodes['word'].data.pop('h')
+                          fn.sum(msg='m', out='h'),etype=etype)
+        h = g.nodes[ntype].data.pop('h')
         # normalization by square root of dst degree
-        h = h * g.nodes['word'].data['norm'].unsqueeze(1)
+        h = h * g.nodes[ntype].data['norm'].unsqueeze(1)
         # bias
         if self.bias is not None:
             h = h + self.bias
         if self.activation:
             h = self.activation(h)
         return h
+
+    def __repr__(self):
+        return '{}(in_dim={}, out_dim={})'.format(
+            self.__class__.__name__, self.in_feats, self.out_feats)
 
 class GCN_0(nn.Module):
     def __init__(self,
@@ -116,7 +122,7 @@ class GCN(nn.Module):
         h = self.word_embeds[bg.nodes['word'].data['id']].view(-1, self.word_embeds.shape[1])
 
         for layer in self.layers:
-            h = layer(bg, h)
+            h = layer(bg, h, ntype='word',etype='ww')
 
         bg.nodes['word'].data['h'] = h
         if self.pool == 'max':

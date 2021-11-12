@@ -84,6 +84,7 @@ class HeteroConvLayer2(nn.Module):
             G.nodes[ntype].data['h'] = self.drop(F.relu(G.nodes[ntype].data['h']))
  
 
+ 
 class HeteroConvLayer(nn.Module):
     def __init__(self, word_in_size, topic_in_size, out_size):
         super().__init__()
@@ -110,6 +111,8 @@ class HeteroConvLayer(nn.Module):
         G.multi_update_all(funcs, 'sum')
         return {ntype : G.nodes[ntype].data['h'] for ntype in G.ntypes}
  
+
+
 class HeteroTopicLayer(nn.Module):
     def __init__(self, word_in_size, topic_in_size, out_size):
         super().__init__()
@@ -638,7 +641,9 @@ class static_topic_graph(nn.Module):
         loss = self.criterion(y_pred.view(-1), y_data)
         y_pred = torch.sigmoid(y_pred)
         return loss, y_pred
- 
+
+
+
 class HeteroBasic(nn.Module):
     def __init__(self, h_inp, vocab_size, h_dim, device, seq_len=7, num_topic=50, num_word=15000,dropout=0.5,pool='max'):
         super().__init__()

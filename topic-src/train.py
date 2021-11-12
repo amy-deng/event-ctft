@@ -55,6 +55,7 @@ from torch.utils.data.sampler import SubsetRandomSampler
 from models import *
 from gcn import *
 from hgt import *
+from gcn_hetero import *
 from utils import *
 from data import *
 
@@ -127,7 +128,10 @@ def prepare(args,word_embeds,device):
     if args.model == 'gcn':
         model = GCN(in_feats=emb_size, n_hidden=args.n_hidden, n_layers=args.n_layers, activation=F.relu, 
         vocab_size=vocab_size, device=device, dropout=args.dropout,pool=args.pool)
-    if args.model == 'hetero':
+    elif args.model == 'gcnet':
+        model = GCNHet(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, activation=F.relu, 
+        vocab_size=vocab_size, device=device, dropout=args.dropout,pool=args.pool)
+    elif args.model == 'hetero':
         model = HeteroBasic(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device, pool=args.pool)
     elif args.model == 'topic':
         model = static_topic_graph(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device, pool=args.pool)
@@ -154,7 +158,7 @@ def prepare(args,word_embeds,device):
     # elif args.model == 'temp_word_hetero':
     #     model = temp_word_hetero(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device,pool=args.pool)
     model_name = model.__class__.__name__
-    # print(model)
+    print(model)
     optimizer = torch.optim.Adam(
         model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
     total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
