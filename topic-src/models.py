@@ -98,11 +98,13 @@ class HeteroConvLayer(nn.Module):
     def forward(self, G, feat_dict):
         # print(G,feat_dict,'G,feat_dict')
         funcs={}
-        G.edges['tt'].data['weight'] = G.edges['tt'].data['weight'].float()
+        # G.edges['tt'].data['weight'] = G.edges['tt'].data['weight'].float()
+        G.edges['wd'].data['weight'] = G.edges['wd'].data['weight'].float()
         for srctype, etype, dsttype in G.canonical_etypes:
             # print('srctype, etype, dsttype',srctype, etype, dsttype,feat_dict[srctype].shape) 
             Wh = self.weight[etype](feat_dict[srctype])
             G.nodes[srctype].data['Wh_%s' % etype] = Wh
+            # print(etype,G.edges[etype].data['weight'].dtype,Wh.dtype)
             funcs[etype] = (fn.u_mul_e('Wh_%s' % etype, 'weight', 'm'), fn.mean('m', 'h'))
 
         G.multi_update_all(funcs, 'sum')
@@ -404,7 +406,7 @@ class WordGraphLayer(nn.Module):
         self.weight = nn.ModuleDict({
                 'ww': nn.Linear(in_size, out_size),
             }) 
-            
+
     def forward(self, G, feat_dict):
         funcs={}
 
@@ -637,7 +639,7 @@ class static_topic_graph(nn.Module):
         y_pred = torch.sigmoid(y_pred)
         return loss, y_pred
  
-class static_heto_graph(nn.Module):
+class HeteroBasic(nn.Module):
     def __init__(self, h_inp, vocab_size, h_dim, device, seq_len=7, num_topic=50, num_word=15000,dropout=0.5,pool='max'):
         super().__init__()
         self.h_inp = h_inp
@@ -653,6 +655,7 @@ class static_heto_graph(nn.Module):
         # initialize rel and ent embedding
         # self.word_embeds = nn.Parameter(torch.Tensor(num_word, h_dim)) # change it to blocks
         self.topic_embeds = nn.Parameter(torch.Tensor(num_topic, h_dim))
+        self.doc_gen_embeds = nn.Parameter(torch.Tensor(1,h_dim))
         # self.hconv = HeteroConvNet(h_inp, h_dim, h_dim, h_dim)
         self.hconv = HeteroCausalBeta(h_inp, h_dim, h_dim, h_dim, self.device, dropout,layer='hetero')
 
@@ -663,7 +666,6 @@ class static_heto_graph(nn.Module):
         self.out_func = torch.sigmoid
         self.criterion = F.binary_cross_entropy_with_logits #soft_cross_entropy
         self.init_weights()
-
 
     def init_weights(self):
         for p in self.parameters():
@@ -677,7 +679,8 @@ class static_heto_graph(nn.Module):
         bg = dgl.batch(g_list).to(self.device) 
         word_emb = self.word_embeds[bg.nodes['word'].data['id']].view(-1, self.word_embeds.shape[1])
         topic_emb = self.topic_embeds[bg.nodes['topic'].data['id']].view(-1, self.topic_embeds.shape[1])
-        doc_emb = torch.zeros((bg.number_of_nodes('doc'), self.h_dim)).to(self.device)
+        # doc_emb = torch.zeros((bg.number_of_nodes('doc'), self.h_dim)).to(self.device)
+        doc_emb = self.doc_gen_embeds.repeat(bg.number_of_nodes('doc'),1)
         emb_dict = {
             'word':word_emb,
             'topic':topic_emb,

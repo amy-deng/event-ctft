@@ -128,7 +128,7 @@ def prepare(args,word_embeds,device):
         model = GCN(in_feats=emb_size, n_hidden=args.n_hidden, n_layers=args.n_layers, activation=F.relu, 
         vocab_size=vocab_size, device=device, dropout=args.dropout,pool=args.pool)
     if args.model == 'hetero':
-        model = static_heto_graph(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device, pool=args.pool)
+        model = HeteroBasic(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device, pool=args.pool)
     elif args.model == 'topic':
         model = static_topic_graph(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device, pool=args.pool)
     elif args.model == 'tcau0':
