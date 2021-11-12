@@ -429,15 +429,23 @@ for i,row in df.iterrows():
     date = str(row['date'])[:10]
     if date < start_date or date >= stop_date: #<2015-01-01 or >= 2017-01-01]
         continue
-    day_has_data = 0
+    # total num of news
     story_list = row['story_list'][-window:]
-    n_doc = 0
-    for v in story_list:
-        if len(v) > 0:
-            day_has_data += 1
-        n_doc += len(v)
-    if day_has_data < his_days_threshold or n_doc <= 5:  
+    story_list_flatten = list(set([item for sublist in story_list for item in sublist]))
+    story_text_lists = news_df.loc[news_df['StoryID'].isin(story_list_flatten)]['Text'].values
+    if len(story_text_lists) < 6:
+        print(len(story_text_lists),'articles; skip')
         continue
+
+    # day_has_data = 0
+    # story_list = row['story_list'][-window:]
+    # n_doc = 0
+    # for v in story_list:
+    #     if len(v) > 0:
+    #         day_has_data += 1
+    #     n_doc += len(v)
+    # if day_has_data < his_days_threshold or n_doc <= 5:  
+    #     continue
     
     # print(date,type(date),str(date))
     event_count_list = row['event_count_list'][:horizon] # event_count = row['event_count']
@@ -463,15 +471,10 @@ for i,row in df.iterrows():
     # continue
     # 2. build hetero graph for each day
     g_list = []
-    story_list_flatten = list(set([item for sublist in story_list for item in sublist]))
-    story_text_lists = news_df.loc[news_df['StoryID'].isin(story_list_flatten)]['Text'].values
-    if len(story_text_lists) <= 0:
-        # print('story_ids_day',len(story_ids_day),'story_text_lists',len(story_text_lists))
-        continue
     iii+=1
-    if iii < 813:
-        print(iii,len(story_text_lists))
-        continue
+    # if iii < 813:
+    #     print(iii,len(story_text_lists))
+    #     continue
     tokens_list = clean_document_list(story_text_lists)
     # if len(tokens_list) <= 5:
     #     continue
@@ -534,11 +537,11 @@ for i,row in df.iterrows():
     # graph_data[('topic','tw','word')]=(torch.tensor(topic_node),torch.tensor(word_graph_node))
     graph_data[('word','wt','topic')]=(torch.tensor(word_graph_node),torch.tensor(topic_node))
     edge_tw = torch.tensor(weight)
-    print('graph_data',graph_data)#debug
-    # save it 
-    with open('error.pkl','wb') as f:
-        pickle.dump(graph_data, f)
-    print('saved')
+    # print('graph_data',graph_data)#debug
+    # # save it 
+    # with open('error.pkl','wb') as f:
+    #     pickle.dump(graph_data, f)
+    # print('saved')
     g = dgl.heterograph(graph_data)
     # g.nodes['word'].data['id'] = torch.from_numpy(vocab_ids).long()
     g.nodes['word'].data['id'] = torch.tensor(words_in_curr_sample).long()
