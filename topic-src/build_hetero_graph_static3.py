@@ -20,7 +20,7 @@ from numpy import linalg
 ### testing
  
 '''
-python build_hetero_graph_static3.py /home/sdeng/data/icews/detailed_event_json/THA_2010_w21h7_city.json ../data THA_50 /home/sdeng/data/icews/corpus/ngrams/THA_1gram_tfidf.txt 15000 7 7 3 2014 2015
+python build_hetero_graph_static3.py /home/sdeng/data/icews/detailed_event_json/THA_2010_w21h7_city.json ../data THA_50 /home/sdeng/data/icews/corpus/ngrams/THA_1gram_tfidf.txt 15000 7 7 6 2014 2015
 '''
 try:
     event_path = sys.argv[1] # /home/sdeng/data/icews/detailed_event_json/THA_2010_w21h7_city.json
@@ -30,17 +30,17 @@ try:
     top_k_ngram = int(sys.argv[5])
     window = int(sys.argv[6])
     horizon = int(sys.argv[7])
-    his_days_threshold = int(sys.argv[8])
+    news_threshold = int(sys.argv[8])
     # causal_file = sys.argv[9] # ../data/THA_topic/check_topic_causal_data_w7h7/causal_effect/effect_dict_pw7_biy1_0.05.csv
     start_year = sys.argv[9]
     stop_year = sys.argv[10]
     vocab_size = int(sys.argv[11])
 except:
-    print("usage: <event_path> <out_path> <lda_name `THA_50`> <ngram_path> <top_k_ngram `15000`> <window 7> <horizon 7> <his_days_threshold 3> <start_year 2010> <stop_year 2017> <vocab_size>")
+    print("usage: <event_path> <out_path> <lda_name `THA_50`> <ngram_path> <top_k_ngram `15000`> <window 7> <horizon 7> <news_threshold 3> <start_year 2010> <stop_year 2017> <vocab_size>")
     exit()
 
 country = event_path.split('/')[-1][:3]
-dataset = '{}_w{}h{}_minday{}'.format(country,window,horizon,his_days_threshold)
+dataset = '{}_w{}h{}_minday{}'.format(country,window,horizon,news_threshold)
 dataset_path = "{}/{}".format(out_path,dataset)
 os.makedirs(dataset_path, exist_ok=True)
 print('dataset_path',dataset_path)
@@ -415,7 +415,7 @@ def topic_word_conn(sample_words,num_words=30):
     return topic_node, word_node, weight
 
 
-# his_days_threshold=3
+# news_threshold=3
 num_sample, num_pos_sample = 0, 0
 all_g_list, y_list, city_list, date_list = [], [], [], []
 
@@ -429,11 +429,15 @@ for i,row in df.iterrows():
     date = str(row['date'])[:10]
     if date < start_date or date >= stop_date: #<2015-01-01 or >= 2017-01-01]
         continue
+
     # total num of news
     story_list = row['story_list'][-window:]
     story_list_flatten = list(set([item for sublist in story_list for item in sublist]))
+    if len(story_list_flatten) < news_threshold:
+        print(len(story_text_lists),'articles; first skip')
+        continue
     story_text_lists = news_df.loc[news_df['StoryID'].isin(story_list_flatten)]['Text'].values
-    if len(story_text_lists) < 6:
+    if len(story_text_lists) < news_threshold:
         print(len(story_text_lists),'articles; skip')
         continue
 
