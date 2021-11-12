@@ -83,6 +83,7 @@ class HANLayer(nn.Module):
         self.meta_paths = list(tuple(meta_path) for meta_path in meta_paths)
         self._cached_graph = None
         self._cached_coalesced_graph = {}
+        self.norm = nn.LayerNorm(out_size* layer_num_heads,elementwise_affine=False)
 
     def forward(self, g, feat_dict):
         semantic_embeddings_doc = []
@@ -135,7 +136,10 @@ class HANLayer(nn.Module):
         # print(semantic_embeddings_topic.shape,'semantic_embeddings_topic')
         # semantic_embeddings = torch.stack(semantic_embeddings, dim=1)                  
         # print(semantic_embeddings.shape,'semantic_embeddings====')
-        feat_dict = {'word':F.relu(semantic_embeddings_word), 'doc':F.relu(semantic_embeddings_doc), 'topic':F.relu(semantic_embeddings_topic)}
+        feat_dict = {'word':self.norm((semantic_embeddings_word)), 
+            'doc':self.norm((semantic_embeddings_doc)), 
+            'topic':self.norm((semantic_embeddings_topic))}
+        # print(feat_dict,'feat_dict')
         return feat_dict                          
 
 # class HAN(nn.Module):
@@ -242,7 +246,7 @@ class HAN(nn.Module):
             global_doc_info = dgl.max_nodes(bg, feat='h',ntype='doc')
         elif self.pool == 'mean':
             global_doc_info = dgl.mean_nodes(bg, feat='h',ntype='doc')
-        # print(global_info.shape,'global_info')
+        # print(global_doc_info,'global_doc_info')
         y_pred = self.out_layer(global_doc_info)
         # print(y_pred.shape,'y_pred',y_pred,y_data.shape,'y_data')
         loss = self.criterion(y_pred.view(-1), y_data)
