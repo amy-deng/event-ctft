@@ -704,6 +704,78 @@ class HeteroBasic(nn.Module):
         return loss, y_pred
  
 
+
+class HeteroBasicAll(nn.Module):
+    def __init__(self, h_inp, vocab_size, h_dim, device, seq_len=7, num_topic=50, num_word=15000,dropout=0.5,pool='max'):
+        super().__init__()
+        self.h_inp = h_inp
+        self.vocab_size = vocab_size
+        self.h_dim = h_dim
+        self.num_topic = num_topic
+        # self.num_rels = num_rels
+        self.seq_len = seq_len
+        self.device = device
+        self.pool = pool
+        self.dropout = nn.Dropout(dropout)
+        self.word_embeds = None
+        # initialize rel and ent embedding
+        # self.word_embeds = nn.Parameter(torch.Tensor(num_word, h_dim)) # change it to blocks
+        self.topic_embeds = nn.Parameter(torch.Tensor(num_topic, h_dim))
+        self.doc_gen_embeds = nn.Parameter(torch.Tensor(1,h_dim))
+        # self.hconv = HeteroConvNet(h_inp, h_dim, h_dim, h_dim)
+        self.hconv = HeteroCausalBeta(h_inp, h_dim, h_dim, h_dim, self.device, dropout,layer='hetero')
+
+        self.out_layer = nn.Sequential(
+                nn.Linear(h_dim*3, h_dim),
+                nn.BatchNorm1d(h_dim),
+                nn.Linear(h_dim, 1) 
+        )
+        self.threshold = 0.5
+        self.out_func = torch.sigmoid
+        self.criterion = F.binary_cross_entropy_with_logits #soft_cross_entropy
+        self.init_weights()
+
+    def init_weights(self):
+        for p in self.parameters():
+            if p.data.ndimension() >= 2:
+                nn.init.xavier_uniform_(p.data, gain=nn.init.calculate_gain('relu'))
+            else:
+                stdv = 1. / math.sqrt(p.size(0))
+                p.data.uniform_(-stdv, stdv)
+
+    def forward(self, g_list, y_data): 
+        bg = dgl.batch(g_list).to(self.device) 
+        word_emb = self.word_embeds[bg.nodes['word'].data['id']].view(-1, self.word_embeds.shape[1])
+        topic_emb = self.topic_embeds[bg.nodes['topic'].data['id']].view(-1, self.topic_embeds.shape[1])
+        # doc_emb = torch.zeros((bg.number_of_nodes('doc'), self.h_dim)).to(self.device)
+        doc_emb = self.doc_gen_embeds.repeat(bg.number_of_nodes('doc'),1)
+        emb_dict = {
+            'word':word_emb,
+            'topic':topic_emb,
+            'doc':doc_emb
+        }
+        emb_dict = self.hconv(bg,emb_dict)
+        bg.nodes['doc'].data['h'] = emb_dict['doc']
+        bg.nodes['word'].data['h'] = emb_dict['word']
+        bg.nodes['topic'].data['h'] = emb_dict['topic']
+        if self.pool == 'max':
+            global_doc_info = dgl.max_nodes(bg, feat='h',ntype='doc')
+            global_word_info = dgl.max_nodes(bg, feat='h',ntype='word')
+            global_topic_info = dgl.max_nodes(bg, feat='h',ntype='topic')
+        elif self.pool == 'mean':
+            global_doc_info = dgl.mean_nodes(bg, feat='h',ntype='doc')
+            global_word_info = dgl.mean_nodes(bg, feat='h',ntype='word')
+            global_topic_info = dgl.mean_nodes(bg, feat='h',ntype='topic')
+        global_info = torch.cat((global_doc_info, global_word_info, global_topic_info),-1)
+        # print(global_info.shape,'global_info')
+        y_pred = self.out_layer(global_info) 
+        # print(y_pred.shape,'y_pred',y_pred,y_data.shape,'y_data')
+        loss = self.criterion(y_pred.view(-1), y_data)
+        y_pred = torch.sigmoid(y_pred)
+        return loss, y_pred
+ 
+
+
 class static_heto_graph2(nn.Module):
     def __init__(self, h_inp, vocab_size, h_dim, device, seq_len=7, num_topic=50, num_word=15000,dropout=0.5,pool='max'):
         super().__init__()

@@ -147,6 +147,8 @@ def prepare(args,word_embeds,device):
         vocab_size=vocab_size, device=device, dropout=args.dropout,pool=args.pool) 
     elif args.model == 'hetero':
         model = HeteroBasic(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device, pool=args.pool)
+    elif args.model == 'heteroall':
+        model = HeteroBasicAll(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device, pool=args.pool)
     elif args.model == 'topic':
         model = static_topic_graph(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device, pool=args.pool)
     elif args.model == 'tcau0':
@@ -172,7 +174,7 @@ def prepare(args,word_embeds,device):
     # elif args.model == 'temp_word_hetero':
     #     model = temp_word_hetero(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device,pool=args.pool)
     model_name = model.__class__.__name__
-    print(model)
+    # print(model)
     optimizer = torch.optim.Adam(
         model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
     total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
