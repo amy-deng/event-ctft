@@ -103,7 +103,8 @@ class LevelHeteroConvLayer(nn.Module):
 
         # return G.nodes['doc'].data['h']
         return {ntype : G.nodes[ntype].data['h'] for ntype in G.ntypes}
- 
+
+
 class GCNHet(nn.Module):
     def __init__(self, n_inp, n_hid, n_layers, activation, device, num_topic=50, vocab_size=15000, dropout=0.5, pool='max', use_norm = True):
         super(GCNHet, self).__init__()
@@ -120,8 +121,7 @@ class GCNHet(nn.Module):
         # initialize rel and ent embedding
         # self.word_embeds = nn.Parameter(torch.Tensor(num_word, h_dim)) # change it to blocks
         self.topic_embeds = nn.Parameter(torch.Tensor(num_topic, n_hid))
-        self.doc_gen_embeds = nn.Parameter(torch.Tensor(1,n_hid))
-
+        # self.doc_gen_embeds = nn.Parameter(torch.Tensor(1,n_hid))
         # self.adapt_ws  = nn.Linear(n_inp,  n_hid)
         # node_dict = {'doc': 0, 'topic': 1, 'word': 2}
         # edge_dict = {'td': 0, 'tt': 1, 'wd': 2, 'wt': 3, 'ww': 4}
@@ -154,7 +154,7 @@ class GCNHet(nn.Module):
         
         word_emb = self.word_embeds[bg.nodes['word'].data['id']].view(-1, self.word_embeds.shape[1])
         topic_emb = self.topic_embeds[bg.nodes['topic'].data['id']].view(-1, self.topic_embeds.shape[1])
-        doc_emb = self.doc_gen_embeds.repeat(bg.number_of_nodes('doc'),1)
+        # doc_emb = self.doc_gen_embeds.repeat(bg.number_of_nodes('doc'),1)
         # torch.zeros((bg.number_of_nodes('doc'), self.n_hid)).to(self.device)
         # for i in range(len(self.gcn_topic_layers)):
         # print('word_emb',word_emb.shape,topic_emb.shape,'doc_emb',doc_emb.shape)
@@ -165,23 +165,112 @@ class GCNHet(nn.Module):
         for layer in self.gcn_topic_layers:
             topic_emb = layer(bg, topic_emb, 'topic','tt')
         # print('word_emb',word_emb.shape,topic_emb.shape)
-        feat_dict = {'word':word_emb, 'topic':topic_emb, 'doc':doc_emb}
+        feat_dict = {'word':word_emb, 'topic':topic_emb}#, 'doc':doc_emb}
         for layer in self.hetero_layers:
             feat_dict = layer(bg, feat_dict)
-
         # bg.nodes['word'].data['h'] = torch.tanh(self.adapt_ws(word_emb))
         # bg.nodes['word'].data['h'] = self.adapt_ws(word_emb)
         # bg.nodes['topic'].data['h'] = topic_emb
         # bg.nodes['doc'].data['h'] = doc_emb
         # for i in range(self.n_layers):
         #     self.gcs[i](bg, 'h', 'h')
- 
+        # attention on words on topics on docs??
         if self.pool == 'max':
             global_doc_info = dgl.max_nodes(bg, feat='h',ntype='doc')
         elif self.pool == 'mean':
             global_doc_info = dgl.mean_nodes(bg, feat='h',ntype='doc')
         # print(global_doc_info,'global_doc_info')
         y_pred = self.out_layer(global_doc_info)
+        # print(y_pred.shape,'y_pred',y_pred,y_data.shape,'y_data')
+        loss = self.criterion(y_pred.view(-1), y_data)
+        y_pred = torch.sigmoid(y_pred)
+        return loss, y_pred
+
+'''concate three types of embedding for final prediction'''
+class GCNHetAll(nn.Module):
+    def __init__(self, n_inp, n_hid, n_layers, activation, device, num_topic=50, vocab_size=15000, dropout=0.5, pool='max', use_norm = True):
+        super(GCNHetAll, self).__init__()
+        self.n_inp = n_inp
+        self.n_hid = n_hid
+        self.n_layers = n_layers
+        self.vocab_size = vocab_size
+        self.num_topic = num_topic
+        self.device = device
+        self.pool = pool
+        self.dropout = nn.Dropout(dropout)
+        self.activation = activation
+        self.word_embeds = None
+        # initialize rel and ent embedding
+        # self.word_embeds = nn.Parameter(torch.Tensor(num_word, h_dim)) # change it to blocks
+        self.topic_embeds = nn.Parameter(torch.Tensor(num_topic, n_hid))
+        # self.doc_gen_embeds = nn.Parameter(torch.Tensor(1,n_hid))
+        self.gcn_word_layers = nn.ModuleList()
+        self.gcn_word_layers.append(GCNLayer(n_inp, n_hid, activation, dropout))
+        for _ in range(n_layers-1):
+            self.gcn_word_layers.append(GCNLayer(n_hid, n_hid, activation, dropout))
+        self.gcn_topic_layers = nn.ModuleList()
+        for _ in range(n_layers):
+            self.gcn_topic_layers.append(GCNLayer(n_hid, n_hid, activation, dropout))
+        self.hetero_layers = nn.ModuleList()
+        for _ in range(n_layers):
+            self.hetero_layers.append(LevelHeteroConvLayer(n_hid, n_hid, activation, dropout))
+        self.out_layer = nn.Sequential(
+                nn.Linear(n_hid*3, n_hid),
+                nn.BatchNorm1d(n_hid),
+                nn.Linear(n_hid, 1) 
+        )
+         
+        self.threshold = 0.5
+        self.out_func = torch.sigmoid
+        self.criterion = F.binary_cross_entropy_with_logits #soft_cross_entropy
+        self.init_weights()
+
+    def init_weights(self):
+        for p in self.parameters():
+            if p.data.ndimension() >= 2:
+                nn.init.xavier_uniform_(p.data, gain=nn.init.calculate_gain('relu'))
+            else:
+                stdv = 1. / math.sqrt(p.size(0))
+                p.data.uniform_(-stdv, stdv)
+
+    def forward(self, g_list, y_data): 
+        bg = dgl.batch(g_list).to(self.device) 
+        
+        word_emb = self.word_embeds[bg.nodes['word'].data['id']].view(-1, self.word_embeds.shape[1])
+        topic_emb = self.topic_embeds[bg.nodes['topic'].data['id']].view(-1, self.topic_embeds.shape[1])
+        # doc_emb = self.doc_gen_embeds.repeat(bg.number_of_nodes('doc'),1)
+        # torch.zeros((bg.number_of_nodes('doc'), self.n_hid)).to(self.device)
+        # for i in range(len(self.gcn_topic_layers)):
+        # print('word_emb',word_emb.shape,topic_emb.shape,'doc_emb',doc_emb.shape)
+
+        for layer in self.gcn_word_layers:
+            word_emb = layer(bg, word_emb, 'word','ww')
+
+        for layer in self.gcn_topic_layers:
+            topic_emb = layer(bg, topic_emb, 'topic','tt')
+        # print('word_emb',word_emb.shape,topic_emb.shape)
+        feat_dict = {'word':word_emb, 'topic':topic_emb}#, 'doc':doc_emb}
+        for layer in self.hetero_layers:
+            feat_dict = layer(bg, feat_dict)
+        # bg.nodes['word'].data['h'] = torch.tanh(self.adapt_ws(word_emb))
+        # bg.nodes['word'].data['h'] = self.adapt_ws(word_emb)
+        # bg.nodes['topic'].data['h'] = topic_emb
+        # bg.nodes['doc'].data['h'] = doc_emb
+        # for i in range(self.n_layers):
+        #     self.gcs[i](bg, 'h', 'h')
+        # attention on words on topics on docs??
+        
+        if self.pool == 'max':
+            global_doc_info = dgl.max_nodes(bg, feat='h',ntype='doc')
+            global_word_info = dgl.max_nodes(bg, feat='h',ntype='word')
+            global_topic_info = dgl.max_nodes(bg, feat='h',ntype='topic')
+        elif self.pool == 'mean':
+            global_doc_info = dgl.mean_nodes(bg, feat='h',ntype='doc')
+            global_word_info = dgl.mean_nodes(bg, feat='h',ntype='word')
+            global_topic_info = dgl.mean_nodes(bg, feat='h',ntype='topic')
+        # print(global_doc_info,'global_doc_info')
+        global_info = torch.cat((global_doc_info, global_word_info, global_topic_info),-1)
+        y_pred = self.out_layer(global_info)
         # print(y_pred.shape,'y_pred',y_pred,y_data.shape,'y_data')
         loss = self.criterion(y_pred.view(-1), y_data)
         y_pred = torch.sigmoid(y_pred)
