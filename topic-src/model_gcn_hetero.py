@@ -396,9 +396,9 @@ class GCNHetAll2(nn.Module):
         return loss, y_pred
 
 
-class GCNTopicAll(nn.Module):
+class GCNHetAll3(nn.Module):
     def __init__(self, n_inp, n_hid, n_layers, activation, device, num_topic=50, vocab_size=15000, dropout=0.5, pool='max', use_norm = True):
-        super(GCNTopicAll, self).__init__()
+        super(GCNHetAll3, self).__init__()
         self.n_inp = n_inp
         self.n_hid = n_hid
         self.n_layers = n_layers
