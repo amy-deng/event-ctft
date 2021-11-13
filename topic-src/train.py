@@ -139,6 +139,9 @@ def prepare(args,word_embeds,device):
     elif args.model == 'gcnetall':
         model = GCNHetAll(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, activation=F.relu, 
         vocab_size=vocab_size, device=device, dropout=args.dropout,pool=args.pool) 
+    elif args.model == 'gcnetall2':
+        model = GCNHetAll2(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, activation=F.relu, 
+        vocab_size=vocab_size, device=device, dropout=args.dropout,pool=args.pool) 
     elif args.model == 'han':
         model = HAN(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, activation=F.relu, 
         vocab_size=vocab_size, device=device, dropout=args.dropout,pool=args.pool) 
