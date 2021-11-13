@@ -107,7 +107,6 @@ class HGTLayer(nn.Module):
         return '{}(in_dim={}, out_dim={}, num_types={}, num_types={})'.format(
             self.__class__.__name__, self.in_dim, self.out_dim,
             self.num_types, self.num_relations)
-
  
 class HGTLayerModified(nn.Module):
     def __init__(self, in_dim, out_dim, num_types, num_relations, n_heads, dropout = 0.5, use_norm = False):
@@ -135,22 +134,6 @@ class HGTLayerModified(nn.Module):
             if use_norm:
                 self.norms[t] = nn.LayerNorm(out_dim)
         
-        '''
-        self.k_linears   = nn.ModuleList()
-        self.q_linears   = nn.ModuleList()
-        self.v_linears   = nn.ModuleList()
-        self.a_linears   = nn.ModuleList()
-        self.norms       = nn.ModuleList()
-        self.use_norm    = use_norm
-
-        for t in range(num_types): 
-            self.k_linears.append(nn.Linear(in_dim,   out_dim))
-            self.q_linears.append(nn.Linear(in_dim,   out_dim))
-            self.v_linears.append(nn.Linear(in_dim,   out_dim))
-            self.a_linears.append(nn.Linear(out_dim,  out_dim))
-            if use_norm:
-                self.norms.append(nn.LayerNorm(out_dim))
-        '''
         self.skip = nn.ParameterDict({
                 'word': nn.Parameter(torch.ones(1)),
                 'topic': nn.Parameter(torch.ones(1)),
@@ -178,14 +161,7 @@ class HGTLayerModified(nn.Module):
                 'td': nn.Parameter(torch.Tensor(n_heads, self.d_k, self.d_k)),
         })
         self.drop           = nn.Dropout(dropout)
-        '''
-        # self.relation_pri   = nn.Parameter(torch.ones(num_relations, self.n_heads))
-        # self.relation_att   = nn.Parameter(torch.Tensor(num_relations, n_heads, self.d_k, self.d_k))
-        # self.relation_msg   = nn.Parameter(torch.Tensor(num_relations, n_heads, self.d_k, self.d_k))
-        # self.skip           = nn.Parameter(torch.ones(num_types))
-        # nn.init.xavier_uniform_(self.relation_att)
-        # nn.init.xavier_uniform_(self.relation_msg)
-        '''
+         
         self.init_weights()
 
     def init_weights(self):
@@ -195,17 +171,6 @@ class HGTLayerModified(nn.Module):
             else:
                 stdv = 1. / math.sqrt(p.size(0))
                 p.data.uniform_(-stdv, stdv)
-
-    def edge_attention0(self, edges):
-        # print(edges.etype)
-        etype = edges.data['id'][0]
-        relation_att = self.relation_att[etype]
-        relation_pri = self.relation_pri[etype]
-        relation_msg = self.relation_msg[etype]
-        key   = torch.bmm(edges.src['k'].transpose(1,0), relation_att).transpose(1,0)
-        att   = (edges.dst['q'] * key).sum(dim=-1) * relation_pri / self.sqrt_dk
-        val   = torch.bmm(edges.src['v'].transpose(1,0), relation_msg).transpose(1,0)
-        return {'a': att, 'v': val}
 
     def edge_attention(self, etype):
         def msg_func(edges):
@@ -251,13 +216,9 @@ class HGTLayerModified(nn.Module):
         G.multi_update_all({etype : (self.message_func, self.reduce_func) \
                             for etype in edge_dict}, cross_reducer = 'mean')
         for ntype in G.ntypes:
-            # n_id = node_dict[ntype]
-            # print(self.skip[ntype],'self.skip[ntype]')
             alpha = torch.sigmoid(self.skip[ntype])
-            # print('alpha=',alpha,'ntype=',ntype)
             trans_out = self.a_linears[ntype](G.nodes[ntype].data['t'])
             trans_out = trans_out * alpha + G.nodes[ntype].data[inp_key] * (1-alpha)
-            # trans_out = G.nodes[ntype].data[inp_key]
             trans_out = F.relu(trans_out)
             if self.use_norm:
                 G.nodes[ntype].data[out_key] = self.drop(self.norms[ntype](trans_out))
@@ -353,7 +314,6 @@ class HGTAll(nn.Module):
         self.dropout = nn.Dropout(dropout)
         self.word_embeds = None
         # initialize rel and ent embedding
-        # self.word_embeds = nn.Parameter(torch.Tensor(num_word, h_dim)) # change it to blocks
         self.topic_embeds = nn.Parameter(torch.Tensor(num_topic, n_hid))
         self.doc_gen_embeds = nn.Parameter(torch.Tensor(1,n_hid))
 
@@ -364,9 +324,9 @@ class HGTAll(nn.Module):
         for _ in range(n_layers):
             self.gcs.append(HGTLayerModified(n_hid, n_hid, len(node_dict), len(edge_dict), n_heads, use_norm = use_norm))
         self.out_layer = nn.Sequential(
-                nn.Linear(n_hid*3, n_hid),
-                nn.BatchNorm1d(n_hid),
-                nn.Linear(n_hid, 1) 
+                # nn.Linear(n_hid*3, n_hid),
+                # nn.BatchNorm1d(n_hid),
+                nn.Linear(n_hid*3, 1) 
         )
         self.threshold = 0.5
         self.out_func = torch.sigmoid
@@ -382,21 +342,11 @@ class HGTAll(nn.Module):
                 p.data.uniform_(-stdv, stdv)
 
     def forward(self, g_list, y_data): 
-        bg = dgl.batch(g_list).to(self.device) 
-        # bg.node_dict = {}
-        # bg.edge_dict = {}
-        # for ntype in bg.ntypes:
-        #     bg.node_dict[ntype] = len(bg.node_dict)
-        # for etype in bg.etypes:
-        #     bg.edge_dict[etype] = len(bg.edge_dict)
-        #     bg.edges[etype].data['id'] = torch.ones(bg.number_of_edges(etype), dtype=torch.long).to(self.device) * bg.edge_dict[etype] 
-        # print('bg.edge_dict',bg.edge_dict)
+        bg = dgl.batch(g_list).to(self.device)  
         word_emb = self.word_embeds[bg.nodes['word'].data['id']].view(-1, self.word_embeds.shape[1])
         topic_emb = self.topic_embeds[bg.nodes['topic'].data['id']].view(-1, self.topic_embeds.shape[1])
         doc_emb = self.doc_gen_embeds.repeat(bg.number_of_nodes('doc'),1)
         # torch.zeros((bg.number_of_nodes('doc'), self.n_hid)).to(self.device)
-        
-        # bg.nodes['word'].data['h'] = torch.tanh(self.adapt_ws(word_emb))
         bg.nodes['word'].data['h'] = self.adapt_ws(word_emb)
         bg.nodes['topic'].data['h'] = topic_emb
         bg.nodes['doc'].data['h'] = doc_emb

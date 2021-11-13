@@ -237,17 +237,15 @@ class HANAll(nn.Module):
         self.activation = activation
         self.word_embeds = None
         # initialize rel and ent embedding
-        # self.word_embeds = nn.Parameter(torch.Tensor(num_word, h_dim)) # change it to blocks
         self.topic_embeds = nn.Parameter(torch.Tensor(num_topic, n_hid))
         self.doc_gen_embeds = nn.Parameter(torch.Tensor(1,n_hid))
-        # meta_paths=[('topic', 'doc'), ('topic', 'topic'), ('word', 'doc'), ('word', 'topic'), ('word', 'word')]
         meta_paths = [['ww'],['wd'],['tt'],['td'],['wt']]
         self.adapt_ws = nn.Linear(n_inp, n_hid)
         self.han = HANNet(meta_paths, n_hid, n_hid, n_hid, [4,4,4,4,4], activation, dropout)
         self.out_layer = nn.Sequential(
-                nn.Linear(n_hid*3, n_hid),
-                nn.BatchNorm1d(n_hid),
-                nn.Linear(n_hid, 1) 
+                # nn.Linear(n_hid*3, n_hid),
+                # nn.BatchNorm1d(n_hid),
+                nn.Linear(n_hid*3, 1) 
         )
         self.threshold = 0.5
         self.out_func = torch.sigmoid
@@ -268,17 +266,9 @@ class HANAll(nn.Module):
         word_emb = self.word_embeds[bg.nodes['word'].data['id']].view(-1, self.word_embeds.shape[1])
         topic_emb = self.topic_embeds[bg.nodes['topic'].data['id']].view(-1, self.topic_embeds.shape[1])
         doc_emb = self.doc_gen_embeds.repeat(bg.number_of_nodes('doc'),1)
-        # torch.zeros((bg.number_of_nodes('doc'), self.n_hid)).to(self.device)
-        # for i in range(len(self.gcn_topic_layers)):
-        # print('word_emb',word_emb.shape,topic_emb.shape,'doc_emb',doc_emb.shape)
-        word_emb = self.adapt_ws(word_emb)
-        # print('word_emb',word_emb.shape,topic_emb.shape)
-        # feat_dict = {'word':word_emb, 'topic':topic_emb}#, 'doc':doc_emb}
-        # for layer in self.hetero_layers:
-        #     feat_dict = layer(bg, feat_dict)
+        word_emb = self.adapt_ws(word_emb) 
         feat_dict = {'word':word_emb, 'topic':topic_emb, 'doc':doc_emb}
         feat_dict = self.han(bg, feat_dict)
-        # bg.nodes['word'].data['h'] = torch.tanh(self.adapt_ws(word_emb))
         bg.nodes['word'].data['h'] = feat_dict['word']
         bg.nodes['topic'].data['h'] = feat_dict['topic']
         bg.nodes['doc'].data['h'] = feat_dict['doc'] 

@@ -146,7 +146,6 @@ class HeteroConvLayer(nn.Module):
         return {ntype : G.nodes[ntype].data['h'] for ntype in self.ntypes}
 
 
-
 class GCNHet(nn.Module):
     def __init__(self, n_inp, n_hid, n_layers, activation, device, num_topic=50, vocab_size=15000, dropout=0.5, pool='max', use_norm = True):
         super(GCNHet, self).__init__()
@@ -257,9 +256,9 @@ class GCNHetAll(nn.Module):
         for _ in range(n_layers):
             self.hetero_layers.append(HeteroConvLayer(n_hid, n_hid, activation, dropout, ['wt','wd','td'],['word','topic','doc']))
         self.out_layer = nn.Sequential(
-                nn.Linear(n_hid*3, n_hid),
-                nn.BatchNorm1d(n_hid),
-                nn.Linear(n_hid, 1) 
+                # nn.Linear(n_hid*3, n_hid),
+                # nn.BatchNorm1d(n_hid),
+                nn.Linear(n_hid*3, 1) 
         )
          
         self.threshold = 0.5
@@ -347,9 +346,9 @@ class GCNHetAll2(nn.Module):
         for _ in range(n_layers):
             self.hetero_layers.append(HeteroConvLayer(n_hid, n_hid, activation, dropout, ['wt','wd','td'],['word','topic','doc']))
         self.out_layer = nn.Sequential(
-                nn.Linear(n_hid*3, n_hid),
-                nn.BatchNorm1d(n_hid),
-                nn.Linear(n_hid, 1) 
+                # nn.Linear(n_hid*3, n_hid),
+                # nn.BatchNorm1d(n_hid),
+                nn.Linear(n_hid*3, 1) 
         )
          
         self.threshold = 0.5
@@ -396,7 +395,6 @@ class GCNHetAll2(nn.Module):
         y_pred = torch.sigmoid(y_pred)
         return loss, y_pred
 
-
 class GCNHetAll3(nn.Module):
     def __init__(self, n_inp, n_hid, n_layers, activation, device, num_topic=50, vocab_size=15000, dropout=0.5, pool='max', use_norm = True):
         super(GCNHetAll3, self).__init__()
@@ -418,16 +416,13 @@ class GCNHetAll3(nn.Module):
         self.gcn_word_layers.append(GCNLayer(n_inp, n_hid, activation, dropout))
         for _ in range(n_layers-1):
             self.gcn_word_layers.append(GCNLayer(n_hid, n_hid, activation, dropout))
-        # self.gcn_topic_layers = nn.ModuleList()
-        # for _ in range(n_layers):
-        #     self.gcn_topic_layers.append(GCNLayer(n_hid, n_hid, activation, dropout))
         self.hetero_layers = nn.ModuleList()
         for _ in range(n_layers):
             self.hetero_layers.append(HeteroConvLayer(n_hid, n_hid, activation, dropout, ['wt','tt','wd','td'],['word','topic','doc']))
         self.out_layer = nn.Sequential(
-                nn.Linear(n_hid*3, n_hid),
-                nn.BatchNorm1d(n_hid),
-                nn.Linear(n_hid, 1) 
+                # nn.Linear(n_hid*3, n_hid),
+                # nn.BatchNorm1d(n_hid),
+                nn.Linear(n_hid*3, 1) 
         )
          
         self.threshold = 0.5
@@ -488,16 +483,12 @@ class GCNHetAll4(nn.Module):
         self.activation = activation
         self.word_embeds = None
         # initialize rel and ent embedding
-        # self.word_embeds = nn.Parameter(torch.Tensor(num_word, h_dim)) # change it to blocks
         self.topic_embeds = nn.Parameter(torch.Tensor(num_topic, n_hid))
         # self.doc_gen_embeds = nn.Parameter(torch.Tensor(1,n_hid))
         self.gcn_word_layers = nn.ModuleList()
         self.gcn_word_layers.append(GCNLayer(n_inp, n_hid, activation, dropout))
         for _ in range(n_layers-1):
             self.gcn_word_layers.append(GCNLayer(n_hid, n_hid, activation, dropout))
-        # self.gcn_topic_layers = nn.ModuleList()
-        # for _ in range(n_layers):
-        #     self.gcn_topic_layers.append(GCNLayer(n_hid, n_hid, activation, dropout))
         self.hetero_layers = nn.ModuleList()
         for _ in range(n_layers):
             self.hetero_layers.append(HeteroConvLayer(n_hid, n_hid, activation, dropout, ['wt','tt'], ['word','topic']))
@@ -524,10 +515,6 @@ class GCNHetAll4(nn.Module):
         bg = dgl.batch(g_list).to(self.device) 
         word_emb = self.word_embeds[bg.nodes['word'].data['id']].view(-1, self.word_embeds.shape[1])
         topic_emb = self.topic_embeds[bg.nodes['topic'].data['id']].view(-1, self.topic_embeds.shape[1])
-        # doc_emb = self.doc_gen_embeds.repeat(bg.number_of_nodes('doc'),1)
-        # torch.zeros((bg.number_of_nodes('doc'), self.n_hid)).to(self.device)
-        # for i in range(len(self.gcn_topic_layers)):
-        # print('word_emb',word_emb.shape,topic_emb.shape,'doc_emb',doc_emb.shape)
         for i in range(len(self.gcn_word_layers)):
             word_emb = self.gcn_word_layers[i](bg, word_emb, 'word','ww')
             # topic_emb = self.gcn_topic_layers[i](bg, topic_emb, 'topic','tt')

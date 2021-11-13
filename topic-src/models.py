@@ -643,7 +643,7 @@ class static_topic_graph(nn.Module):
         return loss, y_pred
 
 
-
+'''
 class HeteroBasic(nn.Module):
     def __init__(self, h_inp, vocab_size, h_dim, device, seq_len=7, num_topic=50, num_word=15000,dropout=0.5,pool='max'):
         super().__init__()
@@ -663,9 +663,6 @@ class HeteroBasic(nn.Module):
         self.doc_gen_embeds = nn.Parameter(torch.Tensor(1,h_dim))
         # self.hconv = HeteroConvNet(h_inp, h_dim, h_dim, h_dim)
         self.hconv = HeteroCausalBeta(h_inp, h_dim, h_dim, h_dim, self.device, dropout,layer='hetero')
-
-        # self.maxpooling  = nn.MaxPool1d(3)# 
-        # self.maxpooling  = dglnn.MaxPooling()
         self.out_layer = nn.Linear(h_dim,1) 
         self.threshold = 0.5
         self.out_func = torch.sigmoid
@@ -702,7 +699,6 @@ class HeteroBasic(nn.Module):
         loss = self.criterion(y_pred.view(-1), y_data)
         y_pred = torch.sigmoid(y_pred)
         return loss, y_pred
- 
 
 
 class HeteroBasicAll(nn.Module):
@@ -773,7 +769,7 @@ class HeteroBasicAll(nn.Module):
         loss = self.criterion(y_pred.view(-1), y_data)
         y_pred = torch.sigmoid(y_pred)
         return loss, y_pred
- 
+'''
 
 
 class static_heto_graph2(nn.Module):
