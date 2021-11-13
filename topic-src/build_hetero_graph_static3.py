@@ -434,7 +434,7 @@ for i,row in df.iterrows():
     story_list = row['story_list'][-window:]
     story_list_flatten = list(set([item for sublist in story_list for item in sublist]))
     if len(story_list_flatten) < news_threshold:
-        print(len(story_text_lists),'articles; first skip')
+        print(len(story_list_flatten),'articles; first skip')
         continue
     story_text_lists = news_df.loc[news_df['StoryID'].isin(story_list_flatten)]['Text'].values
     if len(story_text_lists) < news_threshold:

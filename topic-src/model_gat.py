@@ -15,11 +15,9 @@ from dgl.nn import GATConv
  
 class GATNet(nn.Module):
     def __init__(self,
-                #  g,
                  num_layers,
                  in_dim,
                  num_hidden,
-                #  num_classes,
                  heads,
                  activation,
                  feat_drop,
@@ -27,7 +25,6 @@ class GATNet(nn.Module):
                  negative_slope,
                  residual):
         super(GATNet, self).__init__()
-        # self.g = g
         self.num_layers = num_layers
         self.gat_layers = nn.ModuleList()
         self.activation = activation
@@ -63,17 +60,10 @@ class GAT(nn.Module):
         self.n_hidden = n_hidden
         self.device = device
         self.pool = pool
-        # self.dropout = nn.Dropout(dropout)
         self.word_embeds = None 
         self.layers = nn.ModuleList()
         heads_list = [heads for i in range(n_layers)]
         self.conv = GATNet(n_layers,in_feats, n_hidden, heads_list,activation,dropout,dropout,0.2,False)
-        # input layer
-        # self.layers.append(GCNLayer(in_feats, n_hidden, activation, 0.))
-        # # hidden layers
-        # for i in range(n_layers - 1):
-        #     self.layers.append(GCNLayer(n_hidden, n_hidden, activation, dropout))
-        # output layer
         self.out_layer = nn.Linear(n_hidden*heads, 1) 
         self.threshold = 0.5
         self.out_func = torch.sigmoid
@@ -91,17 +81,12 @@ class GAT(nn.Module):
 
     def forward(self, g_list, y_data): 
         bg = dgl.batch(g_list).to(self.device)
-        
         h = self.word_embeds[bg.nodes['word'].data['id']].view(-1, self.word_embeds.shape[1])
-        # time1 = time.time()
         # h_sub_g = dgl.metapath_reachable_graph(bg, ('ww',))
         # print(time.time()-time1,'1')
-        # time2 = time.time()
         sub_g = dgl.edge_type_subgraph(bg, [('word', 'ww', 'word')])
         h_sub_g = dgl.to_homogeneous(sub_g)
-        # print(time.time()-time2,'2')
         h = self.conv(h_sub_g, h)
-        # print('=====',h.shape)
         bg.nodes['word'].data['h'] = h
         if self.pool == 'max':
             global_word_info = dgl.max_nodes(bg, feat='h',ntype='word')

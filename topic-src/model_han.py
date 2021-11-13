@@ -69,21 +69,21 @@ class HANLayer(nn.Module):
     tensor
         The output feature
     """
-    def __init__(self, meta_paths, in_size, out_size, layer_num_heads, dropout):
+    def __init__(self, meta_paths, in_size, out_size, layer_num_heads, activation, dropout):
         super(HANLayer, self).__init__()
 
         # One GAT layer for each meta path based adjacency matrix
         self.gat_layers = nn.ModuleList()
         for i in range(len(meta_paths)): 
             self.gat_layers.append(GATConv(in_size, out_size, layer_num_heads,
-                                           dropout, dropout, activation=F.elu,
+                                           dropout, dropout, activation=activation,
                                            allow_zero_in_degree=True))
         # self.semantic_attention = SemanticAttention(out_size, out_size)
-        self.semantic_attention = SemanticAttention(out_size * layer_num_heads,out_size * layer_num_heads)
+        self.semantic_attention = SemanticAttention(out_size * layer_num_heads, out_size * layer_num_heads)
         self.meta_paths = list(tuple(meta_path) for meta_path in meta_paths)
         self._cached_graph = None
         self._cached_coalesced_graph = {}
-        self.norm = nn.LayerNorm(out_size* layer_num_heads,elementwise_affine=False)
+        self.norm = nn.LayerNorm(out_size * layer_num_heads,elementwise_affine=False)
 
     def forward(self, g, feat_dict):
         semantic_embeddings_doc = []
@@ -98,48 +98,29 @@ class HANLayer(nn.Module):
 
         for i, meta_path in enumerate(self.meta_paths):
             new_g = self._cached_coalesced_graph[meta_path]
-            # print(meta_path)
-            # continue
-            # print(h.shape,new_g.num_nodes())
-            # v = self.gat_layers[i](new_g, h).flatten(1)
-            # print(v.shape,'v')
             if meta_path[0] == 'ww':
                 r = self.gat_layers[i](new_g, feat_dict['word']).flatten(1)
-                # print(r.shape,'rrrrr')
                 semantic_embeddings_word = r
             elif meta_path[0] == 'tt':
                 r = self.gat_layers[i](new_g, feat_dict['topic']).flatten(1)
-                # print(r.shape,'rrrrr')
                 semantic_embeddings_topic.append(r)
-                # semantic_embeddings.append(r)
             elif meta_path[0] == 'wt':
                 r = self.gat_layers[i](new_g, (feat_dict['word'], feat_dict['topic'])).flatten(1)
-                # print(r.shape,'rrrrr')
                 semantic_embeddings_topic.append(r)
-                # semantic_embeddings.append(r)
             elif meta_path[0] == 'td':
                 r = self.gat_layers[i](new_g, (feat_dict['topic'], feat_dict['doc'])).flatten(1)
-                # print(r.shape,'rrrrr')
                 semantic_embeddings_doc.append(r)
-                # semantic_embeddings.append(r)
             elif meta_path[0] == 'wd':
                 r = self.gat_layers[i](new_g, (feat_dict['word'], feat_dict['doc'])).flatten(1)
-                # print(r.shape,'rrrrr')
-                # semantic_embeddings.append(r)
                 semantic_embeddings_doc.append(r)
         semantic_embeddings_doc = torch.stack(semantic_embeddings_doc, dim=1)  
         semantic_embeddings_doc = self.semantic_attention(semantic_embeddings_doc) 
-        # print(semantic_embeddings_doc.shape,'semantic_embeddings_doc')
 
         semantic_embeddings_topic = torch.stack(semantic_embeddings_topic, dim=1)  
         semantic_embeddings_topic = self.semantic_attention(semantic_embeddings_topic) 
-        # print(semantic_embeddings_topic.shape,'semantic_embeddings_topic')
-        # semantic_embeddings = torch.stack(semantic_embeddings, dim=1)                  
-        # print(semantic_embeddings.shape,'semantic_embeddings====')
         feat_dict = {'word':self.norm((semantic_embeddings_word)), 
             'doc':self.norm((semantic_embeddings_doc)), 
             'topic':self.norm((semantic_embeddings_topic))}
-        # print(feat_dict,'feat_dict')
         return feat_dict                          
 
 # class HAN(nn.Module):
@@ -160,17 +141,13 @@ class HANLayer(nn.Module):
 #         return self.predict(h)
 
 class HANNet(nn.Module):
-    def __init__(self, meta_paths, in_size, hidden_size, out_size, num_heads, dropout):
-    # def __init__(self, in_size, hidden_size, num_heads, device, num_topic=50, vocab_size=15000, dropout=0.5, pool='max', use_norm = True):
-    # def __init__(self, meta_paths, in_size, hidden_size, out_size, num_heads, dropout):
+    def __init__(self, meta_paths, in_size, hidden_size, out_size, num_heads, activation, dropout):
         super(HANNet, self).__init__()
-        # meta_paths = None
         self.layers = nn.ModuleList()
-        self.layers.append(HANLayer(meta_paths, in_size, hidden_size//num_heads[0], num_heads[0], dropout))
+        self.layers.append(HANLayer(meta_paths, in_size, hidden_size//num_heads[0], num_heads[0], activation, dropout))
         for l in range(1, len(num_heads)):
             self.layers.append(HANLayer(meta_paths, hidden_size ,
-                                        hidden_size// num_heads[l-1], num_heads[l], dropout))
-        # self.predict = nn.Linear(hidden_size * num_heads[-1], out_size)
+                                        hidden_size// num_heads[l-1], num_heads[l], activation, dropout))
 
     def forward(self, g, h):
         for gnn in self.layers:
@@ -192,16 +169,13 @@ class HAN(nn.Module):
         self.activation = activation
         self.word_embeds = None
         # initialize rel and ent embedding
-        # self.word_embeds = nn.Parameter(torch.Tensor(num_word, h_dim)) # change it to blocks
         self.topic_embeds = nn.Parameter(torch.Tensor(num_topic, n_hid))
         self.doc_gen_embeds = nn.Parameter(torch.Tensor(1,n_hid))
         # meta_paths=[('topic', 'doc'), ('topic', 'topic'), ('word', 'doc'), ('word', 'topic'), ('word', 'word')]
         meta_paths = [['ww'],['wd'],['tt'],['td'],['wt']]
         self.adapt_ws = nn.Linear(n_inp, n_hid)
-        self.han = HANNet(meta_paths, n_hid, n_hid, n_hid, [4,4,4,4,4], dropout)
+        self.han = HANNet(meta_paths, n_hid, n_hid, n_hid, [4,4,4,4,4], activation, dropout)
         self.out_layer = nn.Sequential(
-                # nn.Linear(n_hid*3, n_hid),
-                # nn.BatchNorm1d(n_hid),
                 nn.Linear(n_hid, 1) 
         )
         self.threshold = 0.5
@@ -237,11 +211,6 @@ class HAN(nn.Module):
         bg.nodes['word'].data['h'] = feat_dict['word']
         bg.nodes['topic'].data['h'] = feat_dict['topic']
         bg.nodes['doc'].data['h'] = feat_dict['doc']
-        # print(feat_dict['word'].shape, feat_dict['topic'].shape)
-        # for i in range(self.n_layers):
-        #     self.gcs[i](bg, 'h', 'h')
-        # attention on words on topics on docs??
-        
         if self.pool == 'max':
             global_doc_info = dgl.max_nodes(bg, feat='h',ntype='doc')
         elif self.pool == 'mean':
@@ -274,7 +243,7 @@ class HANAll(nn.Module):
         # meta_paths=[('topic', 'doc'), ('topic', 'topic'), ('word', 'doc'), ('word', 'topic'), ('word', 'word')]
         meta_paths = [['ww'],['wd'],['tt'],['td'],['wt']]
         self.adapt_ws = nn.Linear(n_inp, n_hid)
-        self.han = HANNet(meta_paths, n_hid, n_hid, n_hid, [4,4,4,4,4], dropout)
+        self.han = HANNet(meta_paths, n_hid, n_hid, n_hid, [4,4,4,4,4], activation, dropout)
         self.out_layer = nn.Sequential(
                 nn.Linear(n_hid*3, n_hid),
                 nn.BatchNorm1d(n_hid),
@@ -312,11 +281,7 @@ class HANAll(nn.Module):
         # bg.nodes['word'].data['h'] = torch.tanh(self.adapt_ws(word_emb))
         bg.nodes['word'].data['h'] = feat_dict['word']
         bg.nodes['topic'].data['h'] = feat_dict['topic']
-        bg.nodes['doc'].data['h'] = feat_dict['doc']
-        # print(feat_dict['word'].shape, feat_dict['topic'].shape)
-        # for i in range(self.n_layers):
-        #     self.gcs[i](bg, 'h', 'h')
-        # attention on words on topics on docs??
+        bg.nodes['doc'].data['h'] = feat_dict['doc'] 
         
         if self.pool == 'max':
             global_doc_info = dgl.max_nodes(bg, feat='h',ntype='doc')

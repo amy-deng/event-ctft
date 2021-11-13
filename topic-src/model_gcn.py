@@ -38,8 +38,6 @@ class GCNLayer(nn.Module):
             self.bias.data.uniform_(-stdv, stdv)
 
     def forward(self, g, h, ntype, etype):
-        if self.dropout:
-            h = self.dropout(h)
         h = torch.mm(h, self.weight)
         # normalization by square root of src degree
         h = h * g.nodes[ntype].data['norm'].unsqueeze(1)
@@ -54,6 +52,8 @@ class GCNLayer(nn.Module):
             h = h + self.bias
         if self.activation:
             h = self.activation(h)
+        if self.dropout:
+            h = self.dropout(h)
         return h
 
     def __repr__(self):
@@ -97,7 +97,7 @@ class GCN(nn.Module):
         self.word_embeds = None 
         self.layers = nn.ModuleList()
         # input layer
-        self.layers.append(GCNLayer(in_feats, n_hidden, activation, 0.))
+        self.layers.append(GCNLayer(in_feats, n_hidden, activation, dropout))
         # hidden layers
         for i in range(n_layers - 1):
             self.layers.append(GCNLayer(n_hidden, n_hidden, activation, dropout))
