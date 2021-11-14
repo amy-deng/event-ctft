@@ -24,7 +24,20 @@ import collections
 #         y_data = data_dict['y'] # tensor 
         # g_data = data_dict['graphs_list'] # dgl
 
-        
+# RUS
+# Counter({'Moscow': 1173, 'Moscow Kremlin': 918, 'St. Petersburg': 251, 'Sochi': 229, 
+# 'Groznyy': 45, 'Vladivostok': 36, 'Ufa': 32, 'Volgograd': 24, 'Rostov': 21, 'Kaliningrad': 17, 
+# 'Rostov-na-Donu': 16, 'Red Square': 14, 'Lugansk': 13, 'Sana': 12, 'Yekaterinburg': 12, 
+# 'Pskov': 7, 'Kirov': 7, "Vasil'yevka": 6, 'Nalchik Airport': 6, 'Bor': 5, 'Kubinka': 5, 
+# 'Irkutsk': 5, 'Khabarovsk': 4, 'Valday': 4, 'Sputnik': 4, 'Samara': 4, 'Novoselitskoye': 4,
+#  'Samarkand': 4, 'Voronezh': 3, 'Bolotnaya': 3, 'Slavyanka': 3, 'Tatarstan': 3, 'Derbent': 3, 
+# 'Vnukovo International Airport': 2, 'Makhachkala': 2, 'Lada': 2, 'Yuzhno-Sakhalinsk': 2, 
+# 'Belgorod': 2, 'Nizhny Novgorod': 2, 'Kostroma': 2, 'Buynaksk': 2, 'Krasnogorsk': 2, 'Domodedovo': 2, 'Balashikha': 2, 'Tver': 1, 'Rada': 1, 'Gukovo': 1, 'Novorossiysk': 1, 'Omsk': 1, 'Yaroslavl': 1, 'Nefteyugansk': 1, 'Krasnaya Polyana': 1, 'Lefortovo': 1})
+
+# EGY
+# Counter({'Cairo': 1141, 'Alexandria': 117, 'Arish': 109, 'Giza': 93, 'Sharm ash Shaykh': 58, 
+# 'Suez': 42, 'Tahrir Square': 34, 'Al Minya': 31, 'Luxor': 18, 'Cairo University': 12, 'Suez Canal': 12, 
+# 'Aswan': 9, 'Al Mansurah': 9, 'Port Said': 9, 'Ismailia': 7, 'Al Karnak': 7, 'Al Ghardaqah': 7, 'Al Fayyum': 5, 'Taba': 5, 'Sohag': 5, 'Madinat an Nasr': 3, 'Heliopolis': 3, 'Saqqarah': 3, 'Halwan': 3, 'Shubra al Khaymah': 2, 'Damietta': 2, 'Tanda': 1})     
 class StaticGraphData(data.Dataset):
       def __init__(self, path, dataset, datafiles, horizon, causalfiles=''):
             # data, times = utils.load_quadruples(path + dataset, set_name + '.txt')

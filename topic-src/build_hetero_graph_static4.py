@@ -35,9 +35,10 @@ try:
     start_year = sys.argv[9]
     stop_year = sys.argv[10]
     vocab_size = int(sys.argv[11])
+    diff = int(sys.argv[12])
     
 except:
-    print("usage: <event_path> <out_path> <lda_name `THA_50`> <ngram_path> <top_k_ngram `15000`> <window 7> <horizon 7> <news_threshold 3> <start_year 2010> <stop_year 2017> <vocab_size>")
+    print("usage: <event_path> <out_path> <lda_name `THA_50`> <ngram_path> <top_k_ngram `15000`> <window 7> <horizon 7> <news_threshold 3> <start_year 2010> <stop_year 2017> <vocab_size> <diff>")
     exit()
 
 country = event_path.split('/')[-1][:3]
@@ -62,9 +63,9 @@ vocab = vocab[:top_k_ngram]
 print('vocab loaded',len(vocab))
 
 if vocab_size > 0:
-    outf = dataset_path + '/hetero_{}-{}_{}.pkl'.format(start_year,stop_year,vocab_size)
+    outf = dataset_path + '/hetero_{}-{}_{}_diff{}.pkl'.format(start_year,stop_year,vocab_size,diff)
 else:
-    outf = dataset_path + '/hetero_{}-{}.pkl'.format(start_year,stop_year)
+    outf = dataset_path + '/hetero_{}-{}_diff{}.pkl'.format(start_year,stop_year,diff)
 print(outf)
 
 start_date = '{}-01-01'.format(start_year)
@@ -416,6 +417,16 @@ def topic_word_conn(sample_words,num_words=30):
     return topic_node, word_node, weight
 
 
+
+from datetime import datetime
+
+def days_between(d1, d2):
+    d1 = datetime.strptime(d1, "%Y-%m-%d")
+    d2 = datetime.strptime(d2, "%Y-%m-%d")
+    return abs((d2 - d1).days)
+
+
+
 # news_threshold=3
 num_sample, num_pos_sample = 0, 0
 all_g_list, y_list, city_list, date_list = [], [], [], []
@@ -425,6 +436,8 @@ iii=0
 topic_i, topic_j, weight = topic_topic_sim(thr=0.15) # 85
 edge_tt = torch.tensor(weight).float()
 print('# topic nodes',len(set(topic_i)),len(set(topic_j)),'weight',len(weight))
+last_date = ''
+last_city = ''
 for i,row in df.iterrows():
     city = row['city']
     date = str(row['date'])[:10]
@@ -465,6 +478,13 @@ for i,row in df.iterrows():
             ys.append(1)
         else:
             ys.append(0)
+    if last_date != '' and last_city != '':
+        if last_city == city:
+            diff = days_between(last_date, date)
+            if diff < 7:
+                print('last_data {} date {} last_city {} city \t diff {}'.format(last_date,date,last_city,city,diff))
+                continue
+
 
     # 1. get causal topic
     # for end_date in splitted_date_lists: # check date in which range
@@ -574,6 +594,8 @@ for i,row in df.iterrows():
     city_list.append(city)
     date_list.append(date)
     
+    last_city = city
+    last_date = date
     print('iii={} \t {} \t {} \t {} day_has_data \t  {} vocab {} doc {}'.format(iii,date,city,1,time.ctime(),len(sample_words),len(tokens_list)))
  
 

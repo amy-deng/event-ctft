@@ -11,8 +11,10 @@ from text_utils import *
 from sklearn.feature_extraction.text import CountVectorizer,TfidfVectorizer
 from scipy import sparse
 '''
-python build_causal_raw_data_w_time.py /home/sdeng/data/icews/detailed_event_json/THA_2010_w21h14_city.json ../data 7 7 THA_50 /home/sdeng/data/icews/corpus/ngrams/THA_1gram_tfidf.txt 15000
 python build_causal_raw_data_w_time2.py /home/sdeng/data/icews/detailed_event_json/THA_2010_w21h14_city.json ../data 14 14 THA_50 /home/sdeng/data/icews/corpus/ngrams/THA_1gram_tfidf.txt 15000 2012 0.2
+python build_causal_raw_data_w_time2.py /home/sdeng/data/icews/detailed_event_json/EGY_2010_w21h14_city.json ../data 14 14 EGY_50 /home/sdeng/data/icews/corpus/ngrams/EGY_1gram_tfidf.txt 15000 2012 0.2
+python build_causal_raw_data_w_time2.py /home/sdeng/data/icews/detailed_event_json/RUS_2010_w21h14_city.json ../data 14 14 RUS_50 /home/sdeng/data/icews/corpus/ngrams/RUS_1gram_tfidf.txt 25000 2012 0.2
+python build_causal_raw_data_w_time2.py /home/sdeng/data/icews/detailed_event_json/IND_2010_w21h14_city.json ../data 14 14 IND_50 /home/sdeng/data/icews/corpus/ngrams/IND_1gram_tfidf.txt 25000 2012 0.2
 
 
 '''
