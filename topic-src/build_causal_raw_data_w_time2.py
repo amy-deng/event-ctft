@@ -11,25 +11,23 @@ from text_utils import *
 from sklearn.feature_extraction.text import CountVectorizer,TfidfVectorizer
 from scipy import sparse
 '''
-python build_causal_raw_data_new.py /home/sdeng/data/icews/detailed_event_json/THA_2010_w14h7_city.json ../data 7 7 THA_50 /home/sdeng/data/icews/corpus/ngrams/THA_1gram_tfidf.txt 15000
-python build_causal_raw_data_new.py /home/sdeng/data/icews/detailed_event_json/THA_2010_w21h14_city.json ../data 2013 7 7 THA_50 /home/sdeng/data/icews/corpus/ngrams/THA_1gram_tfidf.txt 15000 0.2
-python build_causal_raw_data_new.py /home/sdeng/data/icews/detailed_event_json/EGY_2010_w21h14_city.json ../data 2012 7 7 EGY_50 /home/sdeng/data/icews/corpus/ngrams/EGY_1gram_tfidf.txt 15000 0.2
+python build_causal_raw_data_w_time.py /home/sdeng/data/icews/detailed_event_json/THA_2010_w21h14_city.json ../data 7 7 THA_50 /home/sdeng/data/icews/corpus/ngrams/THA_1gram_tfidf.txt 15000
+python build_causal_raw_data_w_time2.py /home/sdeng/data/icews/detailed_event_json/THA_2010_w21h14_city.json ../data 14 14 THA_50 /home/sdeng/data/icews/corpus/ngrams/THA_1gram_tfidf.txt 15000 2012 0.2
+
 
 '''
 try:
     event_path = sys.argv[1] # /home/sdeng/data/icews/detailed_event_json/THA_2010_w14h7_city.json
     out_path = sys.argv[2]
-    # dataset = sys.argv[4] # THA
-    start_year = int(sys.argv[3])
-    # end_year = int(sys.argv[4])
-    window = int(sys.argv[4])
-    horizon = int(sys.argv[5])
-    lda_name = sys.argv[6]
-    ngram_path = sys.argv[7]
-    top_k_ngram = int(sys.argv[8])
+    window = int(sys.argv[3])
+    horizon = int(sys.argv[4])
+    lda_name = sys.argv[5]
+    ngram_path = sys.argv[6]
+    top_k_ngram = int(sys.argv[7])
+    start_year = sys.argv[8]
     min_prob = float(sys.argv[9])
 except:
-    print("usage: <event_path> <out_path> <start_year> <window <=13 > <horizon <=7 > <lda_name `THA_50`> <ngram_path> <top_k_ngram `15000`> <min_prob>")
+    print("usage: <event_path> <out_path> <window <=13 > <horizon <=7 > <lda_name `THA_50`> <ngram_path> <top_k_ngram `15000`> <start_year> <min_prob>")
     exit()
 
 country = event_path.split('/')[-1][:3]
@@ -38,7 +36,7 @@ dataset_path = "{}/{}".format(out_path,dataset)
 os.makedirs(dataset_path, exist_ok=True)
 print('dataset_path',dataset_path)
 
-out_file = "raw_w{}h{}_from{}_minprob{}.pkl".format(window,horizon,start_year,min_prob)
+out_file = "check_topic_causal_data_w{}h{}_from{}_minprob{}.pkl".format(window,horizon,start_year,min_prob)
 print('out_file',out_file)
 
 df = pd.read_json(event_path,lines=True)
@@ -57,37 +55,14 @@ with open(ngram_path,'r') as f:
 ngram = ngram[:top_k_ngram]
 print('ngram loaded',len(ngram))
 
-
-# ngram_counts['a']
-# sorted(ngram_counts[['']].items())
-# from nltk import ngrams, FreqDist
-
-# v = FreqDist(text_bigrams)
-# v.most_common(1)
- 
 c_vec = CountVectorizer(ngram_range=(1, 1),stop_words='english',vocabulary=ngram,binary=False)
 
-
-# TODO
-# def clean_document(text):
-#     text = re.sub(r"''", " ",text) 
-#     text = re.sub(r"\\n", " ",text) 
-#     return sentence_tokenize(text)
-
-# def clean_document_list(texts):
-#     l = []
-#     for t in texts:
-#         l.append(clean_document(t))
-#     return l 
-
-
-# list(set(story_list))
-# np
 raw_covariates = []
 raw_treatments = []
 raw_treatments_check = []
-
 raw_outcomes = []
+date_list = []
+
 for i,row in df.iterrows():
     story_list = row['story_list']
     past_story_list = story_list[-window-1:-1]
@@ -123,7 +98,7 @@ for i,row in df.iterrows():
     raw_treatments.append(topic_vec)
     
     
-    '''output''' 
+    '''output (agg all future days)''' 
     '''
     event_vec = np.zeros(20)
     event_count = row['event_count']
@@ -132,10 +107,11 @@ for i,row in df.iterrows():
     raw_outcomes.append(event_vec)
     '''
 
-
     event_vec = np.zeros((horizon,20))
     event_count_list = row['event_count_list']
-    for i_ in range(len(event_count_list)):
+    # print(len(event_count_list),event_vec.shape,'event_vec')
+    # for i_ in range(len(event_count_list)):
+    for i_ in range(horizon):
         event_count = event_count_list[i_]
         for k in event_count:
             event_vec[i_][int(k)-1] = event_count[k]
@@ -164,21 +140,29 @@ for i,row in df.iterrows():
         topic_vec[k] = topic_count[k]
     raw_treatments_check.append(topic_vec)
 
+    ''' date '''
+    date_list.append(str(row['date'])[:10])
+
     if i % 100 == 0:
         print('processing i =',i)
-    # if i == 20:
+    # if i > 30:
+    #     print('testing...break')
     #     break
-
+ 
 raw_treatments_check = np.stack(raw_treatments_check,0)
 raw_treatments = np.stack(raw_treatments,0)
 raw_outcomes = np.stack(raw_outcomes,0)
 raw_covariates = np.stack(raw_covariates,0)
-# raw_covariates = sparse.csr_matrix(raw_covariates)
-print('raw_outcomes',raw_outcomes.shape, 'raw_outcomes',raw_outcomes.shape,'raw_treatments',type(raw_covariates),raw_treatments.shape)
+date_list = np.array(date_list)
+print('raw_outcomes',raw_outcomes.shape,'raw_treatments',raw_treatments.shape,'raw_treatments_check',raw_treatments_check.shape)
+print('raw_covariates',type(raw_covariates),raw_covariates.shape,'date_list',date_list.shape)
+
 with open("{}/{}".format(dataset_path,out_file),'wb') as f:
-    pickle.dump({'covariate':raw_covariates,
+    pickle.dump(
+    {'covariate':raw_covariates,
     'outcome':raw_outcomes,
     'treatment':raw_treatments,
-    'treatment_check':raw_treatments_check},f)
+    'treatment_check':raw_treatments_check,
+    'date':date_list},f)
 
 print(out_file,'saved')
