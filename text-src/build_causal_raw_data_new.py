@@ -12,7 +12,7 @@ from sklearn.feature_extraction.text import CountVectorizer,TfidfVectorizer
 from scipy import sparse
 '''
 python build_causal_raw_data_new.py /home/sdeng/data/icews/detailed_event_json/THA_2010_w14h7_city.json ../data 7 7 THA_50 /home/sdeng/data/icews/corpus/ngrams/THA_1gram_tfidf.txt 15000
-python build_causal_raw_data_new.py /home/sdeng/data/icews/detailed_event_json/THA_2010_w21h7_city.json ../data 7 7 THA_50 /home/sdeng/data/icews/corpus/ngrams/THA_1gram_tfidf.txt 15000
+python build_causal_raw_data_new.py /home/sdeng/data/icews/detailed_event_json/THA_2010_w21h7_city.json ../data 2013 7 7 THA_50 /home/sdeng/data/icews/corpus/ngrams/THA_1gram_tfidf.txt 15000 0.2
 
 '''
 try:
@@ -42,7 +42,7 @@ print('out_file',out_file)
 
 df = pd.read_json(event_path,lines=True)
 print('# of event (sample) recored',len(df))
-df = df.loc[df['date'] >= str(start_year)+'01-01']
+df = df.loc[df['date'] >= str(start_year)+'-01-01']
 print('# of event (sample) recored after {}-01-01'.format(start_year),len(df))
 
 news_df = pd.read_json('/home/sdeng/data/icews/news.1991.201703.country/icews_news_{}.json'.format(country), lines=True)
