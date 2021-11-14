@@ -446,9 +446,9 @@ for i,row in df.iterrows():
 
     if last_date != '' and last_city != '':
         if last_city == city:
-            diff = days_between(last_date, date)
-            if diff < 7:
-                print('last_data {} date {} last_city {} city {} \t diff {}'.format(last_date,date,last_city,city,diff))
+            cur_diff = days_between(last_date, date)
+            if cur_diff < diff:
+                print('last_data {} date {} last_city {} city {} \t cur_diff {}'.format(last_date,date,last_city,city,cur_diff))
                 continue
 
     # total num of news
