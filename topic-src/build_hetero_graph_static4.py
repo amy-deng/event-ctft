@@ -444,6 +444,13 @@ for i,row in df.iterrows():
     if date < start_date or date >= stop_date: #<2015-01-01 or >= 2017-01-01]
         continue
 
+    if last_date != '' and last_city != '':
+        if last_city == city:
+            diff = days_between(last_date, date)
+            if diff < 7:
+                print('last_data {} date {} last_city {} city \t diff {}'.format(last_date,date,last_city,city,diff))
+                continue
+
     # total num of news
     story_list = row['story_list'][-window:]
     story_list_flatten = list(set([item for sublist in story_list for item in sublist]))
@@ -478,12 +485,7 @@ for i,row in df.iterrows():
             ys.append(1)
         else:
             ys.append(0)
-    if last_date != '' and last_city != '':
-        if last_city == city:
-            diff = days_between(last_date, date)
-            if diff < 7:
-                print('last_data {} date {} last_city {} city \t diff {}'.format(last_date,date,last_city,city,diff))
-                continue
+    
 
 
     # 1. get causal topic
