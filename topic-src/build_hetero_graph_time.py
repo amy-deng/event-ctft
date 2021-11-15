@@ -523,7 +523,7 @@ for i,row in df.iterrows():
             # equal weight
             words_in_curr_day = [word_id_map[w] for w in sample_words_day]
             word_graph_node = [vocab_graph_node_map[v] for v in words_in_curr_day]
-            doc_node = doc_ids_day * len(sample_words_day)
+            doc_node = [int(doc_ids_day[0])] * len(sample_words_day)
             wd_src += word_graph_node 
             wd_dst += doc_node
             wd_weight += [1.0/len(sample_words_day)] * len(sample_words_day)
