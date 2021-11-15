@@ -101,6 +101,10 @@ def get_topwords(docs, top_n=800, use_tfidf=True):
                     preprocessor=lambda x: x,
                     token_pattern=None,
                     min_df = 1) # ignore terms that appear in less than 5 documents, default is 1
+        X = vectorizer.fit_transform(docs)
+        indices = np.argsort(vectorizer.idf_)[::-1]
+        features = vectorizer.get_feature_names()
+        top_features = [features[i] for i in indices[:top_n]]
     else:
         vectorizer = CountVectorizer(
                     analyzer='word',
@@ -108,10 +112,10 @@ def get_topwords(docs, top_n=800, use_tfidf=True):
                     preprocessor=lambda x: x,
                     token_pattern=None,
                     min_df = 1) # ignore terms that appear in less than 5 documents, default is 1
-    X = vectorizer.fit_transform(docs)
-    indices = np.argsort(vectorizer.idf_)[::-1]
-    features = vectorizer.get_feature_names()
-    top_features = [features[i] for i in indices[:top_n]]
+        X = vectorizer.fit_transform(docs)
+        freqs = zip(vectorizer.get_feature_names(), X.sum(axis=0).tolist()[0])    
+        # sort from largest to smallest
+        top_features = sorted(freqs, key=lambda x: -x[1])[:top_n]
     return top_features
 
 def word_word_pmi_sent_norm(tokens_list, sample_words, window_size=10): # , window_size=20
