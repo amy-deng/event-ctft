@@ -524,6 +524,8 @@ for i,row in df.iterrows():
             words_in_curr_day = [word_id_map[w] for w in sample_words_day]
             word_graph_node = [vocab_graph_node_map[v] for v in words_in_curr_day]
             doc_node = doc_ids_day * len(sample_words_day)
+            wd_src += word_graph_node 
+            wd_dst += doc_node
             wd_weight += [1.0/len(sample_words_day)] * len(sample_words_day)
         else:
             # word - doc
