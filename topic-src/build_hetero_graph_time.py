@@ -359,6 +359,7 @@ def doc_word_tfidf(tokens_list, sample_words):
     return doc_node, word_node, weight
 
 def doc_topic_dist(tokens_list):
+    print(tokens_list)
     corpus_bow = [loaded_dict.doc2bow(text) for text in tokens_list]
     topic_dists =  loaded_lda.get_document_topics(corpus_bow,per_word_topics=False,minimum_probability=0.01)
     # r =  loaded_lda.get_document_topics(corpus_bow,per_word_topics=False,minimum_probability=0.00)
@@ -509,6 +510,7 @@ for i,row in df.iterrows():
     td_src, td_dst, td_time, td_weight = [], [], [], []
     graph_data = {}
     for day_i in range(len(story_text_lists_day)-1):
+        print(' - day ',day_i, '-')
         tokens_list_day = story_text_lists_day[day_i]
         if len(tokens_list_day) <= 0:
             continue
