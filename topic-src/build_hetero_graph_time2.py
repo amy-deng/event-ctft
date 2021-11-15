@@ -485,7 +485,7 @@ for i,row in df.iterrows():
         if vocab_size > 0:
             if len(sample_words) > vocab_size:
                 sample_words = get_topwords(tokens_list, vocab_size)
-            print(' --- filted',len(sample_words))
+                print(' --- filted',len(sample_words))
         sample_words = [w for w in sample_words if w in vocab] 
         print(day_i, 'sample_words',len(sample_words))
         sample_words_list += sample_words
@@ -541,9 +541,9 @@ for i,row in df.iterrows():
     words_in_curr_sample = [word_id_map[w] for w in complete_sample_words] # [5,6,7,10,8,...]
     words_in_curr_sample.sort()
     vocab_graph_node_map = dict(zip(words_in_curr_sample,range(len(words_in_curr_sample))))
-    wt_src = [vocab_graph_node_map[v] for v in wt_src]
-    wt_dst = [vocab_graph_node_map[v] for v in wt_dst]
-
+    
+    ww_src = [vocab_graph_node_map[v] for v in ww_src]
+    ww_dst = [vocab_graph_node_map[v] for v in ww_dst]
     ww_src = torch.tensor(ww_src).view(-1)
     ww_dst = torch.tensor(ww_dst).view(-1)
     graph_data[('word','ww','word')] = (ww_src, ww_dst)
