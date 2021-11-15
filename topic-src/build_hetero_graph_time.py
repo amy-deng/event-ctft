@@ -527,6 +527,7 @@ for i,row in df.iterrows():
             wd_src += word_graph_node 
             wd_dst += doc_node
             wd_weight += [1.0/len(sample_words_day)] * len(sample_words_day)
+            wd_time += [day_i*1.0]*len(doc_node)
         else:
             # word - doc
             doc_node, word_node, weight = doc_word_tfidf(tokens_list_day,sample_words_day)
@@ -535,7 +536,7 @@ for i,row in df.iterrows():
             wd_src += word_graph_node 
             wd_dst += doc_node
             wd_weight += weight
-        wd_time += [day_i*1.0]*len(weight)
+            wd_time += [day_i*1.0]*len(weight)
 
         # word - word
         word_i, word_j, weight = word_word_pmi_norm(tokens_list_day, sample_words_day, window_size=20)
