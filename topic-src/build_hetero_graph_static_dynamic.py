@@ -342,7 +342,7 @@ def topic_word_conn(sample_words,num_words=30):
 
 # news_threshold=3
 num_sample, num_pos_sample = 0, 0
-all_static_g_list, all_dynamic_g_list, y_list, city_list, date_list = [], [], [], []
+all_static_g_list, all_dynamic_g_list, y_list, city_list, date_list = [], [], [], [], []
 
 iii=0
 # topic---topic
@@ -376,8 +376,7 @@ for i,row in df.iterrows():
         if event_count and '14' in event_count:
             ys.append(1)
         else:
-            ys.append(0)
-
+            ys.append(0) # TODO if involve other events to predict
     ###########
     iii+=1
     # doc by day and combine
