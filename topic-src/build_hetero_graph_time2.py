@@ -62,9 +62,9 @@ vocab = vocab[:top_k_ngram]
 print('vocab loaded',len(vocab))
 
 if vocab_size > 0:
-    outf = dataset_path + '/dynamic_{}-{}_{}.pkl'.format(start_year,stop_year,vocab_size)
+    outf = dataset_path + '/dynamic_tf_{}-{}_{}.pkl'.format(start_year,stop_year,vocab_size)
 else:
-    outf = dataset_path + '/dynamic_{}-{}.pkl'.format(start_year,stop_year)
+    outf = dataset_path + '/dynamic_tf_{}-{}.pkl'.format(start_year,stop_year)
 print(outf)
 
 start_date = '{}-01-01'.format(start_year)

@@ -62,9 +62,9 @@ vocab = vocab[:top_k_ngram]
 print('vocab loaded',len(vocab))
 
 if vocab_size > 0:
-    outf = dataset_path + '/static_{}-{}_{}.pkl'.format(start_year,stop_year,vocab_size)
+    outf = dataset_path + '/static_tf_{}-{}_{}.pkl'.format(start_year,stop_year,vocab_size)
 else:
-    outf = dataset_path + '/static_{}-{}.pkl'.format(start_year,stop_year)
+    outf = dataset_path + '/static_tf_{}-{}.pkl'.format(start_year,stop_year)
 print(outf)
 
 start_date = '{}-01-01'.format(start_year)
@@ -428,7 +428,6 @@ for i,row in df.iterrows():
     tokens_list_clean = []
     for l in tokens_list:
         tokens_list_clean.append([v for v in l if v in sample_words])
-        
  
     words_in_curr_sample = [word_id_map[w] for w in sample_words] # [5,6,7,10,8,...]
     vocab_graph_node_map = dict(zip(sample_words,range(len(words_in_curr_sample))))
