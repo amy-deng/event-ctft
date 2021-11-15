@@ -345,7 +345,7 @@ def doc_word_tfidf(tokens_list, sample_words):
             j = word
             key = str(i) + ',' + str(j)
             freq = doc_word_freq[key]
-            idf = math.log(1.0 * len(tokens_list) / word_doc_freq[vocab[j]])
+            idf = math.log(1.0 * len(tokens_list) / word_doc_freq[j])
             tfidf = freq * idf
             if tfidf <= 0:
                 continue
