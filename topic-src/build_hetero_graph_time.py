@@ -359,7 +359,6 @@ def doc_word_tfidf(tokens_list, sample_words):
     return doc_node, word_node, weight
 
 def doc_topic_dist(tokens_list):
-    print(tokens_list)
     corpus_bow = [loaded_dict.doc2bow(text) for text in tokens_list]
     topic_dists =  loaded_lda.get_document_topics(corpus_bow,per_word_topics=False,minimum_probability=0.01)
     # r =  loaded_lda.get_document_topics(corpus_bow,per_word_topics=False,minimum_probability=0.00)
@@ -501,7 +500,7 @@ for i,row in df.iterrows():
     vocab_graph_node_map = dict(zip(words_in_curr_sample,range(len(words_in_curr_sample))))
 
     split_indices = np.cumsum(story_len_day)
-    story_text_lists_day = np.split(story_text_lists_all,split_indices)
+    story_text_lists_day = np.split(tokens_list,split_indices)
     doc_ids_list_day = np.split(doc_ids, split_indices)
 
     ww_src, ww_dst, ww_time, ww_weight = [], [], [], []
