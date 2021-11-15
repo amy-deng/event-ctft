@@ -25,11 +25,16 @@ def days_between(d1, d2):
     d2 = datetime.strptime(d2, "%Y-%m-%d")
     return abs((d2 - d1).days)
 
-    
-n = 0
-for i, row in df3.iterrows():
-    his = row['story_list'][-7:]
-    story_list_flatten = list(set([item for sublist in his for item in sublist]))
-    if len(story_list_flatten) < 10:
-        continue
-    n+=1
+
+# n = 0
+# for i, row in df1.iterrows():
+#     his = row['story_list'][-7:]
+#     story_list_flatten = list(set([item for sublist in his for item in sublist]))
+#     if len(story_list_flatten) < 7:
+#         continue
+#     n+=1
+
+
+# df4=df.loc[(df['date']<'2016-01-01') & (df['date']>'2015-01-01')]
+
+# df1=df.loc[(df['date']<'2015-01-01') & (df['date']>'2014-01-01')]

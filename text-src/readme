@@ -22,3 +22,4 @@ step 4.
 python build_hetero_graph_static3.py /home/sdeng/data/icews/detailed_event_json/EGY_2010_w21h14_city.json ../data EGY_50 /home/sdeng/data/icews/corpus/ngrams/EGY_1gram_tfidf.txt 15000 7 7 7 2014 2015
 python build_hetero_graph_static3.py /home/sdeng/data/icews/detailed_event_json/RUS_2010_w21h14_city.json ../data RUS_50 /home/sdeng/data/icews/corpus/ngrams/RUS_1gram_tfidf.txt 25000 7 7 7 2014 2015
 python build_hetero_graph_static3.py /home/sdeng/data/icews/detailed_event_json/IND_2010_w21h14_city.json ../data IND_50 /home/sdeng/data/icews/corpus/ngrams/IND_1gram_tfidf.txt 25000 7 7 7 2014 2015
+python build_hetero_graph_static3.py /home/sdeng/data/icews/detailed_event_json/AFG_2010_w21h14_city.json ../data AFG_50 /home/sdeng/data/icews/corpus/ngrams/AFG_1gram_tfidf.txt 15000 7 7 7 2014 2015

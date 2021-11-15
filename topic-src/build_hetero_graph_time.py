@@ -20,7 +20,6 @@ from numpy import linalg
 ### testing
  
 '''
-only tried on IND
 python build_hetero_graph_static3.py /home/sdeng/data/icews/detailed_event_json/THA_2010_w21h7_city.json ../data THA_50 /home/sdeng/data/icews/corpus/ngrams/THA_1gram_tfidf.txt 15000 7 7 6 2014 2015
 '''
 try:
@@ -36,10 +35,9 @@ try:
     start_year = sys.argv[9]
     stop_year = sys.argv[10]
     vocab_size = int(sys.argv[11])
-    diff = int(sys.argv[12])
     
 except:
-    print("usage: <event_path> <out_path> <lda_name `THA_50`> <ngram_path> <top_k_ngram `15000`> <window 7> <horizon 7> <news_threshold 3> <start_year 2010> <stop_year 2017> <vocab_size> <diff>")
+    print("usage: <event_path> <out_path> <lda_name `THA_50`> <ngram_path> <top_k_ngram `15000`> <window 7> <horizon 7> <news_threshold 3> <start_year 2010> <stop_year 2017> <vocab_size>")
     exit()
 
 country = event_path.split('/')[-1][:3]
@@ -64,9 +62,9 @@ vocab = vocab[:top_k_ngram]
 print('vocab loaded',len(vocab))
 
 if vocab_size > 0:
-    outf = dataset_path + '/hetero_{}-{}_{}_diff{}.pkl'.format(start_year,stop_year,vocab_size,diff)
+    outf = dataset_path + '/hetero_temp_{}-{}_{}.pkl'.format(start_year,stop_year,vocab_size)
 else:
-    outf = dataset_path + '/hetero_{}-{}_diff{}.pkl'.format(start_year,stop_year,diff)
+    outf = dataset_path + '/hetero_temp_{}-{}.pkl'.format(start_year,stop_year)
 print(outf)
 
 start_date = '{}-01-01'.format(start_year)
@@ -291,6 +289,7 @@ def word_word_pmi_norm(tokens_list, sample_words, window_size=20): # , window_si
     return row, col, weight
    
 def doc_word_tfidf(tokens_list, sample_words):
+    
     word_doc_list = {} # document frequency DF
     for i in range(len(tokens_list)):
         words = tokens_list[i]
@@ -418,16 +417,6 @@ def topic_word_conn(sample_words,num_words=30):
     return topic_node, word_node, weight
 
 
-
-from datetime import datetime
-
-def days_between(d1, d2):
-    d1 = datetime.strptime(d1, "%Y-%m-%d")
-    d2 = datetime.strptime(d2, "%Y-%m-%d")
-    return abs((d2 - d1).days)
-
-
-
 # news_threshold=3
 num_sample, num_pos_sample = 0, 0
 all_g_list, y_list, city_list, date_list = [], [], [], []
@@ -437,20 +426,11 @@ iii=0
 topic_i, topic_j, weight = topic_topic_sim(thr=0.15) # 85
 edge_tt = torch.tensor(weight).float()
 print('# topic nodes',len(set(topic_i)),len(set(topic_j)),'weight',len(weight))
-last_date = ''
-last_city = ''
 for i,row in df.iterrows():
     city = row['city']
     date = str(row['date'])[:10]
     if date < start_date or date >= stop_date: #<2015-01-01 or >= 2017-01-01]
         continue
-
-    if last_date != '' and last_city != '':
-        if last_city == city:
-            cur_diff = days_between(last_date, date)
-            if cur_diff < diff:
-                print('last_data {} date {} last_city {} city {} \t cur_diff {}'.format(last_date,date,last_city,city,cur_diff))
-                continue
 
     # total num of news
     story_list = row['story_list'][-window:]
@@ -486,26 +466,173 @@ for i,row in df.iterrows():
             ys.append(1)
         else:
             ys.append(0)
+    ###########
+    # doc by day and combine
+    story_len_day = [] # [0,0,1,1,3,6]
+    num_nonzero_days = 0
+    story_text_lists_all = []
+    for day in range(len(story_list)): # 0,1,2,3,...window-1
+        story_ids_day = story_list[day]
+        if len(story_ids_day) <= 0:
+            story_len_day.append(0)
+            continue
+         
+        story_text_lists = news_df.loc[news_df['StoryID'].isin(story_ids_day)]['Text'].values
+        if len(story_text_lists) <= 0:
+            story_len_day.append(0)
+            continue
+        num_nonzero_days += 1
+        story_len_day.append(len(story_text_lists))
+        story_text_lists_all += story_text_lists
+
+    print('# of stories =',len(story_text_lists_all))
+    doc_ids = [i for i in range(len(story_text_lists_all))]
+    tokens_list = clean_document_list(story_text_lists_all)
+    sample_words = list(set([item for sublist in tokens_list for item in sublist]))
+    if vocab_size > 0:
+        if len(sample_words) > vocab_size:
+            sample_words = get_topwords(tokens_list,vocab_size)
+    sample_words = [w for w in sample_words if w in vocab]
+    # print(sample_words)
+    words_in_curr_sample = [word_id_map[w] for w in sample_words] # [5,6,7,10,8,...]
+    words_in_curr_sample.sort()
+    vocab_graph_node_map = dict(zip(words_in_curr_sample,range(len(words_in_curr_sample))))
+
+    split_indices = np.cumsum(story_len_day)
+    story_text_lists_day = np.split(story_text_lists_all,split_indices)
+    doc_ids_list_day = np.split(doc_ids, split_indices)
+
+    ww_src, ww_dst, ww_time, ww_weight = [], [], [], []
+    wd_src, wd_dst, wd_time, wd_weight = [], [], [], []
+    wt_src, wt_dst, wt_time, wt_weight = [], [], [], []
+    td_src, td_dst, td_time, td_weight = [], [], [], []
+    graph_data = {}
+    for day_i in range(len(story_text_lists_day)-1):
+        tokens_list_day = story_text_lists_day[day_i]
+        if len(tokens_list_day) <= 0:
+            continue
+        sample_words_day = list(set([item for sublist in tokens_list_day for item in sublist]))
+        sample_words_day = [w for w in sample_words_day if w in sample_words]  
+        doc_ids_day = doc_ids_list_day[day_i] # 0,1,2
+        docidx_id_map = dict(zip(range(len(tokens_list_day)),doc_ids_day))
+
+        if len(tokens_list_day) == 1:
+            print('-- only one article at day',day_i,'; no word-doc edges')
+        else:
+            # word - doc
+            doc_node, word_node, weight = doc_word_tfidf(tokens_list_day,sample_words_day)
+            # doc_node TODO
+            doc_node = [docidx_id_map[v] for v in doc_node]
+            word_graph_node = [vocab_graph_node_map[v] for v in word_node]
+            wd_src.append(word_graph_node)
+            wd_dst.append(doc_node)
+            wd_weight.append(weight)
+            wd_time.append([day_i*1.0]*len(weight))
+            # graph_data[('doc','dw','word')]=(torch.tensor(doc_node),torch.tensor(word_graph_node))
+            # graph_data[('word','wd','doc')]=(torch.tensor(word_graph_node),torch.tensor(doc_node))
+            # edge_dw = torch.tensor(weight) # day_i
+
+        # word - word
+        word_i, word_j, weight = word_word_pmi_norm(tokens_list_day, sample_words_day, window_size=20)
+        word_graph_node_i = [vocab_graph_node_map[v] for v in word_i]
+        word_graph_node_j = [vocab_graph_node_map[v] for v in word_j]
+        ww_src.append(word_graph_node_i)
+        ww_dst.append(word_graph_node_j)
+        ww_weight.append(weight)
+        ww_time.append([day_i*1.0]*len(weight))
+        # graph_data[('word','ww','word')]=(torch.tensor(word_graph_node_i),torch.tensor(word_graph_node_j))
+        # edge_ww = torch.tensor(weight)
+
+        # topic - doc
+        doc_node, topic_node, weight = doc_topic_dist(tokens_list_day)
+        doc_node = [docidx_id_map[v] for v in doc_node]
+        td_src.append(topic_node)
+        td_dst.append(doc_node)
+        td_weight.append(weight)
+        td_time.append([day_i*1.0]*len(weight))
+        # print('# topic nodes',len(set(topic_node)),len(set(doc_node)))
+        # graph_data[('doc','dt','topic')]=(torch.tensor(doc_node),torch.tensor(topic_node))
+        # graph_data[('topic','td','doc')]=(torch.tensor(topic_node),torch.tensor(doc_node))
+        # edge_dt = torch.tensor(weight)
+        
+ 
+        # word - topic
+        topic_node, word_node, weight = topic_word_conn(sample_words_day,num_words=30) #need check words existed in topics
+        # print('# word nodes',len(set(word_node)),len(set(topic_node)))
+        word_graph_node = [vocab_graph_node_map[v] for v in word_node]
+        wt_src.append(word_graph_node)
+        wt_dst.append(topic_node)
+        wt_weight.append(weight)
+        wt_time.append([day_i*1.0]*len(weight))
+        # graph_data[('topic','tw','word')]=(torch.tensor(topic_node),torch.tensor(word_graph_node))
+        # graph_data[('word','wt','topic')]=(torch.tensor(word_graph_node),torch.tensor(topic_node))
+        # edge_tw = torch.tensor(weight)
+
+    # save current graph and combine for all timetseps  
+    ww_src = torch.tensor(ww_src).view(-1)
+    ww_dst = torch.tensor(ww_src).view(-1)
+    graph_data[('word','ww','word')] = (ww_src, ww_dst)
+    ww_time = torch.tensor(ww_time).view(-1)
+    ww_weight = torch.tensor(ww_weight).view(-1).float()
+
+    wd_src = torch.tensor(wd_src).view(-1)
+    wd_dst = torch.tensor(wd_src).view(-1)
+    graph_data[('word','wd','doc')] = (wd_src, wd_dst)
+    wd_time = torch.tensor(wd_time).view(-1)
+    wd_weight = torch.tensor(wd_weight).view(-1).float()
+
+    td_src = torch.tensor(td_src).view(-1)
+    td_dst = torch.tensor(td_src).view(-1)
+    graph_data[('topic','td','doc')] = (td_src, td_dst)
+    td_time = torch.tensor(td_time).view(-1)
+    td_weight = torch.tensor(td_weight).view(-1).float()
+
+    graph_data[('topic','tt','topic')] = (torch.tensor(topic_i),torch.tensor(topic_j))
     
+    wt_src = torch.tensor(wt_src).view(-1)
+    wt_dst = torch.tensor(wt_src).view(-1)
+    graph_data[('word','wt','topic')] = (wt_src, wt_dst)
+    wt_time = torch.tensor(wt_time).view(-1)
+    wt_weight = torch.tensor(wt_weight).view(-1).float()
+
+    g = dgl.heterograph(graph_data)
+    # g.nodes['word'].data['id'] = torch.from_numpy(vocab_ids).long()
+    g.nodes['word'].data['id'] = torch.tensor(words_in_curr_sample).long()
+    g.nodes['topic'].data['id'] = g.nodes('topic').long()
+    # topic_graph_nodes = g.nodes('topic').numpy()
+    # # curr_causal_weight = torch.from_numpy(causal_weight[topic_graph_nodes])
+    # # g.nodes['topic'].data['effect'] = curr_causal_weight
+    # g.nodes['topic'].data['effect'] = torch.from_numpy(causal_weight[topic_graph_nodes]).to_sparse()
+    g.edges['ww'].data['weight'] = ww_weight
+    g.edges['ww'].data['time'] = ww_time
+    g.edges['wd'].data['weight'] = wd_weight
+    g.edges['wd'].data['time'] = wd_time
+    g.edges['td'].data['weight'] = td_weight
+    g.edges['td'].data['time'] = td_time
+    g.edges['tt'].data['weight'] = edge_tt
+    g.edges['wt'].data['weight'] = wt_weight
+    g.edges['wt'].data['time'] = wt_time
+    norm_edges(g,ntype='word',etype='ww')
+    norm_edges(g,ntype='topic',etype='tt')
+    # g.ids = {}
+    # idx = 0
+    # for id in words_in_curr_sample:
+    #     g.ids[id] = idx
+    #     idx += 1
+    # print(g)
+    # g_list.append(g) 
+    all_g_list.append(g)
+    y_list.append(ys)  
+    city_list.append(city)
+    date_list.append(date)
+    print('iii={} \t {} \t {} \t {} day_has_data \t  {} vocab {} doc {}'.format(iii,date,city,num_nonzero_days,time.ctime(),len(sample_words),len(tokens_list)))
+ 
 
 
-    # 1. get causal topic
-    # for end_date in splitted_date_lists: # check date in which range
-    #     if date < end_date:
-    #         cur_end_date = end_date
-    #         break
-    # causal_weight = causal_time_dict[cur_end_date]
-    
-    # continue
-    # 2. build hetero graph for each day
+    ###########
     g_list = []
-    iii+=1
-    # if iii < 813:
-    #     print(iii,len(story_text_lists))
-    #     continue
+    iii+=1 
     tokens_list = clean_document_list(story_text_lists)
-    # if len(tokens_list) <= 5:
-    #     continue
     # tokens_list, sent_token_list = document_sent_tokenize(story_text_lists)
     # words appeared in this example
     sample_words = list(set([item for sublist in tokens_list for item in sublist]))
@@ -518,6 +645,35 @@ for i,row in df.iterrows():
     words_in_curr_sample.sort()
     vocab_graph_node_map = dict(zip(words_in_curr_sample,range(len(words_in_curr_sample)))) # word id : real index
     
+    g_list = []
+    for day in range(len(story_list)): # 0,1,2,3,...window-1
+        story_ids_day = story_list[day]
+        if len(story_ids_day) <= 0:
+            # how to deal with it
+            continue
+        story_text_lists = news_df.loc[news_df['StoryID'].isin(story_ids_day)]['Text'].values
+        if len(story_text_lists) <= 0:
+            # print('story_ids_day',len(story_ids_day),'story_text_lists',len(story_text_lists))
+            continue
+        tokens_list, sent_token_list = document_sent_tokenize(story_text_lists)
+        sample_words_day = list(set([item for sublist in tokens_list for item in sublist]))
+        sample_words_day = [w for w in sample_words_day if w in sample_words]  
+
+        # words_in_curr_sample = [word_id_map[w] for w in sample_words] # [5,6,7,10,8,...]
+        # words_in_curr_sample.sort()
+        # vocab_graph_node_map = dict(zip(words_in_curr_sample,range(len(words_in_curr_sample)))) # word id : real index
+    
+        doc_node, word_node, weight = doc_word_tfidf(tokens_list,sample_words_day) # if only one doc TODO
+        word_graph_node = [vocab_graph_node_map[v] for v in word_node]
+        # graph_data[('doc','dw','word')]=(torch.tensor(doc_node),torch.tensor(word_graph_node))
+        graph_data[('word','wd','doc')]=(torch.tensor(word_graph_node),torch.tensor(doc_node))
+
+        edge_dw = torch.tensor(weight)
+
+
+
+
+    '''
     graph_data = {}
     # doc---word
     doc_node, word_node, weight = doc_word_tfidf(tokens_list,sample_words)
@@ -552,11 +708,11 @@ for i,row in df.iterrows():
     # graph_data[('doc','dt','topic')]=(torch.tensor(doc_node),torch.tensor(topic_node))
     graph_data[('topic','td','doc')]=(torch.tensor(topic_node),torch.tensor(doc_node))
     edge_dt = torch.tensor(weight)
-    '''# topic---topic
-    topic_i, topic_j, weight = topic_topic_sim(percent=85)
-    # print('# topic nodes',len(set(topic_i)),len(set(topic_j)))
-    graph_data[('topic','tt','topic')]=(torch.tensor(topic_i),torch.tensor(topic_j))
-    edge_tt = torch.tensor(weight)'''
+    # # topic---topic
+    # topic_i, topic_j, weight = topic_topic_sim(percent=85)
+    # # print('# topic nodes',len(set(topic_i)),len(set(topic_j)))
+    # graph_data[('topic','tt','topic')]=(torch.tensor(topic_i),torch.tensor(topic_j))
+    # edge_tt = torch.tensor(weight)
     graph_data[('topic','tt','topic')]=(torch.tensor(topic_i),torch.tensor(topic_j))
     # topic---word
     topic_node, word_node, weight = topic_word_conn(sample_words,num_words=30) #need check words existed in topics
@@ -597,10 +753,8 @@ for i,row in df.iterrows():
     city_list.append(city)
     date_list.append(date)
     
-    last_city = city
-    last_date = date
     print('iii={} \t {} \t {} \t {} day_has_data \t  {} vocab {} doc {}'.format(iii,date,city,1,time.ctime(),len(sample_words),len(tokens_list)))
- 
+    '''
 
 y_list = torch.tensor(y_list)
 # save_graphs(dataset_path + "/data.bin", all_g_list, {"y":y_list})
