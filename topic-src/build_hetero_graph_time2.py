@@ -486,6 +486,7 @@ for i,row in df.iterrows():
             if len(sample_words) > vocab_size:
                 sample_words = get_topwords(tokens_list, vocab_size)
         sample_words = [w for w in sample_words if w in vocab] 
+        print(day_i, 'sample_words',len(sample_words))
         sample_words_list += sample_words
         # remove noise words
         tokens_list_clean = []
