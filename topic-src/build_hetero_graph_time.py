@@ -572,19 +572,19 @@ for i,row in df.iterrows():
 
     # save current graph and combine for all timetseps  
     ww_src = torch.tensor(ww_src).view(-1)
-    ww_dst = torch.tensor(ww_src).view(-1)
+    ww_dst = torch.tensor(ww_dst).view(-1)
     graph_data[('word','ww','word')] = (ww_src, ww_dst)
     ww_time = torch.tensor(ww_time).view(-1)
     ww_weight = torch.tensor(ww_weight).view(-1).float()
 
     wd_src = torch.tensor(wd_src).view(-1)
-    wd_dst = torch.tensor(wd_src).view(-1)
+    wd_dst = torch.tensor(wd_dst).view(-1)
     graph_data[('word','wd','doc')] = (wd_src, wd_dst)
     wd_time = torch.tensor(wd_time).view(-1)
     wd_weight = torch.tensor(wd_weight).view(-1).float()
 
     td_src = torch.tensor(td_src).view(-1)
-    td_dst = torch.tensor(td_src).view(-1)
+    td_dst = torch.tensor(td_dst).view(-1)
     graph_data[('topic','td','doc')] = (td_src, td_dst)
     td_time = torch.tensor(td_time).view(-1)
     td_weight = torch.tensor(td_weight).view(-1).float()
@@ -592,7 +592,7 @@ for i,row in df.iterrows():
     graph_data[('topic','tt','topic')] = (torch.tensor(topic_i),torch.tensor(topic_j))
     
     wt_src = torch.tensor(wt_src).view(-1)
-    wt_dst = torch.tensor(wt_src).view(-1)
+    wt_dst = torch.tensor(wt_dst).view(-1)
     graph_data[('word','wt','topic')] = (wt_src, wt_dst)
     wt_time = torch.tensor(wt_time).view(-1)
     wt_weight = torch.tensor(wt_weight).view(-1).float()
