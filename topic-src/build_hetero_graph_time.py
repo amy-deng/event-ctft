@@ -615,8 +615,8 @@ for i,row in df.iterrows():
     date_list.append(date)
     iii+=1
     print('iii={} \t {} \t {} \t {} day_has_data \t  {} vocab {} doc {}'.format(iii,date,city,num_nonzero_days,time.ctime(),len(sample_words),len(tokens_list)))
-    if iii >= 3:
-        break
+    # if iii >= 3:
+    #     break
 
 
 y_list = torch.tensor(y_list)
