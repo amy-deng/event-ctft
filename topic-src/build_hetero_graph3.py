@@ -358,7 +358,7 @@ for i,row in df.iterrows():
     #         cur_end_date = end_date
     #         break
     # causal_weight = causal_time_dict[cur_end_date]
-     
+    
     # 2. build hetero graph for each day
     g_list = []
     for story_ids_day in story_list:

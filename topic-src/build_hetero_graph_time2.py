@@ -18,9 +18,9 @@ from numpy import linalg
 
 #### build datasets
 ### testing
- 
+### limit the number of words per day
 '''
-python build_hetero_graph_time.py /home/sdeng/data/icews/detailed_event_json/THA_2010_w21h14_city.json ../data THA_50 /home/sdeng/data/icews/corpus/ngrams/THA_1gram_tfidf.txt 15000 7 7 7 2017 2017 1000 
+python build_hetero_graph_time2.py /home/sdeng/data/icews/detailed_event_json/THA_2010_w21h14_city.json ../data THA_50 /home/sdeng/data/icews/corpus/ngrams/THA_1gram_tfidf.txt 15000 7 7 7 2017 2017 1000 
 '''
 try:
     event_path = sys.argv[1] # /home/sdeng/data/icews/detailed_event_json/THA_2010_w21h7_city.json
@@ -232,12 +232,14 @@ def word_word_pmi_norm(tokens_list, sample_words, window_size=20): # , window_si
             for j in range(0, i):
                 word_i = window[i]
                 word_j = window[j]
-                if word_i not in word_id_map or word_j not in word_id_map:
-                    continue
-                if word_i not in sample_words or word_j not in sample_words:
-                    continue
-                word_i_id = word_id_map[word_i]
-                word_j_id = word_id_map[word_j]
+                # if word_i not in word_id_map or word_j not in word_id_map:
+                #     continue
+                # if word_i not in sample_words or word_j not in sample_words:
+                #     continue
+                # word_i_id = word_id_map[word_i]
+                # word_j_id = word_id_map[word_j]
+                word_i_id = word_i
+                word_j_id = word_j
                 if word_i_id == word_j_id:
                     continue
                 word_pair_str = str(word_i_id) + ',' + str(word_j_id)
@@ -259,11 +261,11 @@ def word_word_pmi_norm(tokens_list, sample_words, window_size=20): # , window_si
     num_window = len(windows)
     for key in word_pair_count:
         temp = key.split(',')
-        i = int(temp[0])
-        j = int(temp[1])
+        i = temp[0]
+        j = temp[1]
         count = word_pair_count[key]
-        word_freq_i = word_window_freq[vocab[i]]
-        word_freq_j = word_window_freq[vocab[j]]
+        word_freq_i = word_window_freq[i]
+        word_freq_j = word_window_freq[j]
         # https://towardsdatascience.com/word2vec-for-phrases-learning-embeddings-for-more-than-one-word-727b6cf723cf
         pmi = math.log((1.0 * count * num_window) / (1.0 * word_freq_i * word_freq_j)) 
         if pmi <= 0:
@@ -295,8 +297,8 @@ def doc_word_tfidf(tokens_list, sample_words):
         words = tokens_list[i]
         appeared = set()
         for word in words:
-            if word not in sample_words: 
-                continue
+            # if word not in sample_words: 
+                # continue
             if word in appeared:
                 continue
             if word in word_doc_list:
@@ -315,11 +317,12 @@ def doc_word_tfidf(tokens_list, sample_words):
     for doc_id in range(len(tokens_list)):
         words = tokens_list[doc_id]
         for word in words:
-            if word not in sample_words: 
-                continue
+            # if word not in sample_words: 
+                # continue
             # if word not in word_id_map:
             #     continue
-            word_id = word_id_map[word]
+            # word_id = word_id_map[word]
+            word_id = word
             doc_word_str = str(doc_id) + ',' + str(word_id)
             if doc_word_str in doc_word_freq:
                 doc_word_freq[doc_word_str] += 1
@@ -336,9 +339,10 @@ def doc_word_tfidf(tokens_list, sample_words):
                 continue
             # if word not in word_id_map:
             #     continue 
-            if word not in sample_words: 
-                continue
-            j = word_id_map[word]
+            # if word not in sample_words: 
+            #     continue
+            # j = word_id_map[word]
+            j = word
             key = str(i) + ',' + str(j)
             freq = doc_word_freq[key]
             idf = math.log(1.0 * len(tokens_list) / word_doc_freq[vocab[j]])
@@ -412,7 +416,8 @@ def topic_word_conn(sample_words,num_words=30):
             word_str = loaded_dict[word]
             if word_str in sample_words:
                 topic_node.append(topic_id)
-                word_node.append(word_id_map[word_str])
+                # word_node.append(word_id_map[word_str])
+                word_node.append(word_str)
                 weight.append(w)
     return topic_node, word_node, weight
 
@@ -442,7 +447,7 @@ for i,row in df.iterrows():
     if len(story_text_lists) < news_threshold:
         print(len(story_text_lists),'articles; skip')
         continue
- 
+
     # print(date,type(date),str(date))
     event_count_list = row['event_count_list'][:horizon] # event_count = row['event_count']
     event_count = {}
@@ -458,118 +463,92 @@ for i,row in df.iterrows():
             ys.append(0)
     ###########
     iii+=1
-    if iii < 438:
-        continue
-    # doc by day and combine
-    story_len_day = [] # [0,0,1,1,3,6]
-    num_nonzero_days = 0
-    story_text_lists_all = []
-    for day in range(len(story_list)): # 0,1,2,3,...window-1
-        story_ids_day = story_list[day]
-        if len(story_ids_day) <= 0:
-            story_len_day.append(0)
-            continue
-         
-        story_text_lists = news_df.loc[news_df['StoryID'].isin(story_ids_day)]['Text'].values
-        # print('story_text_lists',story_text_lists.shape)
-        if len(story_text_lists) <= 0:
-            story_len_day.append(0)
-            continue
-        num_nonzero_days += 1
-        story_len_day.append(len(story_text_lists))
-        story_text_lists_all += story_text_lists.tolist()
-
-    # print('# of stories =',len(story_text_lists_all))
-    doc_ids = [i for i in range(len(story_text_lists_all))]
-    tokens_list = clean_document_list(story_text_lists_all)
-    sample_words = list(set([item for sublist in tokens_list for item in sublist]))
-    if vocab_size > 0:
-        if len(sample_words) > vocab_size:
-            sample_words = get_topwords(tokens_list,vocab_size)
-    sample_words = [w for w in sample_words if w in vocab]
-    # print(sample_words)
-    words_in_curr_sample = [word_id_map[w] for w in sample_words] # [5,6,7,10,8,...]
-    words_in_curr_sample.sort()
-    vocab_graph_node_map = dict(zip(words_in_curr_sample,range(len(words_in_curr_sample))))
-
-    split_indices = np.cumsum(story_len_day)
-    story_text_lists_day = np.split(tokens_list,split_indices)
-    doc_ids_list_day = np.split(doc_ids, split_indices)
-
+    # if iii < 438:
+    #     continue
     ww_src, ww_dst, ww_time, ww_weight = [], [], [], []
     wd_src, wd_dst, wd_time, wd_weight = [], [], [], []
     wt_src, wt_dst, wt_time, wt_weight = [], [], [], []
     td_src, td_dst, td_time, td_weight = [], [], [], []
+    doc_id = 0
     graph_data = {}
-    for day_i in range(len(story_text_lists_day)-1):
-        # print(' - day ',day_i, '-')
-        tokens_list_day = story_text_lists_day[day_i]
-        if len(tokens_list_day) <= 0:
+    sample_words_list = []
+    for day_i in range(len(story_list)):
+        story_ids_day = story_list[day_i]
+        if len(story_ids_day) <= 0:
             continue
-        
-        sample_words_day = list(set([item for sublist in tokens_list_day for item in sublist]))
-        print('sample_words_day',len(sample_words_day),sample_words_day[:20])
-        sample_words_day = [w for w in sample_words_day if w in sample_words]  
-        print('sample_words_day 2 ',len(sample_words_day),sample_words_day) # less words and might be empty
-        doc_ids_day = doc_ids_list_day[day_i] # 0,1,2
-        docidx_id_map = dict(zip(range(len(tokens_list_day)),doc_ids_day))
-        print('docidx_id_map',docidx_id_map)
-
-        if len(tokens_list_day) == 1:
-            # print('-- only one article at day',day_i,'; equal weight')
-            # equal weight
-            words_in_curr_day = [word_id_map[w] for w in sample_words_day]
-            word_graph_node = [vocab_graph_node_map[v] for v in words_in_curr_day]
-            doc_node = [int(doc_ids_day[0])] * len(sample_words_day)
-            wd_src += word_graph_node 
+        story_text_lists = news_df.loc[news_df['StoryID'].isin(story_ids_day)]['Text'].values
+        if len(story_text_lists) <= 0:
+            # print('story_ids_day',len(story_ids_day),'story_text_lists',len(story_text_lists))
+            continue
+        tokens_list = clean_document_list(story_text_lists)
+        sample_words = list(set([item for sublist in tokens_list for item in sublist]))
+        if vocab_size > 0:
+            if len(sample_words) > vocab_size:
+                sample_words = get_topwords(tokens_list, vocab_size)
+        sample_words = [w for w in sample_words if w in vocab] 
+        sample_words_list += sample_words
+        # remove noise words
+        tokens_list_clean = []
+        for l in tokens_list:
+            tokens_list_clean.append([v for v in l if v in sample_words])
+        # [word - doc] if only one doc
+        if len(tokens_list) == 1:
+            doc_node  += [doc_id] * len(sample_words)
+            wd_src += sample_words 
             wd_dst += doc_node
-            wd_weight += [1.0/len(sample_words_day)] * len(sample_words_day)
+            wd_weight += [1.0/len(sample_words)] * len(sample_words)
             wd_time += [day_i*1.0]*len(doc_node)
         else:
-            # word - doc
-            doc_node, word_node, weight = doc_word_tfidf(tokens_list_day,sample_words_day)
-            doc_node = [docidx_id_map[v] for v in doc_node]
-            word_graph_node = [vocab_graph_node_map[v] for v in word_node]
-            wd_src += word_graph_node 
+            doc_node, word_node, weight = doc_word_tfidf(tokens_list_clean, sample_words)
+            doc_node = [v+doc_id for v in doc_node]
+            # word_graph_node = [vocab_graph_node_map[v] for v in word_node]
+            wd_src += word_node 
             wd_dst += doc_node
             wd_weight += weight
             wd_time += [day_i*1.0]*len(weight)
 
-        # word - word
-        word_i, word_j, weight = word_word_pmi_norm(tokens_list_day, sample_words_day, window_size=20)
-        word_graph_node_i = [vocab_graph_node_map[v] for v in word_i]
-        word_graph_node_j = [vocab_graph_node_map[v] for v in word_j]
-        ww_src += word_graph_node_i
-        ww_dst += word_graph_node_j
+        # [word - word]
+        word_i, word_j, weight = word_word_pmi_norm(tokens_list_clean, sample_words, window_size=20)
+        # word_graph_node_i = [vocab_graph_node_map[v] for v in word_i]
+        # word_graph_node_j = [vocab_graph_node_map[v] for v in word_j]
+        ww_src += word_i
+        ww_dst += word_j
         ww_weight += weight
         ww_time += [day_i*1.0]*len(weight)
 
-        # topic - doc
-        doc_node, topic_node, weight = doc_topic_dist(tokens_list_day)
-        doc_node = [docidx_id_map[v] for v in doc_node]
+
+        # [topic - doc]
+        doc_node, topic_node, weight = doc_topic_dist(tokens_list)
+        doc_node = [v+doc_id for v in doc_node]
         td_src += topic_node
         td_dst += doc_node
         td_weight += weight
         td_time += [day_i*1.0]*len(weight)
-        
- 
+
         # word - topic
-        topic_node, word_node, weight = topic_word_conn(sample_words_day,num_words=30) #need check words existed in topics
+        topic_node, word_node, weight = topic_word_conn(sample_words,num_words=30) #need check words existed in topics
         # print('# word nodes',len(set(word_node)),len(set(topic_node)))
-        word_graph_node = [vocab_graph_node_map[v] for v in word_node]
-        wt_src += word_graph_node
+        # word_graph_node = [vocab_graph_node_map[v] for v in word_node]
+        wt_src += word_node
         wt_dst += topic_node
         wt_weight += weight
         wt_time += [day_i*1.0]*len(weight)
 
-    # save current graph and combine for all timetseps  
-    # print(torch.tensor(ww_src).shape,'torch.tensor(ww_src)')
+    complete_sample_words = list(set(complete_sample_words))
+    print('total vocab',len(complete_sample_words))
+    words_in_curr_sample = [word_id_map[w] for w in complete_sample_words] # [5,6,7,10,8,...]
+    words_in_curr_sample.sort()
+    vocab_graph_node_map = dict(zip(words_in_curr_sample,range(len(words_in_curr_sample))))
+    wt_src = [vocab_graph_node_map[v] for v in wt_src]
+    wt_dst = [vocab_graph_node_map[v] for v in wt_dst]
+
     ww_src = torch.tensor(ww_src).view(-1)
     ww_dst = torch.tensor(ww_dst).view(-1)
     graph_data[('word','ww','word')] = (ww_src, ww_dst)
     ww_time = torch.tensor(ww_time).view(-1)
     ww_weight = torch.tensor(ww_weight).view(-1).float()
 
+    wd_src = [vocab_graph_node_map[v] for v in wd_src]
     wd_src = torch.tensor(wd_src).view(-1)
     wd_dst = torch.tensor(wd_dst).view(-1)
     graph_data[('word','wd','doc')] = (wd_src, wd_dst)
@@ -584,11 +563,13 @@ for i,row in df.iterrows():
 
     graph_data[('topic','tt','topic')] = (torch.tensor(topic_i),torch.tensor(topic_j))
     
+    wt_src = [vocab_graph_node_map[v] for v in wt_src]
     wt_src = torch.tensor(wt_src).view(-1)
     wt_dst = torch.tensor(wt_dst).view(-1)
     graph_data[('word','wt','topic')] = (wt_src, wt_dst)
     wt_time = torch.tensor(wt_time).view(-1)
     wt_weight = torch.tensor(wt_weight).view(-1).float()
+
 
     g = dgl.heterograph(graph_data)
     # g.nodes['word'].data['id'] = torch.from_numpy(vocab_ids).long()
