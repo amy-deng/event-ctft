@@ -442,17 +442,7 @@ for i,row in df.iterrows():
     if len(story_text_lists) < news_threshold:
         print(len(story_text_lists),'articles; skip')
         continue
-
-    # day_has_data = 0
-    # story_list = row['story_list'][-window:]
-    # n_doc = 0
-    # for v in story_list:
-    #     if len(v) > 0:
-    #         day_has_data += 1
-    #     n_doc += len(v)
-    # if day_has_data < his_days_threshold or n_doc <= 5:  
-    #     continue
-    
+ 
     # print(date,type(date),str(date))
     event_count_list = row['event_count_list'][:horizon] # event_count = row['event_count']
     event_count = {}
@@ -519,7 +509,7 @@ for i,row in df.iterrows():
         docidx_id_map = dict(zip(range(len(tokens_list_day)),doc_ids_day))
 
         if len(tokens_list_day) == 1:
-            print('-- only one article at day',day_i,'; equal weight')
+            # print('-- only one article at day',day_i,'; equal weight')
             # equal weight
             words_in_curr_day = [word_id_map[w] for w in sample_words_day]
             word_graph_node = [vocab_graph_node_map[v] for v in words_in_curr_day]
