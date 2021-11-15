@@ -416,7 +416,7 @@ for i,row in df.iterrows():
                 # print('TFIDF - ',sample_words[:50])
                 sample_words = get_topwords(tokens_list, vocab_size, False)
                 # print(' --- filted',len(sample_words))
-                # print('TF - ',sample_words[:50])
+                print('TF - ',sample_words[:50])
         num_nonzero_days += 1
         sample_words = [w for w in sample_words if w in vocab] 
         print(day_i, 'sample_words',len(sample_words))
@@ -428,7 +428,7 @@ for i,row in df.iterrows():
             tokens_list_clean.append([v for v in l if v in sample_words])
         # [word - doc] if only one doc
         if len(tokens_list) == 1:
-            doc_node  += [doc_id] * len(sample_words)
+            doc_node = [doc_id] * len(sample_words)
             wd_src += sample_words 
             wd_dst += doc_node
             wd_weight += [1.0/len(sample_words)] * len(sample_words)
