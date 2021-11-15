@@ -457,6 +457,9 @@ for i,row in df.iterrows():
         else:
             ys.append(0)
     ###########
+    iii+=1
+    if iii < 438:
+        continue
     # doc by day and combine
     story_len_day = [] # [0,0,1,1,3,6]
     num_nonzero_days = 0
@@ -499,14 +502,18 @@ for i,row in df.iterrows():
     td_src, td_dst, td_time, td_weight = [], [], [], []
     graph_data = {}
     for day_i in range(len(story_text_lists_day)-1):
-        # print(' - day ',day_i, '-')
+        print(' - day ',day_i, '-')
         tokens_list_day = story_text_lists_day[day_i]
         if len(tokens_list_day) <= 0:
             continue
+        
         sample_words_day = list(set([item for sublist in tokens_list_day for item in sublist]))
+        print('sample_words_day',len(sample_words_day),sample_words_day[:20])
         sample_words_day = [w for w in sample_words_day if w in sample_words]  
+        print('sample_words_day 2 ',len(sample_words_day),sample_words_day)
         doc_ids_day = doc_ids_list_day[day_i] # 0,1,2
         docidx_id_map = dict(zip(range(len(tokens_list_day)),doc_ids_day))
+        print('docidx_id_map',docidx_id_map)
 
         if len(tokens_list_day) == 1:
             # print('-- only one article at day',day_i,'; equal weight')
@@ -613,7 +620,7 @@ for i,row in df.iterrows():
     y_list.append(ys)  
     city_list.append(city)
     date_list.append(date)
-    iii+=1
+    
     print('iii={} \t {} \t {} \t {} day_has_data \t  {} vocab {} doc {}'.format(iii,date,city,num_nonzero_days,time.ctime(),len(sample_words),len(tokens_list)))
     # if iii >= 3:
     #     break
