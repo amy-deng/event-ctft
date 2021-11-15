@@ -69,7 +69,7 @@ print(outf)
 
 start_date = '{}-01-01'.format(start_year)
 if stop_year == '2017':
-    stop_date = '{}-01-16'.format(stop_year)
+    stop_date = '{}-03-20'.format(stop_year)
 else:
     stop_date = '{}-01-01'.format(stop_year)
 

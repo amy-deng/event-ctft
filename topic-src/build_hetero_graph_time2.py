@@ -69,7 +69,7 @@ print(outf)
 
 start_date = '{}-01-01'.format(start_year)
 if stop_year == '2017':
-    stop_date = '{}-01-16'.format(stop_year)
+    stop_date = '{}-03-20'.format(stop_year)
 else:
     stop_date = '{}-01-01'.format(stop_year)
 
@@ -402,9 +402,9 @@ for i,row in df.iterrows():
     num_nonzero_days = 0
     num_doc_total = 0
     num_vocab_day = []
-    approx_num_docs = len(story_text_lists)
-    approx_vocab_per_doc = int(vocab_size/approx_num_docs)
-    print('approx_num_docs =',approx_num_docs,'approx_vocab_per_doc =',approx_vocab_per_doc)
+    # approx_num_docs = len(story_text_lists)
+    # approx_vocab_per_doc = int(vocab_size/approx_num_docs)
+    # print('approx_num_docs =',approx_num_docs,'approx_vocab_per_doc =',approx_vocab_per_doc)
 
     for day_i in range(len(story_list)):
         story_ids_day = story_list[day_i]
@@ -419,8 +419,8 @@ for i,row in df.iterrows():
         if len(sample_words) <= 5:
             continue
         if vocab_size > 0:
-            print(approx_vocab_per_doc * len(tokens_list),'vocav now')
-            if len(sample_words) > approx_vocab_per_doc * len(tokens_list):
+            # print(approx_vocab_per_doc * len(tokens_list),'vocav now')
+            if len(sample_words) > vocab_size:
                 # sample_words = get_topwords(tokens_list, vocab_size)
                 # print('TFIDF - ',sample_words[:50])
                 sample_words = get_topwords(tokens_list, vocab_size, False)
