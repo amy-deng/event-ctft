@@ -476,7 +476,7 @@ for i,row in df.iterrows():
         story_len_day.append(len(story_text_lists))
         story_text_lists_all += story_text_lists.tolist()
 
-    print('# of stories =',len(story_text_lists_all))
+    # print('# of stories =',len(story_text_lists_all))
     doc_ids = [i for i in range(len(story_text_lists_all))]
     tokens_list = clean_document_list(story_text_lists_all)
     sample_words = list(set([item for sublist in tokens_list for item in sublist]))
