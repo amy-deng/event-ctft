@@ -485,6 +485,7 @@ for i,row in df.iterrows():
         if vocab_size > 0:
             if len(sample_words) > vocab_size:
                 sample_words = get_topwords(tokens_list, vocab_size)
+            print(' --- filted',len(sample_words))
         sample_words = [w for w in sample_words if w in vocab] 
         print(day_i, 'sample_words',len(sample_words))
         sample_words_list += sample_words
@@ -535,7 +536,7 @@ for i,row in df.iterrows():
         wt_weight += weight
         wt_time += [day_i*1.0]*len(weight)
 
-    complete_sample_words = list(set(complete_sample_words))
+    complete_sample_words = list(set(sample_words_list))
     print('total vocab',len(complete_sample_words))
     words_in_curr_sample = [word_id_map[w] for w in complete_sample_words] # [5,6,7,10,8,...]
     words_in_curr_sample.sort()
