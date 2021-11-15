@@ -571,6 +571,7 @@ for i,row in df.iterrows():
         # edge_tw = torch.tensor(weight)
 
     # save current graph and combine for all timetseps  
+    print(torch.tensor(ww_src).shape,'torch.tensor(ww_src)')
     ww_src = torch.tensor(ww_src).view(-1)
     ww_dst = torch.tensor(ww_dst).view(-1)
     graph_data[('word','ww','word')] = (ww_src, ww_dst)
