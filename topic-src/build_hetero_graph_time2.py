@@ -472,6 +472,7 @@ for i,row in df.iterrows():
     doc_id = 0
     graph_data = {}
     sample_words_list = []
+    num_nonzero_days = 0
     for day_i in range(len(story_list)):
         story_ids_day = story_list[day_i]
         if len(story_ids_day) <= 0:
@@ -480,6 +481,7 @@ for i,row in df.iterrows():
         if len(story_text_lists) <= 0:
             # print('story_ids_day',len(story_ids_day),'story_text_lists',len(story_text_lists))
             continue
+        num_nonzero_days += 1
         tokens_list = clean_document_list(story_text_lists)
         sample_words = list(set([item for sublist in tokens_list for item in sublist]))
         if vocab_size > 0:
@@ -546,6 +548,7 @@ for i,row in df.iterrows():
     vocab_graph_node_map = dict(zip(complete_sample_words,range(len(words_in_curr_sample))))
     # print(vocab_graph_node_map,'vocab_graph_node_map')
     print(ww_src[:50],'ww_src')
+    print(ww_dst[:50],'ww_dst')
     ww_src = [vocab_graph_node_map[v] for v in ww_src]
     ww_dst = [vocab_graph_node_map[v] for v in ww_dst]
     ww_src = torch.tensor(ww_src).view(-1)
