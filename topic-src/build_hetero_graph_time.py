@@ -628,6 +628,7 @@ for i,row in df.iterrows():
     y_list.append(ys)  
     city_list.append(city)
     date_list.append(date)
+    iii+=1
     print('iii={} \t {} \t {} \t {} day_has_data \t  {} vocab {} doc {}'.format(iii,date,city,num_nonzero_days,time.ctime(),len(sample_words),len(tokens_list)))
     if iii >= 10:
         break
