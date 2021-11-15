@@ -20,7 +20,7 @@ from numpy import linalg
 ### testing
  
 '''
-python build_hetero_graph_static3.py /home/sdeng/data/icews/detailed_event_json/THA_2010_w21h7_city.json ../data THA_50 /home/sdeng/data/icews/corpus/ngrams/THA_1gram_tfidf.txt 15000 7 7 6 2014 2015
+python build_hetero_graph_time.py /home/sdeng/data/icews/detailed_event_json/THA_2010_w21h14_city.json ../data THA_50 /home/sdeng/data/icews/corpus/ngrams/THA_1gram_tfidf.txt 15000 7 7 7 2017 2017 1000 
 '''
 try:
     event_path = sys.argv[1] # /home/sdeng/data/icews/detailed_event_json/THA_2010_w21h7_city.json
@@ -478,12 +478,13 @@ for i,row in df.iterrows():
             continue
          
         story_text_lists = news_df.loc[news_df['StoryID'].isin(story_ids_day)]['Text'].values
+        print('story_text_lists',story_text_lists.shape)
         if len(story_text_lists) <= 0:
             story_len_day.append(0)
             continue
         num_nonzero_days += 1
         story_len_day.append(len(story_text_lists))
-        story_text_lists_all += story_text_lists
+        story_text_lists_all += story_text_lists.tolist()
 
     print('# of stories =',len(story_text_lists_all))
     doc_ids = [i for i in range(len(story_text_lists_all))]
@@ -627,49 +628,6 @@ for i,row in df.iterrows():
     date_list.append(date)
     print('iii={} \t {} \t {} \t {} day_has_data \t  {} vocab {} doc {}'.format(iii,date,city,num_nonzero_days,time.ctime(),len(sample_words),len(tokens_list)))
  
-
-
-    ###########
-    g_list = []
-    iii+=1 
-    tokens_list = clean_document_list(story_text_lists)
-    # tokens_list, sent_token_list = document_sent_tokenize(story_text_lists)
-    # words appeared in this example
-    sample_words = list(set([item for sublist in tokens_list for item in sublist]))
-    if vocab_size > 0:
-        if len(sample_words) > vocab_size:
-            sample_words = get_topwords(tokens_list,vocab_size)
-    sample_words = [w for w in sample_words if w in vocab]
-    # print(sample_words)
-    words_in_curr_sample = [word_id_map[w] for w in sample_words] # [5,6,7,10,8,...]
-    words_in_curr_sample.sort()
-    vocab_graph_node_map = dict(zip(words_in_curr_sample,range(len(words_in_curr_sample)))) # word id : real index
-    
-    g_list = []
-    for day in range(len(story_list)): # 0,1,2,3,...window-1
-        story_ids_day = story_list[day]
-        if len(story_ids_day) <= 0:
-            # how to deal with it
-            continue
-        story_text_lists = news_df.loc[news_df['StoryID'].isin(story_ids_day)]['Text'].values
-        if len(story_text_lists) <= 0:
-            # print('story_ids_day',len(story_ids_day),'story_text_lists',len(story_text_lists))
-            continue
-        tokens_list, sent_token_list = document_sent_tokenize(story_text_lists)
-        sample_words_day = list(set([item for sublist in tokens_list for item in sublist]))
-        sample_words_day = [w for w in sample_words_day if w in sample_words]  
-
-        # words_in_curr_sample = [word_id_map[w] for w in sample_words] # [5,6,7,10,8,...]
-        # words_in_curr_sample.sort()
-        # vocab_graph_node_map = dict(zip(words_in_curr_sample,range(len(words_in_curr_sample)))) # word id : real index
-    
-        doc_node, word_node, weight = doc_word_tfidf(tokens_list,sample_words_day) # if only one doc TODO
-        word_graph_node = [vocab_graph_node_map[v] for v in word_node]
-        # graph_data[('doc','dw','word')]=(torch.tensor(doc_node),torch.tensor(word_graph_node))
-        graph_data[('word','wd','doc')]=(torch.tensor(word_graph_node),torch.tensor(doc_node))
-
-        edge_dw = torch.tensor(weight)
-
 
 
 
