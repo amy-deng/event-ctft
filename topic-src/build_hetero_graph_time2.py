@@ -488,6 +488,7 @@ for i,row in df.iterrows():
                 print(' --- filted',len(sample_words))
         sample_words = [w for w in sample_words if w in vocab] 
         print(day_i, 'sample_words',len(sample_words))
+        print('doc_id =',doc_id)
         sample_words_list += sample_words
         # remove noise words
         tokens_list_clean = []
@@ -536,12 +537,14 @@ for i,row in df.iterrows():
         wt_weight += weight
         wt_time += [day_i*1.0]*len(weight)
 
+        doc_id += len(tokens_list)
+
     complete_sample_words = list(set(sample_words_list))
     print('total vocab',len(complete_sample_words))
     words_in_curr_sample = [word_id_map[w] for w in complete_sample_words] # [5,6,7,10,8,...]
     # words_in_curr_sample.sort()
     vocab_graph_node_map = dict(zip(complete_sample_words,range(len(words_in_curr_sample))))
-    print(vocab_graph_node_map,'vocab_graph_node_map')
+    # print(vocab_graph_node_map,'vocab_graph_node_map')
     print(ww_src[:50],'ww_src')
     ww_src = [vocab_graph_node_map[v] for v in ww_src]
     ww_dst = [vocab_graph_node_map[v] for v in ww_dst]
