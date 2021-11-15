@@ -62,14 +62,14 @@ vocab = vocab[:top_k_ngram]
 print('vocab loaded',len(vocab))
 
 if vocab_size > 0:
-    outf = dataset_path + '/hetero_{}-{}_{}.pkl'.format(start_year,stop_year,vocab_size)
+    outf = dataset_path + '/static_{}-{}_{}.pkl'.format(start_year,stop_year,vocab_size)
 else:
-    outf = dataset_path + '/hetero_{}-{}.pkl'.format(start_year,stop_year)
+    outf = dataset_path + '/static_{}-{}.pkl'.format(start_year,stop_year)
 print(outf)
 
 start_date = '{}-01-01'.format(start_year)
 if stop_year == '2017':
-    stop_date = '{}-03-26'.format(stop_year)
+    stop_date = '{}-01-06'.format(stop_year)
 else:
     stop_date = '{}-01-01'.format(stop_year)
 

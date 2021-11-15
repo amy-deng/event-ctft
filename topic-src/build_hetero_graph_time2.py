@@ -62,14 +62,14 @@ vocab = vocab[:top_k_ngram]
 print('vocab loaded',len(vocab))
 
 if vocab_size > 0:
-    outf = dataset_path + '/hetero_temp_{}-{}_{}.pkl'.format(start_year,stop_year,vocab_size)
+    outf = dataset_path + '/dynamic_{}-{}_{}.pkl'.format(start_year,stop_year,vocab_size)
 else:
-    outf = dataset_path + '/hetero_temp_{}-{}.pkl'.format(start_year,stop_year)
+    outf = dataset_path + '/dynamic_{}-{}.pkl'.format(start_year,stop_year)
 print(outf)
 
 start_date = '{}-01-01'.format(start_year)
 if stop_year == '2017':
-    stop_date = '{}-03-26'.format(stop_year)
+    stop_date = '{}-01-06'.format(stop_year)
 else:
     stop_date = '{}-01-01'.format(stop_year)
 
@@ -448,8 +448,6 @@ for i,row in df.iterrows():
 
         # [word - word]
         word_i, word_j, weight = word_word_pmi_norm(tokens_list_clean, sample_words, window_size=20)
-        # word_graph_node_i = [vocab_graph_node_map[v] for v in word_i]
-        # word_graph_node_j = [vocab_graph_node_map[v] for v in word_j]
         ww_src += word_i
         ww_dst += word_j
         ww_weight += weight
@@ -466,8 +464,6 @@ for i,row in df.iterrows():
 
         # word - topic
         topic_node, word_node, weight = topic_word_conn(sample_words,num_words=30) #need check words existed in topics
-        # print('# word nodes',len(set(word_node)),len(set(topic_node)))
-        # word_graph_node = [vocab_graph_node_map[v] for v in word_node]
         wt_src += word_node
         wt_dst += topic_node
         wt_weight += weight
