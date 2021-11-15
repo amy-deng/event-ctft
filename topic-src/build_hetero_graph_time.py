@@ -478,7 +478,7 @@ for i,row in df.iterrows():
             continue
          
         story_text_lists = news_df.loc[news_df['StoryID'].isin(story_ids_day)]['Text'].values
-        print('story_text_lists',story_text_lists.shape)
+        # print('story_text_lists',story_text_lists.shape)
         if len(story_text_lists) <= 0:
             story_len_day.append(0)
             continue
@@ -629,7 +629,8 @@ for i,row in df.iterrows():
     city_list.append(city)
     date_list.append(date)
     print('iii={} \t {} \t {} \t {} day_has_data \t  {} vocab {} doc {}'.format(iii,date,city,num_nonzero_days,time.ctime(),len(sample_words),len(tokens_list)))
- 
+    if iii >= 10:
+        break
 
 
 
