@@ -526,10 +526,10 @@ for i,row in df.iterrows():
             # doc_node TODO
             doc_node = [docidx_id_map[v] for v in doc_node]
             word_graph_node = [vocab_graph_node_map[v] for v in word_node]
-            wd_src.append(word_graph_node)
-            wd_dst.append(doc_node)
-            wd_weight.append(weight)
-            wd_time.append([day_i*1.0]*len(weight))
+            wd_src += word_graph_node 
+            wd_dst += doc_node
+            wd_weight += weight
+            wd_time += [day_i*1.0]*len(weight)
             # graph_data[('doc','dw','word')]=(torch.tensor(doc_node),torch.tensor(word_graph_node))
             # graph_data[('word','wd','doc')]=(torch.tensor(word_graph_node),torch.tensor(doc_node))
             # edge_dw = torch.tensor(weight) # day_i
@@ -538,20 +538,20 @@ for i,row in df.iterrows():
         word_i, word_j, weight = word_word_pmi_norm(tokens_list_day, sample_words_day, window_size=20)
         word_graph_node_i = [vocab_graph_node_map[v] for v in word_i]
         word_graph_node_j = [vocab_graph_node_map[v] for v in word_j]
-        ww_src.append(word_graph_node_i)
-        ww_dst.append(word_graph_node_j)
-        ww_weight.append(weight)
-        ww_time.append([day_i*1.0]*len(weight))
+        ww_src += word_graph_node_i
+        ww_dst += word_graph_node_j
+        ww_weight += weight
+        ww_time += [day_i*1.0]*len(weight)
         # graph_data[('word','ww','word')]=(torch.tensor(word_graph_node_i),torch.tensor(word_graph_node_j))
         # edge_ww = torch.tensor(weight)
 
         # topic - doc
         doc_node, topic_node, weight = doc_topic_dist(tokens_list_day)
         doc_node = [docidx_id_map[v] for v in doc_node]
-        td_src.append(topic_node)
-        td_dst.append(doc_node)
-        td_weight.append(weight)
-        td_time.append([day_i*1.0]*len(weight))
+        td_src += topic_node
+        td_dst += doc_node
+        td_weight += weight
+        td_time += [day_i*1.0]*len(weight)
         # print('# topic nodes',len(set(topic_node)),len(set(doc_node)))
         # graph_data[('doc','dt','topic')]=(torch.tensor(doc_node),torch.tensor(topic_node))
         # graph_data[('topic','td','doc')]=(torch.tensor(topic_node),torch.tensor(doc_node))
@@ -562,16 +562,16 @@ for i,row in df.iterrows():
         topic_node, word_node, weight = topic_word_conn(sample_words_day,num_words=30) #need check words existed in topics
         # print('# word nodes',len(set(word_node)),len(set(topic_node)))
         word_graph_node = [vocab_graph_node_map[v] for v in word_node]
-        wt_src.append(word_graph_node)
-        wt_dst.append(topic_node)
-        wt_weight.append(weight)
-        wt_time.append([day_i*1.0]*len(weight))
+        wt_src += word_graph_node
+        wt_dst += topic_node
+        wt_weight += weight
+        wt_time += [day_i*1.0]*len(weight)
         # graph_data[('topic','tw','word')]=(torch.tensor(topic_node),torch.tensor(word_graph_node))
         # graph_data[('word','wt','topic')]=(torch.tensor(word_graph_node),torch.tensor(topic_node))
         # edge_tw = torch.tensor(weight)
 
     # save current graph and combine for all timetseps  
-    print(torch.tensor(ww_src).shape,'torch.tensor(ww_src)')
+    # print(torch.tensor(ww_src).shape,'torch.tensor(ww_src)')
     ww_src = torch.tensor(ww_src).view(-1)
     ww_dst = torch.tensor(ww_dst).view(-1)
     graph_data[('word','ww','word')] = (ww_src, ww_dst)
