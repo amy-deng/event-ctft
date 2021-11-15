@@ -62,14 +62,21 @@ vocab = vocab[:top_k_ngram]
 print('vocab loaded',len(vocab))
 
 if vocab_size > 0:
-    outf = dataset_path + '/dynamic_tf_{}-{}_{}.pkl'.format(start_year,stop_year,vocab_size)
+    outf_dynamic = dataset_path + '/dynamic_tf_{}-{}_{}.pkl'.format(start_year,stop_year,vocab_size)
+    outf_static = dataset_path + '/static_tf_{}-{}_{}.pkl'.format(start_year,stop_year,vocab_size)
+    outf_attr =  dataset_path + '/attr_tf_{}-{}_{}.pkl'.format(start_year,stop_year,vocab_size)
 else:
-    outf = dataset_path + '/dynamic_tf_{}-{}.pkl'.format(start_year,stop_year)
-print(outf)
+    outf_dynamic = dataset_path + '/dynamic_tf_{}-{}.pkl'.format(start_year,stop_year)
+    outf_static = dataset_path + '/static_tf_{}-{}.pkl'.format(start_year,stop_year)
+    outf_attr =  dataset_path + '/attr_tf_{}-{}.pkl'.format(start_year,stop_year)
+
+print(outf_dynamic)
+print(outf_static)
 
 start_date = '{}-01-01'.format(start_year)
 if stop_year == '2017':
-    stop_date = '{}-03-20'.format(stop_year)
+    # stop_date = '{}-03-20'.format(stop_year)
+    stop_date = '{}-01-12'.format(stop_year)
 else:
     stop_date = '{}-01-01'.format(stop_year)
 
@@ -77,13 +84,6 @@ word_id_map = {}
 for i in range(len(vocab)):
     word_id_map[vocab[i]] = i
 
-# 2017-01-01
-splitted_date_lists = [
-    '2010-07-01',
-    '2011-01-01','2011-07-01','2012-01-01','2012-07-01','2013-01-01','2013-07-01',
-    '2014-01-01','2014-07-01','2015-01-01','2015-07-01','2016-01-01','2016-07-01',
-    '2017-01-01','2017-07-01'
-]
  
 # https://github.com/dmlc/dgl/blob/ddc2faa547da03e0b791648677ed06ce1daf3e0d/examples/pytorch/gcn/gcn_spmv.py
 def norm_edges(g,ntype,etype):
@@ -124,11 +124,6 @@ def word_word_pmi_norm(tokens_list, sample_words, window_size=20): # , window_si
     '''
     tokens_list = [['thailand', 'district', 'injury', 'reported', 'explosion', 'damaged'],['thailand','bomb', 'patrolman']]
     '''
-
-    # unique_tokens_list = []
-    # for l in tokens_list:
-    #     unique_tokens_list.append(list(set(l)))# unique
-
     windows = [] # get all moving windows
     for tokens in tokens_list:
         length = len(tokens)
@@ -217,7 +212,6 @@ def word_word_pmi_norm(tokens_list, sample_words, window_size=20): # , window_si
     return row, col, weight
    
 def doc_word_tfidf(tokens_list, sample_words):
-    
     word_doc_list = {} # document frequency DF
     for i in range(len(tokens_list)):
         words = tokens_list[i]
@@ -348,7 +342,7 @@ def topic_word_conn(sample_words,num_words=30):
 
 # news_threshold=3
 num_sample, num_pos_sample = 0, 0
-all_g_list, y_list, city_list, date_list = [], [], [], []
+all_static_g_list, all_dynamic_g_list, y_list, city_list, date_list = [], [], [], []
 
 iii=0
 # topic---topic
@@ -360,18 +354,16 @@ for i,row in df.iterrows():
     date = str(row['date'])[:10]
     if date < start_date or date >= stop_date: #<2015-01-01 or >= 2017-01-01]
         continue
-
     # total num of news
     story_list = row['story_list'][-window:]
     story_list_flatten = list(set([item for sublist in story_list for item in sublist]))
-    if len(story_list_flatten) < news_threshold:
+    if len(story_list_flatten) <= news_threshold:
         print(len(story_list_flatten),'articles; first skip')
         continue
-    story_text_lists = news_df.loc[news_df['StoryID'].isin(story_list_flatten)]['Text'].values
-    if len(story_text_lists) < news_threshold:
-        print(len(story_text_lists),'articles; skip')
-        continue
- 
+    # story_text_lists = news_df.loc[news_df['StoryID'].isin(story_list_flatten)]['Text'].values
+    # if len(story_text_lists) < news_threshold:
+    #     print(len(story_text_lists),'articles; skip')
+    #     continue
     # print(date,type(date),str(date))
     event_count_list = row['event_count_list'][:horizon] # event_count = row['event_count']
     event_count = {}
@@ -385,10 +377,9 @@ for i,row in df.iterrows():
             ys.append(1)
         else:
             ys.append(0)
+
     ###########
     iii+=1
-    # if iii < 438:
-    #     continue
     # doc by day and combine
     story_len_day = [] # [0,0,1,1,3,6]
     num_nonzero_days = 0
@@ -409,7 +400,7 @@ for i,row in df.iterrows():
         story_text_lists_all += story_text_lists.tolist()
 
     # print('# of stories =',len(story_text_lists_all))
-    doc_ids = [i for i in range(len(story_text_lists_all))]
+    # doc_ids = [i for i in range(len(story_text_lists_all))]
     tokens_list = clean_document_list(story_text_lists_all)
     sample_words = list(set([item for sublist in tokens_list for item in sublist]))
     if vocab_size > 0:
@@ -419,16 +410,62 @@ for i,row in df.iterrows():
     # print(sample_words)
     words_in_curr_sample = [word_id_map[w] for w in sample_words] # [5,6,7,10,8,...]
     vocab_graph_node_map = dict(zip(sample_words,range(len(words_in_curr_sample))))
+    
+    '''static graph'''
+    graph_data = {}
+    tokens_list_clean = []
+    for l in tokens_list:
+        tokens_list_clean.append([v for v in l if v in sample_words])
+    
+    # doc---word
+    doc_node, word_node, weight = doc_word_tfidf(tokens_list_clean,sample_words)
+    word_graph_node = [vocab_graph_node_map[v] for v in word_node]
+    graph_data[('word','wd','doc')]=(torch.tensor(word_graph_node),torch.tensor(doc_node))
+    edge_dw = torch.tensor(weight)
 
+    # word---word
+    word_i, word_j, weight = word_word_pmi_norm(tokens_list_clean, sample_words, window_size=20)
+    word_graph_node_i = [vocab_graph_node_map[v] for v in word_i]
+    word_graph_node_j = [vocab_graph_node_map[v] for v in word_j]
+    graph_data[('word','ww','word')]=(torch.tensor(word_graph_node_i),torch.tensor(word_graph_node_j))
+    edge_ww = torch.tensor(weight)
+
+    # doc---topic
+    doc_node, topic_node, weight = doc_topic_dist(tokens_list)
+    graph_data[('topic','td','doc')]=(torch.tensor(topic_node),torch.tensor(doc_node))
+    edge_dt = torch.tensor(weight)
+     
+    graph_data[('topic','tt','topic')]=(torch.tensor(topic_i),torch.tensor(topic_j))
+    # topic---word
+    topic_node, word_node, weight = topic_word_conn(sample_words,num_words=30) #need check words existed in topics
+    word_graph_node = [vocab_graph_node_map[v] for v in word_node]
+    graph_data[('word','wt','topic')]=(torch.tensor(word_graph_node),torch.tensor(topic_node))
+    edge_tw = torch.tensor(weight)
+     
+    g = dgl.heterograph(graph_data)
+    g.nodes['word'].data['id'] = torch.tensor(words_in_curr_sample).long()
+    g.nodes['topic'].data['id'] = g.nodes('topic').long()
+    g.edges['ww'].data['weight'] = edge_ww
+    g.edges['wd'].data['weight'] = edge_dw
+    g.edges['td'].data['weight'] = edge_dt
+    g.edges['tt'].data['weight'] = edge_tt
+    g.edges['wt'].data['weight'] = edge_tw
+    norm_edges(g,ntype='word',etype='ww')
+    norm_edges(g,ntype='topic',etype='tt') 
+    all_static_g_list.append(g)
+
+    '''dynamic graph'''
+
+    graph_data = {}
     split_indices = np.cumsum(story_len_day)
-    story_text_lists_day = np.split(tokens_list,split_indices)
-    doc_ids_list_day = np.split(doc_ids, split_indices)
+    story_text_lists_day = np.split(tokens_list, split_indices)
+    # doc_ids_list_day = np.split(doc_ids, split_indices)
 
     ww_src, ww_dst, ww_time, ww_weight = [], [], [], []
     wd_src, wd_dst, wd_time, wd_weight = [], [], [], []
     wt_src, wt_dst, wt_time, wt_weight = [], [], [], []
     td_src, td_dst, td_time, td_weight = [], [], [], []
-    graph_data = {}
+    
     doc_id = 0
     for day_i in range(len(story_text_lists_day)-1):
         # print(' - day ',day_i, '-')
@@ -456,7 +493,6 @@ for i,row in df.iterrows():
         else:
             doc_node, word_node, weight = doc_word_tfidf(tokens_list_clean, sample_words_day)
             doc_node = [v+doc_id for v in doc_node]
-            # word_graph_node = [vocab_graph_node_map[v] for v in word_node]
             wd_src += word_node 
             wd_dst += doc_node
             wd_weight += weight
@@ -493,7 +529,6 @@ for i,row in df.iterrows():
     graph_data[('word','ww','word')] = (ww_src, ww_dst)
     ww_time = torch.tensor(ww_time).view(-1)
     ww_weight = torch.tensor(ww_weight).view(-1).float()
-    # print(ww_src.shape,ww_dst.shape,'word word')
 
     wd_src = [vocab_graph_node_map[v] for v in wd_src]
     wd_src = torch.tensor(wd_src).view(-1)
@@ -501,14 +536,12 @@ for i,row in df.iterrows():
     graph_data[('word','wd','doc')] = (wd_src, wd_dst)
     wd_time = torch.tensor(wd_time).view(-1)
     wd_weight = torch.tensor(wd_weight).view(-1).float()
-    # print(wd_src.shape,wd_dst.shape,'word doc')
 
     td_src = torch.tensor(td_src).view(-1)
     td_dst = torch.tensor(td_dst).view(-1)
     graph_data[('topic','td','doc')] = (td_src, td_dst)
     td_time = torch.tensor(td_time).view(-1)
     td_weight = torch.tensor(td_weight).view(-1).float()
-    # print(td_src.shape,td_dst.shape,'topic doc')
 
     graph_data[('topic','tt','topic')] = (torch.tensor(topic_i),torch.tensor(topic_j))
     
@@ -518,7 +551,6 @@ for i,row in df.iterrows():
     graph_data[('word','wt','topic')] = (wt_src, wt_dst)
     wt_time = torch.tensor(wt_time).view(-1)
     wt_weight = torch.tensor(wt_weight).view(-1).float()
-    # print(wt_src.shape,wt_dst.shape,'word topic')
 
     g = dgl.heterograph(graph_data)
     # g.nodes['word'].data['id'] = torch.from_numpy(vocab_ids).long()
@@ -541,8 +573,8 @@ for i,row in df.iterrows():
     #     g.ids[id] = idx
     #     idx += 1
     # print(g)
-    # g_list.append(g) 
-    all_g_list.append(g)
+    all_dynamic_g_list.append(g)
+
     y_list.append(ys)  
     city_list.append(city)
     date_list.append(date)
@@ -551,13 +583,22 @@ for i,row in df.iterrows():
     # if iii >= 3:
     #     break
 
-
 y_list = torch.tensor(y_list)
 # save_graphs(dataset_path + "/data.bin", all_g_list, {"y":y_list})
-print('g',len(all_g_list),'y',len(y_list), 'date',len(date_list), 'city',len(city_list))
-attr_dict = {"graphs_list":all_g_list,"y":y_list,"date":date_list,"city":city_list}
-with open(outf,'wb') as f:
+print('static',len(all_static_g_list),'dynamic',len(all_dynamic_g_list),'y',len(y_list), 'date',len(date_list), 'city',len(city_list))
+
+attr_dict = {"y":y_list,"date":date_list,"city":city_list}
+
+with open(outf_static,'wb') as f:
+    pickle.dump(all_static_g_list, f)
+print(outf_static, 'saved!')
+
+with open(outf_dynamic,'wb') as f:
+    pickle.dump(all_dynamic_g_list, f)
+print(outf_dynamic, 'saved!')
+
+with open(outf_attr,'wb') as f:
     pickle.dump(attr_dict, f)
-print(outf, 'saved!')
+print(outf_attr, 'saved!')
 
  
