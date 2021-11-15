@@ -93,13 +93,21 @@ def norm_edges(g,ntype,etype):
     norm[torch.isinf(norm)] = 0
     g.nodes[ntype].data['norm'] = norm
 
-def get_topwords(docs, top_n=800):
-    vectorizer = TfidfVectorizer(
-                analyzer='word',
-                tokenizer=lambda x: x,
-                preprocessor=lambda x: x,
-                token_pattern=None,
-                min_df = 1) # ignore terms that appear in less than 5 documents, default is 1
+def get_topwords(docs, top_n=800, use_tfidf=True):
+    if use_tfidf:
+        vectorizer = TfidfVectorizer(
+                    analyzer='word',
+                    tokenizer=lambda x: x,
+                    preprocessor=lambda x: x,
+                    token_pattern=None,
+                    min_df = 1) # ignore terms that appear in less than 5 documents, default is 1
+    else:
+        vectorizer = CountVectorizer(
+                    analyzer='word',
+                    tokenizer=lambda x: x,
+                    preprocessor=lambda x: x,
+                    token_pattern=None,
+                    min_df = 1) # ignore terms that appear in less than 5 documents, default is 1
     X = vectorizer.fit_transform(docs)
     indices = np.argsort(vectorizer.idf_)[::-1]
     features = vectorizer.get_feature_names()
@@ -487,7 +495,11 @@ for i,row in df.iterrows():
         if vocab_size > 0:
             if len(sample_words) > vocab_size:
                 sample_words = get_topwords(tokens_list, vocab_size)
-                print(' --- filted',len(sample_words))
+                # print(' --- filted',len(sample_words))
+                print('TFIDF - ',sample_words[:50])
+                sample_words = get_topwords(tokens_list, vocab_size, False)
+                # print(' --- filted',len(sample_words))
+                print('TF - ',sample_words[:50])
         sample_words = [w for w in sample_words if w in vocab] 
         print(day_i, 'sample_words',len(sample_words))
         print('doc_id =',doc_id)
@@ -547,8 +559,8 @@ for i,row in df.iterrows():
     # words_in_curr_sample.sort()
     vocab_graph_node_map = dict(zip(complete_sample_words,range(len(words_in_curr_sample))))
     # print(vocab_graph_node_map,'vocab_graph_node_map')
-    print(ww_src[:50],'ww_src')
-    print(ww_dst[:50],'ww_dst')
+    # print(ww_src[:50],'ww_src')
+    # print(ww_dst[:50],'ww_dst')
     ww_src = [vocab_graph_node_map[v] for v in ww_src]
     ww_dst = [vocab_graph_node_map[v] for v in ww_dst]
     ww_src = torch.tensor(ww_src).view(-1)
@@ -556,6 +568,7 @@ for i,row in df.iterrows():
     graph_data[('word','ww','word')] = (ww_src, ww_dst)
     ww_time = torch.tensor(ww_time).view(-1)
     ww_weight = torch.tensor(ww_weight).view(-1).float()
+    print(ww_src.shape,ww_dst.shape,'word word')
 
     wd_src = [vocab_graph_node_map[v] for v in wd_src]
     wd_src = torch.tensor(wd_src).view(-1)
@@ -563,12 +576,14 @@ for i,row in df.iterrows():
     graph_data[('word','wd','doc')] = (wd_src, wd_dst)
     wd_time = torch.tensor(wd_time).view(-1)
     wd_weight = torch.tensor(wd_weight).view(-1).float()
+    print(wd_src.shape,wd_dst.shape,'word doc')
 
     td_src = torch.tensor(td_src).view(-1)
     td_dst = torch.tensor(td_dst).view(-1)
     graph_data[('topic','td','doc')] = (td_src, td_dst)
     td_time = torch.tensor(td_time).view(-1)
     td_weight = torch.tensor(td_weight).view(-1).float()
+    print(td_src.shape,td_dst.shape,'topic doc')
 
     graph_data[('topic','tt','topic')] = (torch.tensor(topic_i),torch.tensor(topic_j))
     
@@ -578,6 +593,7 @@ for i,row in df.iterrows():
     graph_data[('word','wt','topic')] = (wt_src, wt_dst)
     wt_time = torch.tensor(wt_time).view(-1)
     wt_weight = torch.tensor(wt_weight).view(-1).float()
+    print(wt_src.shape,wt_dst.shape,'word topic')
 
 
     g = dgl.heterograph(graph_data)
