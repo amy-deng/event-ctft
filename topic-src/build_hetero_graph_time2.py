@@ -116,96 +116,9 @@ def get_topwords(docs, top_n=800, use_tfidf=True):
         freqs = zip(vectorizer.get_feature_names(), X.sum(axis=0).tolist()[0])    
         # sort from largest to smallest
         top_features = sorted(freqs, key=lambda x: -x[1])[:top_n]
+        top_features = [v[0] for v in top_features]
     return top_features
-
-def word_word_pmi_sent_norm(tokens_list, sample_words, window_size=10): # , window_size=20
-    '''
-    tokens_list = [['thailand', 'district', 'injury', 'reported', 'explosion', 'damaged'],['thailand','bomb', 'patrolman']]
-    '''
-    # windows = tokens_list
-    windows = []
-    for l in tokens_list:
-        windows.append(list(set(l)))# unique
-    # windows = [] # get all moving windows
-    # for tokens in tokens_list:
-    #     length = len(tokens)
-    #     if length <= window_size:
-    #         windows.append(tokens)
-    #     else:
-    #         for j in range(length - window_size + 1):
-    #             window = tokens[j: j + window_size]
-    #             windows.append(window)
-    # print(len(windows),windows[:3])
-    word_window_freq = {} # get word freq in windows
-    for window in windows:
-        appeared = set()
-        for i in range(len(window)):
-            if window[i] in appeared:
-                continue
-            if window[i] in word_window_freq:
-                word_window_freq[window[i]] += 1
-            else:
-                word_window_freq[window[i]] = 1
-            appeared.add(window[i])
-    # print(len(appeared))
-    word_pair_count = {}
-    for window in windows:
-        for i in range(1, len(window)):
-            for j in range(0, i):
-                word_i = window[i]
-                word_j = window[j]
-                if word_i not in word_id_map or word_j not in word_id_map:
-                    continue
-                if word_i not in sample_words or word_j not in sample_words:
-                    continue
-                word_i_id = word_id_map[word_i]
-                word_j_id = word_id_map[word_j]
-                if word_i_id == word_j_id:
-                    continue
-                word_pair_str = str(word_i_id) + ',' + str(word_j_id)
-                if word_pair_str in word_pair_count:
-                    word_pair_count[word_pair_str] += 1
-                else:
-                    word_pair_count[word_pair_str] = 1
-                word_pair_str = str(word_j_id) + ',' + str(word_i_id) # two orders
-                if word_pair_str in word_pair_count:
-                    word_pair_count[word_pair_str] += 1
-                else:
-                    word_pair_count[word_pair_str] = 1
-    row, col, weight = [], [], [] # pmi as weight
-    num_window = len(windows)
-    for key in word_pair_count:
-        temp = key.split(',')
-        i = int(temp[0])
-        j = int(temp[1])
-        count = word_pair_count[key]
-        word_freq_i = word_window_freq[vocab[i]]
-        word_freq_j = word_window_freq[vocab[j]]
-        # https://towardsdatascience.com/word2vec-for-phrases-learning-embeddings-for-more-than-one-word-727b6cf723cf
-        pmi = math.log((1.0 * count * num_window) / (1.0 * word_freq_i * word_freq_j)) 
-        if pmi <= 0:
-            continue
-        try:
-            npmi = pmi / (-math.log(count/num_window))
-            print('count=',count,'num_window=',num_window,'word_freq_i=',word_freq_i,'word_freq_j=',word_freq_j,'pmi=',pmi,'npmi=',npmi)
-
-        except:
-            print('count=',count,'num_window=',num_window,'word_freq_i=',word_freq_i,'word_freq_j=',word_freq_j,'pmi=',pmi)
-            # print('npmi=',npmi)
-            exit()
-        row.append(i)
-        col.append(j)
-        weight.append(npmi)
-    self_loop = set() # add self loop
-    for node in row:
-        if node in self_loop:
-            continue
-        row.append(node)
-        col.append(node)
-        weight.append(1.)
-        self_loop.add(node)
-    return row, col, weight
-     
+   
 def word_word_pmi_norm(tokens_list, sample_words, window_size=20): # , window_size=20
     '''
     tokens_list = [['thailand', 'district', 'injury', 'reported', 'explosion', 'damaged'],['thailand','bomb', 'patrolman']]
@@ -475,8 +388,8 @@ for i,row in df.iterrows():
             ys.append(0)
     ###########
     iii+=1
-    # if iii < 438:
-    #     continue
+    if iii < 36:
+        continue
     ww_src, ww_dst, ww_time, ww_weight = [], [], [], []
     wd_src, wd_dst, wd_time, wd_weight = [], [], [], []
     wt_src, wt_dst, wt_time, wt_weight = [], [], [], []
@@ -493,20 +406,21 @@ for i,row in df.iterrows():
         if len(story_text_lists) <= 0:
             # print('story_ids_day',len(story_ids_day),'story_text_lists',len(story_text_lists))
             continue
-        num_nonzero_days += 1
         tokens_list = clean_document_list(story_text_lists)
         sample_words = list(set([item for sublist in tokens_list for item in sublist]))
+        if len(sample_words) <= 5:
+            continue
         if vocab_size > 0:
             if len(sample_words) > vocab_size:
-                sample_words = get_topwords(tokens_list, vocab_size)
-                # print(' --- filted',len(sample_words))
-                print('TFIDF - ',sample_words[:50])
+                # sample_words = get_topwords(tokens_list, vocab_size)
+                # print('TFIDF - ',sample_words[:50])
                 sample_words = get_topwords(tokens_list, vocab_size, False)
                 # print(' --- filted',len(sample_words))
-                print('TF - ',sample_words[:50])
+                # print('TF - ',sample_words[:50])
+        num_nonzero_days += 1
         sample_words = [w for w in sample_words if w in vocab] 
         print(day_i, 'sample_words',len(sample_words))
-        print('doc_id =',doc_id)
+        print('doc_id =',doc_id,'# doc =',len(tokens_list))
         sample_words_list += sample_words
         # remove noise words
         tokens_list_clean = []
