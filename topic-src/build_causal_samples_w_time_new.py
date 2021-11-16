@@ -12,7 +12,7 @@ from sklearn.feature_extraction.text import CountVectorizer,TfidfVectorizer
 
 '''
 python build_causal_samples_w_time_new.py ../data THA_topic check_topic_causal_data_w7h7
-python build_causal_samples_w_time_new.py ../data THA_topic check_topic_causal_data_w7h14
+python build_causal_samples_w_time_new.py ../data THA_topic check_topic_causal_data_w7h14 '' '' 0
 
 '''
 try:
@@ -88,8 +88,8 @@ for topic_id in range(50):
     outcome_by_topic = []
 
     for t in range(1,len(splitted_date_lists)):
-        start = splitted_date_lists[i-1]
-        end = splitted_date_lists[i]
+        start = splitted_date_lists[t-1]
+        end = splitted_date_lists[t]
         
         treatment_assign_by_topic = []
         covariate_by_topic = []
