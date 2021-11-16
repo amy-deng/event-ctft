@@ -588,7 +588,7 @@ for i,row in df.iterrows():
     city_list.append(city)
     date_list.append(date)
     
-    print('iii={} \t {} \t {} \t {} day_has_data \t  {} vocab {} doc {} ww {}'.format(iii,date,city,num_nonzero_days,time.ctime(),len(sample_words),len(tokens_list),len(ww_weight)))
+    print('iii={} \t {} \t {} \t {} day_has_data \t  {} vocab {} doc {} ww sta-{} dyn-{}'.format(iii,date,city,num_nonzero_days,time.ctime(),len(sample_words),len(tokens_list),len(edge_ww),len(ww_weight)))
     # if iii >= 3:
     #     break
 
