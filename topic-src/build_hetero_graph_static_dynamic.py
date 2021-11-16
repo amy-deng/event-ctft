@@ -413,7 +413,7 @@ for i,row in df.iterrows():
             # common = list(set(sample_words) & set(tfidf_sample_words))
             # print('[common]',common)
             # print() 
-    continue
+    # continue
     sample_words = [w for w in sample_words if w in vocab and w]
     # print(sample_words)
     words_in_curr_sample = [word_id_map[w] for w in sample_words] # [5,6,7,10,8,...]
