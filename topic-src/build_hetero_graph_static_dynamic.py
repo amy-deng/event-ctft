@@ -128,11 +128,12 @@ def word_word_pmi_norm(tokens_list, sample_words, window_size=20): # , window_si
     for tokens in tokens_list:
         length = len(tokens)
         if length <= window_size:
-            windows.append(tokens)
+            filtered = [w for w in tokens if w in sample_words]
+            windows.append(filtered)
         else:
             for j in range(length - window_size + 1):
-                window = tokens[j: j + window_size]
-                windows.append(window)
+                filtered = [w for w in tokens[j: j + window_size] if w in sample_words]
+                windows.append(filtered)
     # print(len(windows),windows[:3])
     word_window_freq = {} # get word freq in windows
     for window in windows:
@@ -423,7 +424,7 @@ for i,row in df.iterrows():
     edge_dw = torch.tensor(weight)
 
     # word---word
-    word_i, word_j, weight = word_word_pmi_norm(tokens_list_clean, sample_words, window_size=20)
+    word_i, word_j, weight = word_word_pmi_norm(tokens_list, sample_words, window_size=20)
     word_graph_node_i = [vocab_graph_node_map[v] for v in word_i]
     word_graph_node_j = [vocab_graph_node_map[v] for v in word_j]
     graph_data[('word','ww','word')]=(torch.tensor(word_graph_node_i),torch.tensor(word_graph_node_j))
@@ -498,7 +499,7 @@ for i,row in df.iterrows():
             wd_time += [day_i*1.0]*len(weight)
 
          # [word - word]
-        word_i, word_j, weight = word_word_pmi_norm(tokens_list_clean, sample_words_day, window_size=20)
+        word_i, word_j, weight = word_word_pmi_norm(tokens_list_day, sample_words_day, window_size=20)
         ww_src += word_i
         ww_dst += word_j
         ww_weight += weight
