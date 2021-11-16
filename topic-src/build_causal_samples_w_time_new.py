@@ -63,9 +63,9 @@ def save_samples(treatment, outcome, covariate, outpath):
     n_treat =len(treatment.nonzero()[0])
     n_control = n_smaple-n_treat
     print('topic_id',topic_id,'n_treat =',n_treat,'n_control =',n_control,round(treatment.mean(),4))
-    if n_treat < 30 or n_control < 30:
-        print('n_treat',n_treat,'n_control',n_control,'skip')
-        return
+    # if n_treat < 30 or n_control < 30:
+    #     print('n_treat',n_treat,'n_control',n_control,'skip')
+    #     return
         
     outcome = np.stack(outcome,0)
     # print('n_smaple',n_smaple,'outcome',outcome.shape)
