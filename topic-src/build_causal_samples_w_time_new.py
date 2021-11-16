@@ -12,7 +12,7 @@ from sklearn.feature_extraction.text import CountVectorizer,TfidfVectorizer
 
 '''
 python build_causal_samples_w_time_new.py ../data THA_topic check_topic_causal_data_w7h7
-python build_causal_samples_w_time_new.py ../data THA_topic check_topic_causal_data_w7h14 '' '' 0
+python build_causal_samples_w_time_new.py ../data THA_topic check_topic_causal_data_w14h14_from2012_minprob0.2 '' '' 0
 
 '''
 try:

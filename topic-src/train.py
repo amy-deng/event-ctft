@@ -84,7 +84,7 @@ emb_size = word_embeds.size(1)
 # valid_dataset_loader = StaticGraphData(args.dp, args.dataset,set_name='valid')
 # test_dataset_loader = StaticGraphData(args.dp, args.dataset,set_name='test')
 
-static_graph_dataset = StaticGraphData(args.dp, args.dataset,args.datafiles, args.horizon,args.causalfiles)
+static_graph_dataset = StaticGraphDataNew(args.dp, args.dataset,args.datafiles, args.horizon,args.causalfiles)
 
 dataset_size = len(static_graph_dataset)
 indices = list(range(dataset_size))
