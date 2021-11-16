@@ -519,7 +519,7 @@ for i,row in df.iterrows():
         wt_weight += weight
         wt_time += [day_i*1.0]*len(weight)
 
-        doc_id += len(tokens_list)
+        doc_id += len(tokens_list_day)
 
     ww_src = [vocab_graph_node_map[v] for v in ww_src]
     ww_dst = [vocab_graph_node_map[v] for v in ww_dst]
