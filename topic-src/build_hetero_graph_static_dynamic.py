@@ -100,7 +100,7 @@ def get_topwords(docs, top_n=800, use_tfidf=True):
                     tokenizer=lambda x: x,
                     preprocessor=lambda x: x,
                     token_pattern=None,
-                    min_df = 0.1) # ignore terms that appear in less than 5 documents, default is 1
+                    min_df = 0.15) # ignore terms that appear in less than 5 documents, default is 1
         X = vectorizer.fit_transform(docs)
         indices = np.argsort(vectorizer.idf_)[::-1]
         features = vectorizer.get_feature_names()
@@ -111,7 +111,8 @@ def get_topwords(docs, top_n=800, use_tfidf=True):
                     tokenizer=lambda x: x,
                     preprocessor=lambda x: x,
                     token_pattern=None,
-                    min_df = 1) # ignore terms that appear in less than 5 documents, default is 1
+                    min_df = 1,
+                    max_df=0.9) # ignore terms that appear in less than 5 documents, default is 1
         X = vectorizer.fit_transform(docs)
         freqs = zip(vectorizer.get_feature_names(), X.sum(axis=0).tolist()[0])    
         # sort from largest to smallest
@@ -405,9 +406,9 @@ for i,row in df.iterrows():
     sample_words = list(set([item for sublist in tokens_list for item in sublist]))
     if vocab_size > 0:
         if len(sample_words) > vocab_size:
-            # sample_words = get_topwords(tokens_list,vocab_size, False)
+            sample_words = get_topwords(tokens_list,vocab_size, False)
             # print('[TF]',sample_words[:80])
-            sample_words = get_topwords(tokens_list,vocab_size, True)
+            # sample_words = get_topwords(tokens_list,vocab_size, True)
             # print('[TFIDF]',tfidf_sample_words[:80])
             # common 
             # common = list(set(sample_words) & set(tfidf_sample_words))
