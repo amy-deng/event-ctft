@@ -117,9 +117,9 @@ for topic_id in range(50):
                         pass
         print(start,'-',end, len(treatment_assign_by_topic),'treatment_assign_by_topic')
         if check == 0: 
-            out_path = "{}/nocheck_topic_{}_{}_{}_{}.pkl".format(save_path,topic_id,start,end)
+            out_path = "{}/nocheck_topic_{}_{}_{}.pkl".format(save_path,topic_id,start,end)
         else:
-            out_path = "{}/check_topic_{}_{}_{}_{}.pkl".format(save_path,topic_id,start,end)
+            out_path = "{}/check_topic_{}_{}_{}.pkl".format(save_path,topic_id,start,end)
         save_samples(treatment_assign_by_topic,outcome_by_topic,covariate_by_topic,out_path)
 
 #         pass
