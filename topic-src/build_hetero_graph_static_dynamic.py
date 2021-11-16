@@ -406,6 +406,10 @@ for i,row in df.iterrows():
     if vocab_size > 0:
         if len(sample_words) > vocab_size:
             sample_words = get_topwords(tokens_list,vocab_size, False)
+            print('[TF]',sample_words[:80])
+            tfidf_sample_words = get_topwords(tokens_list,vocab_size, True)
+            print('[TFIDF]',tfidf_sample_words[:80])
+    continue
     sample_words = [w for w in sample_words if w in vocab]
     # print(sample_words)
     words_in_curr_sample = [word_id_map[w] for w in sample_words] # [5,6,7,10,8,...]
