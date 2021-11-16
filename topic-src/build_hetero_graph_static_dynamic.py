@@ -406,13 +406,13 @@ for i,row in df.iterrows():
     if vocab_size > 0:
         if len(sample_words) > vocab_size:
             # sample_words = get_topwords(tokens_list,vocab_size, False)
-            print('[TF]',sample_words[:80])
-            tfidf_sample_words = get_topwords(tokens_list,vocab_size, True)
-            print('[TFIDF]',tfidf_sample_words[:80])
+            # print('[TF]',sample_words[:80])
+            sample_words = get_topwords(tokens_list,vocab_size, True)
+            # print('[TFIDF]',tfidf_sample_words[:80])
             # common 
-            common = list(set(sample_words) & set(tfidf_sample_words))
-            print('[common]',common)
-            print() 
+            # common = list(set(sample_words) & set(tfidf_sample_words))
+            # print('[common]',common)
+            # print() 
     continue
     sample_words = [w for w in sample_words if w in vocab and w]
     # print(sample_words)
