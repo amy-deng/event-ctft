@@ -144,14 +144,12 @@ for file in file_list:
     net = net.cuda()
     # target = torch.randn(10)  # a dummy target, for example
     # target = target.view(1, -1)  # make it the same shape as output
-    criterion = nn.BCEWithLogitsLoss()
     optm = torch.optim.Adam(net.parameters(), lr=0.001, weight_decay=1e-5)
     X_torch = torch.from_numpy(X).float()
     y_torch = torch.from_numpy(treatment).float()
     # print(X_torch.type(),'X_torch','y_torch',y_torch.type())
     our_dataset = OurDataset(X_torch,y_torch)
-    train_dataloader = DataLoader(our_dataset, batch_size=BATCH_SIZE, shuffle=True)
-
+    train_dataloader = DataLoader(our_dataset, batch_size=BATCH_SIZE, shuffle=False)
     for epoch in range(EPOCHS):
         epoch_loss = 0
         for bidx, batch in enumerate(train_dataloader):
@@ -169,7 +167,7 @@ for file in file_list:
 
     net.eval()
     pred = net(X_torch.cuda())
-    propensity = torch.sigmoid()
+    propensity = torch.sigmoid(pred)
     print('propensity',propensity,propensity.shape)
     propensity = propensity.cpu().detach().numpy()
     print('training time',time.time()-time2)
