@@ -137,7 +137,7 @@ for file in file_list:
     print('X',type(X),X.shape)
     # """
     # build a nn
-    net = Net(X.size(-1),128)
+    net = Net(X.shape[-1],128)
     net = net.cuda()
     # target = torch.randn(10)  # a dummy target, for example
     # target = target.view(1, -1)  # make it the same shape as output
