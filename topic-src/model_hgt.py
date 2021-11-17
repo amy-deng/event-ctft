@@ -565,11 +565,11 @@ class TempHGTAll(nn.Module):
         bg.nodes['doc'].data['h'] = doc_emb
         # bg.edges['ww'].data['time'] = torch.zeros(bg.edges['ww'].data['weight'].shape).int()
         # print('time',bg.edges['ww'].data['time'].shape)
-        bg.edges['ww'].data['timeh'] = self.time_emb(bg.edges['ww'].data['time'].int())
+        bg.edges['ww'].data['timeh'] = self.time_emb(bg.edges['ww'].data['time'].long())
         # print(bg.edges['ww'].data['timeh'].shape,'timeh',bg.edges['ww'].data['time'])
-        bg.edges['wd'].data['timeh'] = self.time_emb(bg.edges['wd'].data['time'].int())
-        bg.edges['wt'].data['timeh'] = self.time_emb(bg.edges['wt'].data['time'].int())
-        bg.edges['td'].data['timeh'] = self.time_emb(bg.edges['td'].data['time'].int())
+        bg.edges['wd'].data['timeh'] = self.time_emb(bg.edges['wd'].data['time'].long())
+        bg.edges['wt'].data['timeh'] = self.time_emb(bg.edges['wt'].data['time'].long())
+        bg.edges['td'].data['timeh'] = self.time_emb(bg.edges['td'].data['time'].long())
         # print(bg.edges['td'].data['timeh'])
         for i in range(self.n_layers):
             self.gcs[i](bg, 'h', 'h')
