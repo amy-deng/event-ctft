@@ -10,7 +10,7 @@ from matplotlib import pyplot as plt
 import scipy
 '''
 python PSM_w_time_new2.py ../data THA_topic check_topic_causal_data_w14h14_from2013_minprob0.05 14 1 0
-python PSM_w_time_new2.py ../data THA_topic check_topic_causal_data_w14h14_from2013_minprob0.05 14 1 0
+python PSM_w_time_new2.py ../data THA_topic check_topic_causal_data_w14h14_from2013_minprob0.05 3,7,14 1 0
 
 for each event find causes
 '''
@@ -57,16 +57,21 @@ for file in file_list:
     covariate = np.concatenate([v.toarray() for v in covariate],0) 
     
     # print("dataset['outcome']",dataset['outcome'].shape)
-    outcome = dataset['outcome'][:,:pred_window,].sum(1) # number of events; sum of all days
+    # outcome = dataset['outcome'][:,:pred_window,].sum(1) # number of events; sum of all days
     # outcome_sep_day = dataset['outcome'][:,:pred_window,] # number of events; sum of all days
+    outcome3 = dataset['outcome'][:,:3,].sum(1)
+    outcome7 = dataset['outcome'][:,:7,].sum(1)
+    outcome14 = dataset['outcome'][:,:14,].sum(1)
 
     if target_binary == 1:
         print('Convert outcome to binary')
-        outcome = np.where(outcome > 0, 1, 0)
+        outcome3 = np.where(outcome3 > 0, 1, 0)
+        outcome7 = np.where(outcome7 > 0, 1, 0)
+        outcome14 = np.where(outcome14 > 0, 1, 0)
         # exit()
 
-    print('topic {} data loaded'.format(topic_id))
-    print('outcome',outcome.shape) 
+    print('topic {} data loaded'.format(topic_id),)
+    print('outcome3',outcome3.shape) 
     
     # train propensity scoring function
     # logistic regression
@@ -91,7 +96,9 @@ for file in file_list:
     treatment_idices = treatment.nonzero()[0]
     np.random.shuffle(treatment_idices)
     # treatment_idices
-    eff_list = [] 
+    eff_list3 = [] 
+    eff_list7 = []
+    eff_list14 = []
     used_control_indices = []
     n_pairs = 0
     for i in treatment_idices:
@@ -101,23 +108,28 @@ for file in file_list:
         min_diff = diff[min_idx]
         if min_diff < caliper:
             # get treatment effect?
-            outcome_control = outcome[controlled_indices[min_idx]]
-            outcome_treatment = outcome[i]
-            eff = outcome_treatment-outcome_control
-            eff_list.append(eff) 
+            # outcome_control = outcome[controlled_indices[min_idx]]
+            # outcome_treatment = outcome[i]
+            eff = outcome3[controlled_indices[min_idx]]-outcome3[i]
+            eff_list3.append(eff) 
+            eff = outcome7[controlled_indices[min_idx]]-outcome7[i]
+            eff_list7.append(eff) 
+            eff = outcome14[controlled_indices[min_idx]]-outcome14[i]
+            eff_list14.append(eff) 
             n_pairs += 1
             used_control_indices.append(controlled_indices[min_idx])
         else:
             print('min diff is larger than the caliper {:.5f}; skip'.format(caliper))
 
-    eff_list = np.stack(eff_list,0) 
-
-    print('eff_list',eff_list.shape)
-
-    ATE = eff_list.mean(0)
-    effect_dict[(int(topic_id),split_date)] = eff_list.mean(0)
+    eff_list3 = np.stack(eff_list3,0) 
+    eff_list7 = np.stack(eff_list7,0) 
+    eff_list14 = np.stack(eff_list14,0) 
+    print('eff_list3',eff_list3.shape)
+    # ATE3 = eff_list3.mean(0)
+    effect_dict[(int(topic_id),split_date)] = [eff_list3.mean(0),eff_list7.mean(0),eff_list14.mean(0)]
     # top3 = ATE.argsort()[-3:][::-1]
-
-with open('{}/effect_dict_pw{}_biy{}_nocheck.pkl'.format(save_path,pred_window,target_binary),'wb') as f:
+    break
+print(effect_dict)
+with open('{}/effect_dict_pw{}_biy{}_nocheck.pkl'.format(save_path,'3714',target_binary),'wb') as f:
     pickle.dump(effect_dict,f)
 print(save_path,'/effect_dict.pkl saved')
