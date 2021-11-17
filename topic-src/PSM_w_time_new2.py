@@ -137,7 +137,7 @@ for file in file_list:
     X = scaler.fit_transform(covariate)
     print('X',type(X),X.shape)
     print('StandardScaler time',time.time()-time1)
-    """
+    # """
     time2= time.time()
     # build a nn
     net = Net(X.shape[-1],128)
@@ -169,11 +169,14 @@ for file in file_list:
     pred = net(X_torch.cuda())
     propensity = torch.sigmoid(pred).squeeze(-1)
     print('propensity',propensity.shape)
-    propensity = propensity.cpu().detach().numpy()
+    propensity = propensity.cpu().detach()#.numpy()
     print('training time',time.time()-time2)
     print('max',propensity.max(),'min',propensity.min(),'mean',propensity.mean())
-    """
-    # """ 
+
+    propensity_logit = torch.special.logit(propensity, eps=1e-6)
+    propensity_logit = propensity_logit.numpy()
+    # """
+    """ 
     time3 = time.time()
     cls = LogisticRegression(random_state=42,max_iter=2000)
     cls = CalibratedClassifierCV(cls)
@@ -184,9 +187,9 @@ for file in file_list:
     propensity = propensity[:,1]
     print(type(propensity),propensity.shape,'propensity')
     print('LR',time.time()-time3)
-    # """
     # caliper = propensity.std()*0.2
     propensity_logit = scipy.special.logit(propensity)
+    """
     print('propensity_logit',propensity_logit.max(),propensity_logit.min())
     caliper = propensity_logit.std()* 0.2
 
