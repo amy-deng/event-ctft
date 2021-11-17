@@ -231,6 +231,129 @@ class HGTLayerModified(nn.Module):
             self.__class__.__name__, self.in_dim, self.out_dim,
             self.num_types, self.num_relations)
 
+class TempHGTLayerModified(nn.Module):
+    def __init__(self, in_dim, out_dim, num_types, num_relations, n_heads, dropout = 0.5, use_norm = False):
+        super(TempHGTLayerModified, self).__init__()
+        self.in_dim        = in_dim
+        self.out_dim       = out_dim
+        self.num_types     = num_types
+        self.num_relations = num_relations
+        self.n_heads       = n_heads
+        self.d_k           = out_dim // n_heads
+        self.sqrt_dk       = math.sqrt(self.d_k)
+        
+        self.use_norm    = use_norm
+        self.k_linears   = nn.ModuleDict()
+        self.q_linears   = nn.ModuleDict()
+        self.v_linears   = nn.ModuleDict()
+        self.a_linears   = nn.ModuleDict()
+        self.norms       = nn.ModuleDict()
+        for t in ['word','topic','doc']:
+            self.k_linears[t] = nn.Linear(in_dim,   out_dim)
+            self.q_linears[t] = nn.Linear(in_dim,   out_dim)
+            self.v_linears[t] = nn.Linear(in_dim,   out_dim)
+            self.a_linears[t] = nn.Linear(out_dim,  out_dim)
+            if use_norm:
+                self.norms[t] = nn.LayerNorm(out_dim)
+        
+        self.skip = nn.ParameterDict({
+                'word': nn.Parameter(torch.ones(1)),
+                'topic': nn.Parameter(torch.ones(1)),
+                'doc': nn.Parameter(torch.ones(1)),
+        })
+        self.relation_pri = nn.ParameterDict({
+                'ww': nn.Parameter(torch.ones(self.n_heads)),
+                'wt': nn.Parameter(torch.ones(self.n_heads)),
+                'wd': nn.Parameter(torch.ones(self.n_heads)),
+                'tt': nn.Parameter(torch.ones(self.n_heads)),
+                'td': nn.Parameter(torch.ones(self.n_heads))
+        })
+        self.relation_att = nn.ParameterDict({
+                'ww': nn.Parameter(torch.Tensor(n_heads, self.d_k, self.d_k)),
+                'wt': nn.Parameter(torch.Tensor(n_heads, self.d_k, self.d_k)),
+                'wd': nn.Parameter(torch.Tensor(n_heads, self.d_k, self.d_k)),
+                'tt': nn.Parameter(torch.Tensor(n_heads, self.d_k, self.d_k)),
+                'td': nn.Parameter(torch.Tensor(n_heads, self.d_k, self.d_k)),
+        })
+        self.relation_msg = nn.ParameterDict({
+                'ww': nn.Parameter(torch.Tensor(n_heads, self.d_k, self.d_k)),
+                'wt': nn.Parameter(torch.Tensor(n_heads, self.d_k, self.d_k)),
+                'wd': nn.Parameter(torch.Tensor(n_heads, self.d_k, self.d_k)),
+                'tt': nn.Parameter(torch.Tensor(n_heads, self.d_k, self.d_k)),
+                'td': nn.Parameter(torch.Tensor(n_heads, self.d_k, self.d_k)),
+        })
+        self.drop           = nn.Dropout(dropout)
+         
+        self.init_weights()
+
+    def init_weights(self):
+        for p in self.parameters():
+            if p.data.ndimension() >= 2:
+                nn.init.xavier_uniform_(p.data, gain=nn.init.calculate_gain('relu'))
+            else:
+                stdv = 1. / math.sqrt(p.size(0))
+                p.data.uniform_(-stdv, stdv)
+
+    def edge_attention(self, etype):
+        def msg_func(edges):
+            # print(etype,'etype')
+            # etype = edges.data['id'][0]
+            relation_att = self.relation_att[etype]
+            relation_pri = self.relation_pri[etype]
+            relation_msg = self.relation_msg[etype]
+            key   = torch.bmm(edges.src['k'].transpose(1,0), relation_att).transpose(1,0)
+            att   = (edges.dst['q'] * key).sum(dim=-1) * relation_pri / self.sqrt_dk
+            val   = torch.bmm(edges.src['v'].transpose(1,0), relation_msg).transpose(1,0)
+            return {'a': att, 'v': val}
+        return msg_func
+    
+    def message_func(self, edges):
+        if 'timeh' in edges.data:
+            # print(edges.data['v'].shape,edges.data['timeh'].shape,'==')
+            edges.data['v'] += edges.data['timeh'].unsqueeze(1)
+        return {'v': edges.data['v'], 'a': edges.data['a']}
+    
+    def reduce_func(self, nodes):
+        att = F.softmax(nodes.mailbox['a'], dim=1)
+        # print("nodes.mailbox['v']",nodes.mailbox['v'].shape)
+        h   = torch.sum(att.unsqueeze(dim = -1) * nodes.mailbox['v'], dim=1)
+        return {'t': h.view(-1, self.out_dim)}
+        
+    def forward(self, G, inp_key, out_key):
+        # node_dict, edge_dict = G.node_dict, G.edge_dict
+        edge_dict = []
+        for srctype, etype, dsttype in G.canonical_etypes:
+            edge_dict.append(etype)
+            
+            k_linear = self.k_linears[srctype]
+            v_linear = self.v_linears[srctype] 
+            q_linear = self.q_linears[dsttype]
+            
+            G.nodes[srctype].data['k'] = k_linear(G.nodes[srctype].data[inp_key]).view(-1, self.n_heads, self.d_k)
+            G.nodes[srctype].data['v'] = v_linear(G.nodes[srctype].data[inp_key]).view(-1, self.n_heads, self.d_k)
+            G.nodes[dsttype].data['q'] = q_linear(G.nodes[dsttype].data[inp_key]).view(-1, self.n_heads, self.d_k)
+            
+            G.apply_edges(func=self.edge_attention(etype), etype=etype)
+           
+        G.multi_update_all({etype : (self.message_func, self.reduce_func) \
+                            for etype in edge_dict}, cross_reducer = 'mean')
+        for ntype in G.ntypes:
+            alpha = torch.sigmoid(self.skip[ntype])
+            trans_out = self.a_linears[ntype](G.nodes[ntype].data['t'])
+            trans_out = trans_out * alpha + G.nodes[ntype].data[inp_key] * (1-alpha)
+            trans_out = F.relu(trans_out)
+            if self.use_norm:
+                G.nodes[ntype].data[out_key] = self.drop(self.norms[ntype](trans_out))
+            else:
+                G.nodes[ntype].data[out_key] = self.drop(trans_out)
+
+
+    def __repr__(self):
+        return '{}(in_dim={}, out_dim={}, num_types={}, num_types={})'.format(
+            self.__class__.__name__, self.in_dim, self.out_dim,
+            self.num_types, self.num_relations)
+
+
 # https://github.com/acbull/pyHGT/blob/f7c4be620242d8c1ab3055f918d4c082f5060e07/pyHGT/conv.py#L283
 class RelTemporalEncoding(nn.Module):
     '''
@@ -247,8 +370,9 @@ class RelTemporalEncoding(nn.Module):
         emb.requires_grad = False
         self.emb = emb
         self.lin = nn.Linear(n_hid, n_hid)
-    def forward(self, x, t):
-        return x + self.lin(self.emb(t))
+    def forward(self, t):
+        # return x + self.lin(self.emb(t))
+         return self.lin(self.emb(t))
 
 class HGT(nn.Module):
     def __init__(self, n_inp, n_hid, n_layers, n_heads, device, num_topic=50, vocab_size=15000, dropout=0.5, pool='max', use_norm = True):
@@ -391,7 +515,7 @@ class HGTAll(nn.Module):
 
 class TempHGTAll(nn.Module):
     def __init__(self, n_inp, n_hid, n_layers, n_heads, device, seq_len, num_topic=50, vocab_size=15000, dropout=0.5, pool='max', use_norm = True):
-        super(HGTAll, self).__init__()
+        super(TempHGTAll, self).__init__()
         self.n_inp = n_inp
         self.n_hid = n_hid
         self.n_layers = n_layers
@@ -404,14 +528,13 @@ class TempHGTAll(nn.Module):
         # initialize rel and ent embedding
         self.topic_embeds = nn.Parameter(torch.Tensor(num_topic, n_hid))
         self.doc_gen_embeds = nn.Parameter(torch.Tensor(1,n_hid))
-        self.time_emb = RelTemporalEncoding(n_hid,seq_len)
-
+        self.time_emb = RelTemporalEncoding(n_hid//n_heads,seq_len)
         self.adapt_ws  = nn.Linear(n_inp,  n_hid)
         node_dict = {'doc': 0, 'topic': 1, 'word': 2}
         edge_dict = {'td': 0, 'tt': 1, 'wd': 2, 'wt': 3, 'ww': 4}
         self.gcs = nn.ModuleList()
         for _ in range(n_layers):
-            self.gcs.append(HGTLayerModified(n_hid, n_hid, len(node_dict), len(edge_dict), n_heads, use_norm = use_norm))
+            self.gcs.append(TempHGTLayerModified(n_hid, n_hid, len(node_dict), len(edge_dict), n_heads, use_norm = use_norm))
         self.out_layer = nn.Sequential(
                 # nn.Linear(n_hid*3, n_hid),
                 # nn.BatchNorm1d(n_hid),
@@ -440,9 +563,14 @@ class TempHGTAll(nn.Module):
         bg.nodes['word'].data['h'] = word_emb
         bg.nodes['topic'].data['h'] = topic_emb
         bg.nodes['doc'].data['h'] = doc_emb
-
-        bg.edges['ww'].data['timeh'] = self.time_emb(bg.edges['ww'].data['time'].view(-1,1))
-
+        # bg.edges['ww'].data['time'] = torch.zeros(bg.edges['ww'].data['weight'].shape).int()
+        # print('time',bg.edges['ww'].data['time'].shape)
+        bg.edges['ww'].data['timeh'] = self.time_emb(bg.edges['ww'].data['time'].int())
+        # print(bg.edges['ww'].data['timeh'].shape,'timeh',bg.edges['ww'].data['time'])
+        bg.edges['wd'].data['timeh'] = self.time_emb(bg.edges['wd'].data['time'].int())
+        bg.edges['wt'].data['timeh'] = self.time_emb(bg.edges['wt'].data['time'].int())
+        bg.edges['td'].data['timeh'] = self.time_emb(bg.edges['td'].data['time'].int())
+        # print(bg.edges['td'].data['timeh'])
         for i in range(self.n_layers):
             self.gcs[i](bg, 'h', 'h')
 
