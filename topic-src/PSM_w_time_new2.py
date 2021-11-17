@@ -152,7 +152,7 @@ for file in file_list:
         for bidx, batch in enumerate(train_dataloader):
             x_train, y_train = batch[0], batch[1]
             x_train = x_train.cuda()
-            y_train = y_train.cuda()
+            y_train = y_train.unsqueeze(-1).cuda()
             print(x_train.shape,y_train.shape)
             loss, predictions = train(net,x_train,y_train, optm, criterion)
             epoch_loss+=loss
