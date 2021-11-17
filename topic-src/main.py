@@ -18,7 +18,7 @@ try:
 except:
     print('Usage: models, dataset, datafiles, horizons, hidden, layer, note, gpu, others')
     exit()
-available_models = ['gcn','gat','heteroall','gcnetall3','gcnetall4','hgtall','hanall']
+available_models = ['gcn','gat','heteroall','gcnetall3','gcnetall4','hgtall','hanall','rgcnall']
 
 model_l = models.split(',')
 for m in model_l:
@@ -26,7 +26,7 @@ for m in model_l:
         print(m,'is unavailable')
         exit()
 
-        
+
 horizon_l = horizons.split(',')
 for mod in model_l:
     for horizon in horizon_l:

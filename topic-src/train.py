@@ -59,6 +59,7 @@ from model_hgt import *
 from model_gcn_hetero import *
 from model_han import *
 from model_hetero import *
+from model_rgcn import *
 from utils import *
 from data import *
 
@@ -160,6 +161,9 @@ def prepare(args,word_embeds,device):
         vocab_size=vocab_size, device=device, dropout=args.dropout,pool=args.pool) 
     elif args.model == 'heteroall':
         model = HeteroAll(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, activation=F.relu, 
+        vocab_size=vocab_size, device=device, dropout=args.dropout,pool=args.pool) 
+    elif args.model == 'rgcnall':
+        model = RGCNAll(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, activation=F.relu, 
         vocab_size=vocab_size, device=device, dropout=args.dropout,pool=args.pool) 
     elif args.model == 'topic':
         model = static_topic_graph(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device, pool=args.pool)
