@@ -85,7 +85,7 @@ class OurDataset(data.Dataset):
         return self.X[idx], self.y[idx]
 
 criterion = nn.BCEWithLogitsLoss()
-EPOCHS = 500
+EPOCHS = 1000
 BATCH_SIZE = 64
 
 
@@ -149,7 +149,7 @@ for file in file_list:
     y_torch = torch.from_numpy(treatment).float()
     # print(X_torch.type(),'X_torch','y_torch',y_torch.type())
     our_dataset = OurDataset(X_torch,y_torch)
-    train_dataloader = DataLoader(our_dataset, batch_size=BATCH_SIZE, shuffle=False)
+    train_dataloader = DataLoader(our_dataset, batch_size=BATCH_SIZE, shuffle=True)
     for epoch in range(EPOCHS):
         epoch_loss = 0
         for bidx, batch in enumerate(train_dataloader):
