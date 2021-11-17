@@ -92,7 +92,7 @@ for topic_id in range(50):
         if len(treatment_list) < 30:
             ATE = np.zeros(20)
             effect_dict[(int(topic_id),k)] = ATE
-            print('empty')
+            print('empty',len(treatment_list))
             continue
         treatment_list = np.concatenate(treatment_list,0)
         covariate_list = np.concatenate(covariate_list,0)
