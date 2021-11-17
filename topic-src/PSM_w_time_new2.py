@@ -44,12 +44,14 @@ class Net(nn.Module):
     def __init__(self, h_inp, h_hid):
         super(Net, self).__init__()
         self.fc1 = nn.Linear(h_inp, h_hid)  
+        self.bn1 = nn.BatchNorm1d(h_hid)
         self.fc2 = nn.Linear(h_hid, h_hid)
+        self.bn2 = nn.BatchNorm1d(h_hid)
         self.fc3 = nn.Linear(h_hid, 1)
 
     def forward(self, x):
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
+        x = F.relu(self.bn1(self.fc1(x)))
+        x = F.relu(self.bn2(self.fc2(x)))
         x = self.fc3(x)
         return x
 
@@ -192,7 +194,7 @@ for file in file_list:
     """
     print('propensity_logit',propensity_logit.max(),propensity_logit.min())
     caliper = propensity_logit.std()* 0.2
-
+    exit()
     # get pairs and calculate average treatment effect 
     # for each treatment ele, find a control, most similar
     controlled_indices = np.where(treatment == 0)[0]
