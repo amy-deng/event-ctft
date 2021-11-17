@@ -171,7 +171,7 @@ for file in file_list:
     print('propensity',propensity.shape)
     propensity = propensity.cpu().detach().numpy()
     print('training time',time.time()-time2)
-
+    print('max',propensity.max(),'min',propensity.min(),'mean',propensity.mean())
     # """
     """ 
     cls = LogisticRegression(random_state=42,max_iter=2000)
