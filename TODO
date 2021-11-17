@@ -1,7 +1,7 @@
 cape2: python PSM_w_time_new2.py ../data EGY_topic check_topic_causal_data_w14h14_from2013_minprob0.05 14 1 0
 [increase max_inter]
 
-
+temphgtall on THA and RUS 
 
 
 

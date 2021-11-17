@@ -6,8 +6,14 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.calibration import CalibratedClassifierCV
 from sklearn.preprocessing import StandardScaler
 from matplotlib import pyplot as plt
-
+import torch
+from torch.utils import data
+import torch.nn as nn
+import torch.nn.functional as F
+from torch.optim import Adam
+from torch.utils.data import DataLoader
 import scipy
+
 '''
 python PSM_w_time_new2.py ../data THA_topic check_topic_causal_data_w14h14_from2013_minprob0.05 14 1 0
 python PSM_w_time_new2.py ../data THA_topic check_topic_causal_data_w14h14_from2013_minprob0.05 3,7,14 1 0
@@ -32,6 +38,56 @@ try:
 except:
     print("usage: <out_path> <dataset_name `THA_topic`> <raw_data_name `check_topic_causal_data_w7h7`> <pred_window 5> <target_binary 0> <check 1/0>")
     exit()
+
+
+class Net(nn.Module):
+    def __init__(self, h_inp, h_hid):
+        super(Net, self).__init__()
+        self.fc1 = nn.Linear(h_inp, h_hid)  # 5*5 from image dimension
+        self.fc2 = nn.Linear(h_hid, h_hid)
+        self.fc3 = nn.Linear(h_hid, 1)
+
+    def forward(self, x):
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        x = self.fc3(x)
+        return x
+
+def train(model, x, y, optimizer, criterion):
+    model.train()
+    model.zero_grad()
+    output = model(x)
+    loss = criterion(output,y)
+    loss.backward()
+    optimizer.step()
+    return loss, output
+
+@torch.no_grad()
+def evaluate(model, x, y, optimizer, criterion):
+    model.eval()
+    # model.zero_grad()
+    output = model(x)
+    loss = criterion(output,y)
+    # loss.backward()
+    # optimizer.step()
+    return loss, output
+ 
+
+class OurDataset(data.Dataset):
+    def __init__(self,X,y):
+        self.X = X
+        self.y = y
+
+    def __len__(self):
+        return len(self.X)
+
+    def __getitem__(self, idx): 
+        return self.X[idx], self.y[idx]
+
+criterion = nn.BCEWithLogitsLoss()
+EPOCHS = 200
+BATCH_SIZE = 64
+
 
 if check == 1:
     file_list = glob.glob('{}/{}/{}/check2_topic*.pkl'.format(out_path, dataset_name, raw_data_name))
@@ -78,15 +134,50 @@ for file in file_list:
     # logistic regression
     scaler = StandardScaler()
     X = scaler.fit_transform(covariate)
+    print('X',type(X),X.shape)
+    """
+    # build a nn
+    net = Net(X.size(-1),128)
+    # target = torch.randn(10)  # a dummy target, for example
+    # target = target.view(1, -1)  # make it the same shape as output
+    criterion = nn.BCEWithLogitsLoss()
+    optm = Adam(net.parameters(), lr = 0.001)
 
+    our_dataset = OurDataset(X,treatment)
+    train_dataloader = DataLoader(our_dataset, batch_size=BATCH_SIZE, shuffle=True)
+    for epoch in range(EPOCHS):
+        epoch_loss = 0
+        # correct = 0
+        for bidx, batch in enumerate(train_dataloader):
+            x_train, y_train = batch[0], batch[1]
+            x_train = x_train.view(-1,8)
+            x_train = x_train.to('cuda:0')
+            y_train = y_train.to('cuda:0')
+            loss, predictions = train(net,x_train,y_train, optm, criterion)
+            # for idx, i in enumerate(predictions):
+            #     i  = torch.round(i)
+            #     if i == y_train[idx]:
+            #         correct += 1
+            # acc = (correct/len(data))
+            epoch_loss+=loss
+        # print('Epoch {} Accuracy : {}'.format(epoch+1, acc*100))
+        print('Epoch {} Loss : {}'.format((epoch+1),epoch_loss))
+
+    net.eval()
+    pred = net(X,treatment)
+    pred = torch.sigmoid()
+    print('pred.shape',pred.shape)
+    propensity = pred
+    """
+    # 
     cls = LogisticRegression(random_state=42,max_iter=2000)
     cls = CalibratedClassifierCV(cls)
     cls.fit(X, treatment)
     print('propensity scoring model trained')
-
+    
     propensity = cls.predict_proba(covariate)
     propensity = propensity[:,1]
-
+    print(type(propensity),propensity.shape,'propensity')
     # caliper = propensity.std()*0.2
     propensity_logit = scipy.special.logit(propensity)
     caliper = propensity_logit.std()* 0.2
@@ -129,7 +220,8 @@ for file in file_list:
     # ATE3 = eff_list3.mean(0)
     effect_dict[(int(topic_id),split_date)] = [eff_list3.mean(0),eff_list7.mean(0),eff_list14.mean(0)]
     # top3 = ATE.argsort()[-3:][::-1]
-    # break
+    exit()
+
 print(len(effect_dict),'len effect_dict')
 with open('{}/effect_dict_pw{}_biy{}_nocheck.pkl'.format(save_path,'3714',target_binary),'wb') as f:
     pickle.dump(effect_dict,f)
