@@ -136,7 +136,8 @@ for file in file_list:
     # logistic regression
     time1= time.time()
     scaler = StandardScaler()
-    X = scaler.fit_transform(covariate)
+    # X = scaler.fit_transform(covariate)
+    X = covariate
     print('X',type(X),X.shape)
     print('StandardScaler time',time.time()-time1)
     # """
@@ -194,6 +195,7 @@ for file in file_list:
     """
     print('propensity_logit',propensity_logit.max(),propensity_logit.min())
     caliper = propensity_logit.std()* 0.2
+    print('caliper',caliper)
     exit()
     # get pairs and calculate average treatment effect 
     # for each treatment ele, find a control, most similar
