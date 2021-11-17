@@ -10,6 +10,8 @@ from matplotlib import pyplot as plt
 import scipy
 '''
 python PSM_w_time_new.py ../data THA_topic check_topic_causal_data_w14h14_from2013_minprob0.05 14 1 0
+python PSM_w_time_new.py ../data THA_topic check_topic_causal_data_w14h14_from2013_minprob0.05 14 1 0
+
 for each event find causes
 '''
 # out_path='../data'
@@ -31,10 +33,10 @@ except:
     print("usage: <out_path> <dataset_name `THA_topic`> <raw_data_name `check_topic_causal_data_w7h7`> <pred_window 5> <target_binary 0> <check 1/0>")
     exit()
 
-if check == 1:
-    file_list = glob.glob('{}/{}/{}/check_topic*.pkl'.format(out_path, dataset_name, raw_data_name))
-else:
-    file_list = glob.glob('{}/{}/{}/nocheck_topic*.pkl'.format(out_path, dataset_name, raw_data_name))
+# if check == 1:
+#     file_list = glob.glob('{}/{}/{}/check_topic*.pkl'.format(out_path, dataset_name, raw_data_name))
+# else:
+#     file_list = glob.glob('{}/{}/{}/nocheck_topic*.pkl'.format(out_path, dataset_name, raw_data_name))
 
 
 splitted_date_lists = [
@@ -89,14 +91,14 @@ for topic_id in range(50):
             except:
                 print(file_name)
             # break
+        treatment_list = np.concatenate(treatment_list,0)
+        covariate_list = np.concatenate(covariate_list,0)
+        outcome_list = np.concatenate(outcome_list,0)
         if len(treatment_list) < 30:
             ATE = np.zeros(20)
             effect_dict[(int(topic_id),k)] = ATE
             print('empty',len(treatment_list))
             continue
-        treatment_list = np.concatenate(treatment_list,0)
-        covariate_list = np.concatenate(covariate_list,0)
-        outcome_list = np.concatenate(outcome_list,0)
         print(treatment_list.shape,covariate_list.shape,outcome_list.shape)
         if target_binary == 1:
             print('Convert outcome to binary')
