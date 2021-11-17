@@ -85,7 +85,7 @@ class OurDataset(data.Dataset):
         return self.X[idx], self.y[idx]
 
 criterion = nn.BCEWithLogitsLoss()
-EPOCHS = 200
+EPOCHS = 500
 BATCH_SIZE = 64
 
 
@@ -151,6 +151,7 @@ for file in file_list:
     # print(X_torch.type(),'X_torch','y_torch',y_torch.type())
     our_dataset = OurDataset(X_torch,y_torch)
     train_dataloader = DataLoader(our_dataset, batch_size=BATCH_SIZE, shuffle=True)
+
     for epoch in range(EPOCHS):
         epoch_loss = 0
         for bidx, batch in enumerate(train_dataloader):
@@ -160,10 +161,14 @@ for file in file_list:
             # print(x_train.shape,y_train.shape)
             loss, predictions = train(net,x_train,y_train, optm, criterion)
             epoch_loss+=loss
-        print('Epoch {} Loss : {}'.format((epoch+1),epoch_loss))
+        if epoch % 10 == 0:
+            print('Epoch {} Loss : {}'.format((epoch+1),epoch_loss))
+        if epoch_loss < 5e-05:
+            print('training done',epoch)
+            break
 
     net.eval()
-    pred = net(X_torch)
+    pred = net(X_torch.cuda())
     propensity = torch.sigmoid()
     print('propensity',propensity,propensity.shape)
     propensity = propensity.cpu().detach().numpy()
