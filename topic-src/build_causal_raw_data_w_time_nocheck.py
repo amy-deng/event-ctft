@@ -139,7 +139,7 @@ for i,row in df.iterrows():
     print(ngrams_vec.shape,'ngrams_vec  1')
     print('time 1',time.time() - time1)
     time2 = time.time()
-    token_list = clean_document_list(past_text_list)
+    token_list = clean_document_list_flatten(past_text_list)
     ngrams_vec = c_vec2.fit_transform(token_list)
     print(ngrams_vec.shape,'ngrams_vec  1')
     print('time 2',time.time() - time2)

@@ -143,6 +143,11 @@ def clean_document_list(texts):
         l.append(clean_document(t))
     return l 
 
+def clean_document_list_flatten(texts):
+    l = []
+    for t in texts:
+        l + clean_document(t)
+    return l 
 
 def clean_document_str(text):
     text = re.sub(r"''", " ",text) 
