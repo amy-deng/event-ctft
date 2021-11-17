@@ -50,8 +50,8 @@ print('# of event (sample) after {}-01-01'.format(start_year),len(df))
 
 news_df = pd.read_json('/home/sdeng/data/icews/news.1991.201703.country/icews_news_{}.json'.format(country), lines=True)
 print('# of news',len(news_df))
-news_df = news_df.loc[news_df['Date'] >= str(int(start_year)-1)+'-12-10']
-print('# of news after {}-12-10'.format(int(start_year)-1),len(news_df))
+news_df = news_df.loc[news_df['Date'] >= str(int(start_year)-1)+'-12-15']
+print('# of news after {}-12-15'.format(int(start_year)-1),len(news_df))
 
 loaded_dict = corpora.Dictionary.load('/home/sdeng/data/icews/topic_models/{}.dict'.format(country))
 loaded_lda =  models.LdaModel.load('/home/sdeng/data/icews/topic_models/{}.lda'.format(lda_name))
@@ -64,11 +64,11 @@ print('ngram loaded',len(ngram))
 
 c_vec = CountVectorizer(ngram_range=(1, 1),stop_words='english',vocabulary=ngram,binary=False)
 # c_vec = CountVectorizer(ngram_range=(1, 1),stop_words='english',vocabulary=ngram,binary=False)
-c_vec2 = CountVectorizer(
-                    analyzer='word',vocabulary=ngram,binary=False,
-                    tokenizer=lambda x: x,
-                    preprocessor=lambda x: x,
-                    token_pattern=None)
+# c_vec2 = CountVectorizer(
+#                     analyzer='word',vocabulary=ngram, binary=False,
+#                     tokenizer=lambda x: x,
+#                     preprocessor=lambda x: x,
+#                     token_pattern=None)
 raw_covariates = []
 raw_treatments = []
 raw_treatments_check = []
@@ -133,16 +133,16 @@ for i,row in df.iterrows():
     '''covariates'''
     past_text_list = past_text_df['Text'].values
     # ['aaa aa','bb cc']
-    time1 = time.time()
+    # time1 = time.time()
     processed_str = ' '.join(clean_document_list_str(past_text_list))
     ngrams_vec = c_vec.fit_transform([processed_str])
-    print(ngrams_vec.shape,'ngrams_vec  1')
-    print('time 1',time.time() - time1)
-    time2 = time.time()
-    token_list = clean_document_list_flatten(past_text_list)
-    ngrams_vec = c_vec2.fit_transform(token_list)
-    print(ngrams_vec.shape,'ngrams_vec  1')
-    print('time 2',time.time() - time2)
+    # print(ngrams_vec.shape,'ngrams_vec  1')
+    # print('time 1',time.time() - time1)
+    # time2 = time.time()
+    # token_list = clean_document_list_flatten(past_text_list)
+    # ngrams_vec = c_vec2.fit_transform([token_list])
+    # print(ngrams_vec.shape,'ngrams_vec  1')
+    # print('time 2',time.time() - time2)
     # print(ngrams_vec.shape) # scipy.sparse.csr.csr_matrix
     raw_covariates.append(ngrams_vec)
     # raw_covariates.append(ngrams_vec.toarray())
