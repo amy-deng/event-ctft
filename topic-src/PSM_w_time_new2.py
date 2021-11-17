@@ -146,7 +146,7 @@ for file in file_list:
     criterion = nn.BCEWithLogitsLoss()
     optm = torch.optim.Adam(net.parameters(), lr=0.001, weight_decay=1e-5)
     X_torch = torch.from_numpy(X).float()
-    y_torch = torch.from_numpy(treatment).int()
+    y_torch = torch.from_numpy(treatment).float()
     print(X_torch.type(),'X_torch','y_torch',y_torch.type())
     our_dataset = OurDataset(X_torch,y_torch)
     train_dataloader = DataLoader(our_dataset, batch_size=BATCH_SIZE, shuffle=True)
