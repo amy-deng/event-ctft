@@ -134,12 +134,11 @@ for file in file_list:
     
     # train propensity scoring function
     # logistic regression
-    time1= time.time()
+    # time1= time.time()
     scaler = StandardScaler()
-    # X = scaler.fit_transform(covariate)
-    X = covariate
+    X = scaler.fit_transform(covariate)
     print('X',type(X),X.shape,X)
-    print('StandardScaler time',time.time()-time1)
+    # print('StandardScaler time',time.time()-time1)
     """
     time2= time.time()
     # build a nn
@@ -181,16 +180,15 @@ for file in file_list:
     """
     # """ 
     time3 = time.time()
-    cls = LogisticRegression(random_state=42,max_iter=2000)
+    cls = LogisticRegression(random_state=42,max_iter=5000)
     cls = CalibratedClassifierCV(cls)
     cls.fit(X, treatment)
-    print('propensity scoring model trained')
-    
+    print('propensity scoring LR model trained',time.time()-time3)
     propensity = cls.predict_proba(covariate)
     propensity = propensity[:,1]
     print('max',propensity.max(),'min',propensity.min(),'mean',propensity.mean())
     print(type(propensity),propensity.shape,'propensity')
-    print('LR',time.time()-time3)
+    
     # caliper = propensity.std()*0.2
     propensity_logit = scipy.special.logit(propensity)
     # """
