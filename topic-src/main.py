@@ -30,7 +30,7 @@ for m in model_l:
 horizon_l = horizons.split(',')
 for mod in model_l:
     for horizon in horizon_l:
-        command = "python train.py --dataset {} --datafiles {} --horizon {} --gpu {} -m {}  --n-hidden {} --n-layers {} --note {}".format(\
-            dataset,datafiles,horizon,gpu,mod,hidden,layer,note)  
+        command = "python train.py --dataset {} --datafiles {} --horizon {} --gpu {} -m {}  --n-hidden {} --n-layers {} --note {} {}".format(\
+            dataset,datafiles,horizon,gpu,mod,hidden,layer,note, others)  
         print(command)
         call(command, shell=True)
