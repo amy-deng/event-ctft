@@ -43,7 +43,7 @@ except:
 class Net(nn.Module):
     def __init__(self, h_inp, h_hid):
         super(Net, self).__init__()
-        self.fc1 = nn.Linear(h_inp, h_hid)  # 5*5 from image dimension
+        self.fc1 = nn.Linear(h_inp, h_hid)  
         self.fc2 = nn.Linear(h_hid, h_hid)
         self.fc3 = nn.Linear(h_hid, 1)
 
@@ -151,9 +151,9 @@ for file in file_list:
         epoch_loss = 0
         for bidx, batch in enumerate(train_dataloader):
             x_train, y_train = batch[0], batch[1]
-            x_train = x_train.view(-1,8)
             x_train = x_train.cuda()
             y_train = y_train.cuda()
+            print(x_train.shape,y_train.shape)
             loss, predictions = train(net,x_train,y_train, optm, criterion)
             epoch_loss+=loss
         print('Epoch {} Loss : {}'.format((epoch+1),epoch_loss))
