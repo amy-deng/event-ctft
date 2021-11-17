@@ -38,6 +38,7 @@ if check == 1:
 else:
     file_list = glob.glob('{}/{}/{}/nocheck2_topic*.pkl'.format(out_path, dataset_name, raw_data_name))
 
+file_list.sort()
 save_path = '{}/{}/{}/causal_effect'.format(out_path, dataset_name, raw_data_name)
 os.makedirs(save_path, exist_ok=True)
 effect_dict = {}
@@ -70,7 +71,7 @@ for file in file_list:
         outcome14 = np.where(outcome14 > 0, 1, 0)
         # exit()
 
-    print('topic {} data loaded'.format(topic_id),)
+    print('topic {} data loaded \t {}'.format(topic_id,split_date))
     print('outcome3',outcome3.shape) 
     
     # train propensity scoring function
@@ -128,8 +129,8 @@ for file in file_list:
     # ATE3 = eff_list3.mean(0)
     effect_dict[(int(topic_id),split_date)] = [eff_list3.mean(0),eff_list7.mean(0),eff_list14.mean(0)]
     # top3 = ATE.argsort()[-3:][::-1]
-    break
-print(effect_dict)
+    # break
+print(len(effect_dict),'len effect_dict')
 with open('{}/effect_dict_pw{}_biy{}_nocheck.pkl'.format(save_path,'3714',target_binary),'wb') as f:
     pickle.dump(effect_dict,f)
 print(save_path,'/effect_dict.pkl saved')
