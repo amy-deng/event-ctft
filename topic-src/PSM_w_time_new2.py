@@ -104,7 +104,6 @@ for file in file_list:
             outcome_control = outcome[controlled_indices[min_idx]]
             outcome_treatment = outcome[i]
             eff = outcome_treatment-outcome_control
-
             eff_list.append(eff) 
             n_pairs += 1
             used_control_indices.append(controlled_indices[min_idx])
