@@ -68,7 +68,10 @@ for topic_id in range(50):
         covariate_list = []
         outcome_list = []
         for tim in date_collection[k]:
-            file_name = '{}/{}/{}/nocheck_topic_{}_{}.pkl'.format(out_path, dataset_name, raw_data_name, topic_id, tim)
+            if check:
+                file_name = '{}/{}/{}/check_topic_{}_{}.pkl'.format(out_path, dataset_name, raw_data_name, topic_id, tim)
+            else:
+                file_name = '{}/{}/{}/nocheck_topic_{}_{}.pkl'.format(out_path, dataset_name, raw_data_name, topic_id, tim)
             try:
                 with open(file_name,'rb') as f:
                     dataset = pickle.load(f)
