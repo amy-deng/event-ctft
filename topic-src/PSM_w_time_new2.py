@@ -181,7 +181,7 @@ for file in file_list:
     # """ 
     time3 = time.time()
     cls = LogisticRegression(random_state=42,max_iter=4000,tol=5e-4)
-    # cls = CalibratedClassifierCV(cls)
+    cls = CalibratedClassifierCV(cls,cv=3,n_jobs=5)
     cls.fit(X, treatment)
     print('propensity scoring LR model trained',time.time()-time3)
     propensity = cls.predict_proba(X)
@@ -195,7 +195,7 @@ for file in file_list:
     print('propensity_logit',propensity_logit.max(),propensity_logit.min())
     caliper = propensity_logit.std()* 0.2
     print('caliper',caliper)
-    exit()
+    # exit()
     # get pairs and calculate average treatment effect 
     # for each treatment ele, find a control, most similar
     controlled_indices = np.where(treatment == 0)[0]
