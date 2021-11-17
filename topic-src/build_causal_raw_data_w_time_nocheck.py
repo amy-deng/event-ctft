@@ -40,7 +40,7 @@ dataset_path = "{}/{}".format(out_path,dataset)
 os.makedirs(dataset_path, exist_ok=True)
 print('dataset_path',dataset_path)
 
-out_file = "topic_causal_data_nocheck_w{}h{}_from{}_minprob{}_ngram{}.pkl".format(window,horizon,start_year,min_prob,top_k_ngram)
+out_file = "check_topic_causal_data_w{}h{}_from{}_minprob{}_ngram{}.pkl".format(window,horizon,start_year,min_prob,top_k_ngram)
 print('out_file',out_file)
 
 df = pd.read_json(event_path,lines=True)
@@ -50,8 +50,8 @@ print('# of event (sample) after {}-01-01'.format(start_year),len(df))
 
 news_df = pd.read_json('/home/sdeng/data/icews/news.1991.201703.country/icews_news_{}.json'.format(country), lines=True)
 print('# of news',len(news_df))
-news_df = news_df.loc[news_df['Date'] >= str(start_year)+'-01-01']
-print('# of news after {}-01-01'.format(start_year),len(news_df))
+news_df = news_df.loc[news_df['Date'] >= str(start_year-1)+'-12-10']
+print('# of news after {}-12-10'.format(start_year),len(news_df))
 
 loaded_dict = corpora.Dictionary.load('/home/sdeng/data/icews/topic_models/{}.dict'.format(country))
 loaded_lda =  models.LdaModel.load('/home/sdeng/data/icews/topic_models/{}.lda'.format(lda_name))
@@ -132,7 +132,7 @@ for i,row in df.iterrows():
     # print(ngrams_vec.shape) # scipy.sparse.csr.csr_matrix
     raw_covariates.append(ngrams_vec)
     # raw_covariates.append(ngrams_vec.toarray())
-    """
+    # """
     # topic in past, used to check if the treatment topic is the first time appear
     processed_tokens = clean_document_list(past_text_list)
     corpus_bow = [loaded_dict.doc2bow(text) for text in processed_tokens]
@@ -146,7 +146,7 @@ for i,row in df.iterrows():
     for k in topic_count:
         topic_vec[k] = topic_count[k]
     raw_treatments_check.append(topic_vec)
-    """
+    # """
 
     ''' date '''
     date_list.append(str(row['date'])[:10])
