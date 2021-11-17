@@ -99,6 +99,8 @@ for topic_id in range(50):
             effect_dict[(int(topic_id),k)] = ATE
             print('empty',len(treatment_list))
             continue
+        print(len(treatment_list))
+        continue
         print(treatment_list.shape,covariate_list.shape,outcome_list.shape)
         if target_binary == 1:
             print('Convert outcome to binary')
