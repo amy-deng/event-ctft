@@ -135,40 +135,35 @@ for file in file_list:
     scaler = StandardScaler()
     X = scaler.fit_transform(covariate)
     print('X',type(X),X.shape)
-    """
+    # """
     # build a nn
     net = Net(X.size(-1),128)
+    net = net.cuda()
     # target = torch.randn(10)  # a dummy target, for example
     # target = target.view(1, -1)  # make it the same shape as output
     criterion = nn.BCEWithLogitsLoss()
     optm = Adam(net.parameters(), lr = 0.001)
-
-    our_dataset = OurDataset(X,treatment)
+    X_torch = torch.from_numpy(X)
+    y_torch = torch.from_numpy(treatment)
+    our_dataset = OurDataset(X_torch,y_torch)
     train_dataloader = DataLoader(our_dataset, batch_size=BATCH_SIZE, shuffle=True)
     for epoch in range(EPOCHS):
         epoch_loss = 0
-        # correct = 0
         for bidx, batch in enumerate(train_dataloader):
             x_train, y_train = batch[0], batch[1]
             x_train = x_train.view(-1,8)
-            x_train = x_train.to('cuda:0')
-            y_train = y_train.to('cuda:0')
+            x_train = x_train.cuda()
+            y_train = y_train.cuda()
             loss, predictions = train(net,x_train,y_train, optm, criterion)
-            # for idx, i in enumerate(predictions):
-            #     i  = torch.round(i)
-            #     if i == y_train[idx]:
-            #         correct += 1
-            # acc = (correct/len(data))
             epoch_loss+=loss
-        # print('Epoch {} Accuracy : {}'.format(epoch+1, acc*100))
         print('Epoch {} Loss : {}'.format((epoch+1),epoch_loss))
 
     net.eval()
-    pred = net(X,treatment)
+    pred = net(X_torch,y_torch)
     pred = torch.sigmoid()
     print('pred.shape',pred.shape)
     propensity = pred
-    """
+    # """
     # 
     cls = LogisticRegression(random_state=42,max_iter=2000)
     cls = CalibratedClassifierCV(cls)
