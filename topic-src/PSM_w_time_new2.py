@@ -173,7 +173,7 @@ for file in file_list:
     print('training time',time.time()-time2)
     print('max',propensity.max(),'min',propensity.min(),'mean',propensity.mean())
 
-    propensity_logit = torch.special.logit(propensity, eps=1e-6)
+    propensity_logit = torch.logit(propensity, eps=1e-6)
     propensity_logit = propensity_logit.numpy()
     # """
     """ 
