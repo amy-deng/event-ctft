@@ -138,6 +138,7 @@ for file in file_list:
     print('X',type(X),X.shape)
     print('StandardScaler time',time.time()-time1)
     # """
+    time2= time.time()
     # build a nn
     net = Net(X.shape[-1],128)
     net = net.cuda()
@@ -147,7 +148,7 @@ for file in file_list:
     optm = torch.optim.Adam(net.parameters(), lr=0.001, weight_decay=1e-5)
     X_torch = torch.from_numpy(X).float()
     y_torch = torch.from_numpy(treatment).float()
-    print(X_torch.type(),'X_torch','y_torch',y_torch.type())
+    # print(X_torch.type(),'X_torch','y_torch',y_torch.type())
     our_dataset = OurDataset(X_torch,y_torch)
     train_dataloader = DataLoader(our_dataset, batch_size=BATCH_SIZE, shuffle=True)
     for epoch in range(EPOCHS):
@@ -156,18 +157,20 @@ for file in file_list:
             x_train, y_train = batch[0], batch[1]
             x_train = x_train.cuda()
             y_train = y_train.unsqueeze(-1).cuda()
-            print(x_train.shape,y_train.shape)
+            # print(x_train.shape,y_train.shape)
             loss, predictions = train(net,x_train,y_train, optm, criterion)
             epoch_loss+=loss
         print('Epoch {} Loss : {}'.format((epoch+1),epoch_loss))
 
     net.eval()
-    pred = net(X_torch,y_torch)
-    pred = torch.sigmoid()
-    print('pred.shape',pred.shape)
-    propensity = pred
+    pred = net(X_torch)
+    propensity = torch.sigmoid()
+    print('propensity',propensity,propensity.shape)
+    propensity = propensity.cpu().detach().numpy()
+    print('training time',time.time()-time2)
+
     # """
-    # 
+    """ 
     cls = LogisticRegression(random_state=42,max_iter=2000)
     cls = CalibratedClassifierCV(cls)
     cls.fit(X, treatment)
@@ -176,6 +179,7 @@ for file in file_list:
     propensity = cls.predict_proba(covariate)
     propensity = propensity[:,1]
     print(type(propensity),propensity.shape,'propensity')
+    """
     # caliper = propensity.std()*0.2
     propensity_logit = scipy.special.logit(propensity)
     caliper = propensity_logit.std()* 0.2
