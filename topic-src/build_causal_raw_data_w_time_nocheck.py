@@ -50,7 +50,7 @@ print('# of event (sample) after {}-01-01'.format(start_year),len(df))
 
 news_df = pd.read_json('/home/sdeng/data/icews/news.1991.201703.country/icews_news_{}.json'.format(country), lines=True)
 print('# of news',len(news_df))
-news_df = news_df.loc[news_df['Date'] >= str(start_year-1)+'-12-10']
+news_df = news_df.loc[news_df['Date'] >= str(int(start_year-1))+'-12-10']
 print('# of news after {}-12-10'.format(start_year),len(news_df))
 
 loaded_dict = corpora.Dictionary.load('/home/sdeng/data/icews/topic_models/{}.dict'.format(country))
