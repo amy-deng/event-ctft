@@ -113,6 +113,9 @@ for file in file_list:
     treatment = np.where(treatment > 0, 1, 0)
     covariate = dataset['covariate']
     covariate = np.concatenate([v.toarray() for v in covariate],0) 
+    print(covariate.shape,'covariate')
+    covariate = covariate[:,:15000]
+    print(covariate.shape,'covariate')
     
     # print("dataset['outcome']",dataset['outcome'].shape)
     # outcome = dataset['outcome'][:,:pred_window,].sum(1) # number of events; sum of all days
