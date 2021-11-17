@@ -79,7 +79,7 @@ for file in file_list:
     scaler = StandardScaler()
     X = scaler.fit_transform(covariate)
 
-    cls = LogisticRegression(random_state=42,max_iter=1800)
+    cls = LogisticRegression(random_state=42,max_iter=2000)
     cls = CalibratedClassifierCV(cls)
     cls.fit(X, treatment)
     print('propensity scoring model trained')
