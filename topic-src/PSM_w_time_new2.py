@@ -177,7 +177,7 @@ for file in file_list:
     """
     # """ 
     time3 = time.time()
-    cls = LogisticRegression(random_state=42,max_iter=5000)
+    cls = LogisticRegression(random_state=42,max_iter=5000,solver='sag')
     cls = CalibratedClassifierCV(cls)
     cls.fit(X, treatment)
     print('propensity scoring LR model trained',time.time()-time3)
@@ -185,7 +185,7 @@ for file in file_list:
     propensity = propensity[:,1]
     print('max',propensity.max(),'min',propensity.min(),'mean',propensity.mean())
     print(type(propensity),propensity.shape,'propensity')
-    
+    # https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3144483/
     # caliper = propensity.std()*0.2
     propensity_logit = scipy.special.logit(propensity)
     # """
