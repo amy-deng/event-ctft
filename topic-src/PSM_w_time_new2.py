@@ -181,7 +181,7 @@ for file in file_list:
     # """ 
     time3 = time.time()
     cls = LogisticRegression(random_state=42,max_iter=4000,tol=5e-4)
-    cls = CalibratedClassifierCV(cls,cv=3,n_jobs=5)
+    cls = CalibratedClassifierCV(cls,cv=3)
     cls.fit(X, treatment)
     print('propensity scoring LR model trained',time.time()-time3)
     propensity = cls.predict_proba(X)
