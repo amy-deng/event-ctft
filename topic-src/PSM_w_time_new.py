@@ -91,13 +91,18 @@ for topic_id in range(50):
             except:
                 print(file_name)
             # break
+        if len(treatment_list) < 1:
+            ATE = np.zeros(20)
+            effect_dict[(int(topic_id),k)] = ATE
+            print('empty ',len(treatment_list))
+            continue
         treatment_list = np.concatenate(treatment_list,0)
         covariate_list = np.concatenate(covariate_list,0)
         outcome_list = np.concatenate(outcome_list,0)
         if len(treatment_list) < 30:
             ATE = np.zeros(20)
             effect_dict[(int(topic_id),k)] = ATE
-            print('empty',len(treatment_list))
+            print('< 30',len(treatment_list))
             continue
         print(len(treatment_list))
         continue
