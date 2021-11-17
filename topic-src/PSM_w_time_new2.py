@@ -167,8 +167,8 @@ for file in file_list:
 
     net.eval()
     pred = net(X_torch.cuda())
-    propensity = torch.sigmoid(pred)
-    print('propensity',propensity,propensity.shape)
+    propensity = torch.sigmoid(pred).squeeze(-1)
+    print('propensity',propensity.shape)
     propensity = propensity.cpu().detach().numpy()
     print('training time',time.time()-time2)
 
