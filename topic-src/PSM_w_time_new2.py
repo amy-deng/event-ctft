@@ -97,10 +97,11 @@ else:
     file_list = glob.glob('{}/{}/{}/nocheck2_topic*.pkl'.format(out_path, dataset_name, raw_data_name))
 
 file_list.sort()
+print('file_list',len(file_list))
 save_path = '{}/{}/{}/causal_effect'.format(out_path, dataset_name, raw_data_name)
 os.makedirs(save_path, exist_ok=True)
 effect_dict = {}
-for file in file_list:
+for iii, file in enumerate(file_list):
     file_name = file.split('/')[-1]
     tmp = file_name.split('.')[0].split('_')
     topic_id = int(tmp[2])
@@ -114,7 +115,7 @@ for file in file_list:
     covariate = dataset['covariate']
     covariate = np.concatenate([v.toarray() for v in covariate],0) 
     print(covariate.shape,'covariate')
-    covariate = covariate[:,:10000]
+    covariate = covariate[:,:5000]
     print(covariate.shape,'covariate')
     
     # print("dataset['outcome']",dataset['outcome'].shape)
@@ -130,7 +131,7 @@ for file in file_list:
         outcome7 = np.where(outcome7 > 0, 1, 0)
         outcome14 = np.where(outcome14 > 0, 1, 0)
         # exit()
-    print('topic {} data loaded \t {}'.format(topic_id,split_date))
+    print('iii={} \t topic {} data loaded \t {}'.format(iii,topic_id,split_date))
     print('outcome3',outcome3.shape) 
     
     # train propensity scoring function
@@ -181,7 +182,7 @@ for file in file_list:
     # """ 
     time3 = time.time()
     cls = LogisticRegression(random_state=42,max_iter=4000,tol=5e-4)
-    cls = CalibratedClassifierCV(cls,cv=3)
+    cls = CalibratedClassifierCV(cls,cv=4)
     cls.fit(X, treatment)
     print('propensity scoring LR model trained',time.time()-time3)
     propensity = cls.predict_proba(X)
