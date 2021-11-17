@@ -132,9 +132,11 @@ for file in file_list:
     
     # train propensity scoring function
     # logistic regression
+    time1= time.time()
     scaler = StandardScaler()
     X = scaler.fit_transform(covariate)
     print('X',type(X),X.shape)
+    print('StandardScaler time',time.time()-time1)
     # """
     # build a nn
     net = Net(X.shape[-1],128)
@@ -144,7 +146,7 @@ for file in file_list:
     criterion = nn.BCEWithLogitsLoss()
     optm = torch.optim.Adam(net.parameters(), lr=0.001, weight_decay=1e-5)
     X_torch = torch.from_numpy(X).float()
-    y_torch = torch.from_numpy(treatment)
+    y_torch = torch.from_numpy(treatment).long()
     our_dataset = OurDataset(X_torch,y_torch)
     train_dataloader = DataLoader(our_dataset, batch_size=BATCH_SIZE, shuffle=True)
     for epoch in range(EPOCHS):
