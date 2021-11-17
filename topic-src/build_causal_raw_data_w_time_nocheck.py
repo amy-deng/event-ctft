@@ -152,7 +152,7 @@ for i,row in df.iterrows():
     date_list.append(str(row['date'])[:10])
 
     if i % 50 == 0:
-        print('processing i =',i,time.time())
+        print('processing i =',i,time.ctime())
     # if i > 30:
     #     print('testing...break')
     #     break
