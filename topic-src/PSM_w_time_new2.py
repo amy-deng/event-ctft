@@ -180,7 +180,7 @@ for file in file_list:
     """
     # """ 
     time3 = time.time()
-    cls = LogisticRegression(random_state=42,max_iter=5000,solver='sag')
+    cls = LogisticRegression(random_state=42,max_iter=4000)
     cls = CalibratedClassifierCV(cls)
     cls.fit(X, treatment)
     print('propensity scoring LR model trained',time.time()-time3)
