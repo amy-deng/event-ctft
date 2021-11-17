@@ -40,7 +40,7 @@ dataset_path = "{}/{}".format(out_path,dataset)
 os.makedirs(dataset_path, exist_ok=True)
 print('dataset_path',dataset_path)
 
-out_file = "check_topic_causal_data_w{}h{}_from{}_minprob{}_ngram{}.pkl".format(window,horizon,start_year,min_prob,top_k_ngram)
+out_file = "topic_causal_data_nocheck_w{}h{}_from{}_minprob{}_ngram{}.pkl".format(window,horizon,start_year,min_prob,top_k_ngram)
 print('out_file',out_file)
 
 df = pd.read_json(event_path,lines=True)
@@ -129,7 +129,7 @@ for i,row in df.iterrows():
     # print(ngrams_vec.shape) # scipy.sparse.csr.csr_matrix
     raw_covariates.append(ngrams_vec)
     # raw_covariates.append(ngrams_vec.toarray())
-
+    """
     # topic in past, used to check if the treatment topic is the first time appear
     processed_tokens = clean_document_list(past_text_list)
     corpus_bow = [loaded_dict.doc2bow(text) for text in processed_tokens]
@@ -143,22 +143,25 @@ for i,row in df.iterrows():
     for k in topic_count:
         topic_vec[k] = topic_count[k]
     raw_treatments_check.append(topic_vec)
+    """
 
     ''' date '''
     date_list.append(str(row['date'])[:10])
 
-    if i % 100 == 0:
+    if i % 50 == 0:
         print('processing i =',i,time.time())
     # if i > 30:
     #     print('testing...break')
     #     break
  
-raw_treatments_check = np.stack(raw_treatments_check,0)
+# raw_treatments_check = np.stack(raw_treatments_check,0)
 raw_treatments = np.stack(raw_treatments,0)
 raw_outcomes = np.stack(raw_outcomes,0)
 raw_covariates = np.stack(raw_covariates,0)
 date_list = np.array(date_list)
-print('raw_outcomes',raw_outcomes.shape,'raw_treatments',raw_treatments.shape,'raw_treatments_check',raw_treatments_check.shape)
+print('raw_outcomes',raw_outcomes.shape,'raw_treatments',raw_treatments.shape,
+# 'raw_treatments_check',raw_treatments_check.shape
+)
 print('raw_covariates',type(raw_covariates),raw_covariates.shape,'date_list',date_list.shape)
 
 with open("{}/{}".format(dataset_path,out_file),'wb') as f:
@@ -166,7 +169,7 @@ with open("{}/{}".format(dataset_path,out_file),'wb') as f:
     {'covariate':raw_covariates,
     'outcome':raw_outcomes,
     'treatment':raw_treatments,
-    'treatment_check':raw_treatments_check,
+    # 'treatment_check':raw_treatments_check,
     'date':date_list},f)
 
 print(out_file,'saved')
