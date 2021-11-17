@@ -114,7 +114,7 @@ for file in file_list:
     covariate = dataset['covariate']
     covariate = np.concatenate([v.toarray() for v in covariate],0) 
     print(covariate.shape,'covariate')
-    covariate = covariate[:,:15000]
+    covariate = covariate[:,:10000]
     print(covariate.shape,'covariate')
     
     # print("dataset['outcome']",dataset['outcome'].shape)
@@ -135,11 +135,11 @@ for file in file_list:
     
     # train propensity scoring function
     # logistic regression
-    # time1= time.time()
+    time1= time.time()
     scaler = StandardScaler()
     X = scaler.fit_transform(covariate)
     # print('X',type(X),X.shape,X)
-    # print('StandardScaler time',time.time()-time1)
+    print('StandardScaler time',time.time()-time1)
     """
     time2= time.time()
     # build a nn
