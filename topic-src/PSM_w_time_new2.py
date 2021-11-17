@@ -181,10 +181,10 @@ for file in file_list:
     # """ 
     time3 = time.time()
     cls = LogisticRegression(random_state=42,max_iter=4000,tol=1e-3)
-    cls = CalibratedClassifierCV(cls)
+    # cls = CalibratedClassifierCV(cls)
     cls.fit(X, treatment)
     print('propensity scoring LR model trained',time.time()-time3)
-    propensity = cls.predict_proba(covariate)
+    propensity = cls.predict_proba(X)
     propensity = propensity[:,1]
     print('max',propensity.max(),'min',propensity.min(),'mean',propensity.mean())
     print(type(propensity),propensity.shape,'propensity')
