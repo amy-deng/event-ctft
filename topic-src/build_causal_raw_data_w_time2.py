@@ -40,7 +40,7 @@ dataset_path = "{}/{}".format(out_path,dataset)
 os.makedirs(dataset_path, exist_ok=True)
 print('dataset_path',dataset_path)
 
-out_file = "check_topic_causal_data_w{}h{}_from{}_minprob{}.pkl".format(window,horizon,start_year,min_prob)
+out_file = "check_topic_causal_data_w{}h{}_from{}_minprob{}_ngram{}.pkl".format(window,horizon,start_year,min_prob,top_k_ngram)
 print('out_file',out_file)
 
 df = pd.read_json(event_path,lines=True)

@@ -135,7 +135,7 @@ for file in file_list:
     # time1= time.time()
     scaler = StandardScaler()
     X = scaler.fit_transform(covariate)
-    print('X',type(X),X.shape,X)
+    # print('X',type(X),X.shape,X)
     # print('StandardScaler time',time.time()-time1)
     """
     time2= time.time()
