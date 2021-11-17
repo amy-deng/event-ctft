@@ -110,7 +110,6 @@ for file in file_list:
     with open(file,'rb') as f:
         dataset = pickle.load(f)
     treatment = dataset['treatment']
-    treatment = treatment
     treatment = np.where(treatment > 0, 1, 0)
     covariate = dataset['covariate']
     covariate = np.concatenate([v.toarray() for v in covariate],0) 
@@ -128,7 +127,6 @@ for file in file_list:
         outcome7 = np.where(outcome7 > 0, 1, 0)
         outcome14 = np.where(outcome14 > 0, 1, 0)
         # exit()
-
     print('topic {} data loaded \t {}'.format(topic_id,split_date))
     print('outcome3',outcome3.shape) 
     
@@ -166,7 +164,6 @@ for file in file_list:
         if epoch_loss < 5e-05:
             print('training done',epoch)
             break
-
     net.eval()
     pred = net(X_torch.cuda())
     propensity = torch.sigmoid(pred).squeeze(-1)
@@ -234,7 +231,7 @@ for file in file_list:
     # ATE3 = eff_list3.mean(0)
     effect_dict[(int(topic_id),split_date)] = [eff_list3.mean(0),eff_list7.mean(0),eff_list14.mean(0)]
     # top3 = ATE.argsort()[-3:][::-1]
-    exit()
+    # exit()
 
 print(len(effect_dict),'len effect_dict')
 with open('{}/effect_dict_pw{}_biy{}_nocheck.pkl'.format(save_path,'3714',target_binary),'wb') as f:
