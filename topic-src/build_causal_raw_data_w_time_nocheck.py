@@ -46,9 +46,12 @@ print('out_file',out_file)
 df = pd.read_json(event_path,lines=True)
 print('# of event (sample) recored',len(df))
 df = df.loc[df['date'] >= str(start_year)+'-01-01']
-print('# of event (sample) recored after {}-01-01'.format(start_year),len(df))
+print('# of event (sample) after {}-01-01'.format(start_year),len(df))
 
 news_df = pd.read_json('/home/sdeng/data/icews/news.1991.201703.country/icews_news_{}.json'.format(country), lines=True)
+print('# of news',len(news_df))
+news_df = news_df.loc[news_df['Date'] >= str(start_year)+'-01-01']
+print('# of news after {}-01-01'.format(start_year),len(news_df))
 
 loaded_dict = corpora.Dictionary.load('/home/sdeng/data/icews/topic_models/{}.dict'.format(country))
 loaded_lda =  models.LdaModel.load('/home/sdeng/data/icews/topic_models/{}.lda'.format(lda_name))
