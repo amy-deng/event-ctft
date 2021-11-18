@@ -583,7 +583,8 @@ for i,row in df.iterrows():
     # print(difference,difference.shape,'difference',intersection.shape,'intersection')
     if len(nodes1) != len(nodes2):
         words_in_curr_sample = [vocab_graph_node_map_reverse[v] for v in nodes2.numpy()]
-        print('nodes1',len(nodes1), 'nodes2',len(nodes2), 'not the same')
+        print('nodes1',len(nodes1), 'nodes2',len(nodes2), 'not the same',words_in_curr_sample)
+    exit()
     g.nodes['word'].data['id'] = torch.tensor(words_in_curr_sample).long()
     g.nodes['topic'].data['id'] = g.nodes('topic').long()
     g.edges['ww'].data['weight'] = ww_weight
