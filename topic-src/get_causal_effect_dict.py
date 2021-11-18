@@ -4,14 +4,16 @@ import pandas as pd
 import sys, time, pickle
 
 # python get_causal_effect_dict.py THA_topic/check_topic_causal_data_w14h14_from2013_minprob0.05/causal_effect/effect_dict_pw3714_biy1_nocheck_0.05_3.csv THA_topic/check_topic_causal_data_w14h14_from2013_minprob0.05/causal_effect/effect_dict_pw3714_biy1_nocheck_0.05_7.csv THA_topic/check_topic_causal_data_w14h14_from2013_minprob0.05/causal_effect/effect_dict_pw3714_biy1_nocheck_0.05_14.csv THA_w7h7_minday7
+# python get_causal_effect_dict.py THA_topic/check_topic_causal_data_w14h14_from2013_minprob0.05/causal_effect/effect_dict_pw3714_biy1_nocheck_0.1_3.csv THA_topic/check_topic_causal_data_w14h14_from2013_minprob0.05/causal_effect/effect_dict_pw3714_biy1_nocheck_0.1_7.csv THA_topic/check_topic_causal_data_w14h14_from2013_minprob0.05/causal_effect/effect_dict_pw3714_biy1_nocheck_0.1_14.csv THA_w7h7_minday7
 
 try:
     effect3 = sys.argv[1]
     effect7 = sys.argv[2]
     effect14 = sys.argv[3]
     outpath = sys.argv[4]
+    note = sys.argv[5]
 except:
-    print('Usage: effect3, effect7, effect14 path (../data/+...) outpath ')
+    print('Usage: effect3, effect7, effect14 path (../data/+...) outpath, note ')
     exit()
 
 # THA_topic/check_topic_causal_data_w14h14_from2013_minprob0.05/causal_effect/effect_dict_pw3714_biy1_nocheck_0.05_3.csv
@@ -70,5 +72,5 @@ for k in causal_time_dict_14day:
         causal_time_dict[k] = v
 
 print(causal_time_dict.keys(),causal_time_dict)
-with open('../data/'+outpath+'/causal_topics.pkl','wb') as f:
+with open('../data/'+outpath+'/causal_topics_{}.pkl'.format(note),'wb') as f:
     pickle.dump(causal_time_dict,f)
