@@ -54,6 +54,17 @@ splitted_date_lists = [
     '2016-01-01','2016-04-01','2016-07-01','2016-10-01',
     '2017-01-01','2017-04-01'
 ]
+f3 = open('{}/{}/{}/causal_effect/{}_{}_3.csv'.format(out_path, dataset_name, raw_data_name,effect_dict_name,sig_level),'a')
+wrt3 = csv.writer(f)
+wrt3.writerow(["event-idx", "event-type", 'rank', "topic-id","effect","z-score","p-value","end-date"])
+
+f7 = open('{}/{}/{}/causal_effect/{}_{}_7.csv'.format(out_path, dataset_name, raw_data_name,effect_dict_name,sig_level),'a')
+wrt7 = csv.writer(f)
+wrt7.writerow(["event-idx", "event-type", 'rank', "topic-id","effect","z-score","p-value","end-date"])
+
+f14 = open('{}/{}/{}/causal_effect/{}_{}_14.csv'.format(out_path, dataset_name, raw_data_name,effect_dict_name,sig_level),'a')
+wrt14 = csv.writer(f)
+wrt14.writerow(["event-idx", "event-type", 'rank', "topic-id","effect","z-score","p-value","end-date"])
 
 event_types = ['statement', 'appeal','express cooperate','consult','diplomatic cooperation','material cooperation','provide aid','yield','investigate','demand','disapprove','reject','threaten','protest','minitary','reduce relation','coerce','assault','fight','mass violence']
 
@@ -86,10 +97,7 @@ for end_date in splitted_date_lists:
     res_dict = {'3':res3, '7':res7, '14':res14}
     for h in res_dict:
         res = res_dict[h]
-        f = open('{}/{}/{}/causal_effect/{}_{}_{}.csv'.format(out_path, dataset_name, raw_data_name,effect_dict_name,sig_level,h),'a')
-        wrt = csv.writer(f)
-        wrt.writerow(["event-idx", "event-type", 'rank', "topic-id","effect","z-score","p-value","end-date"])
-
+        
         for j in range(20):
             # z_list.append(stats.zscore(res[:,j]))
             effect = res[:,j]
@@ -123,9 +131,16 @@ for end_date in splitted_date_lists:
                     print('error',(topic_idx[i],end_date))
                 r = [j,event_types[j],i,topic_idx[i],round(top_effect[i],5),round(top_z[i],5),round(top_p[i],5),end_date]
                 # print(r)
-                wrt.writerow(r)
+                if int(h) == 3:
+                    wrt3.writerow(r)
+                elif int(h) == 7:
+                    wrt7.writerow(r)
+                elif int(h) == 14:
+                    wrt14.writerow(r)
 
-        f.close()
+f3.close()
+f7.close()
+f14.close()
 print('ignored_key',ignored_key)
     # res
 
