@@ -462,6 +462,7 @@ for i,row in df.iterrows():
     print(g.num_nodes('word'),'words static')
     nodes1 = g.nodes('word')
     print(nodes1)
+
     g.nodes['word'].data['id'] = torch.tensor(words_in_curr_sample).long()
     g.nodes['topic'].data['id'] = g.nodes('topic').long()
     g.edges['ww'].data['weight'] = edge_ww
@@ -613,7 +614,7 @@ for i,row in df.iterrows():
 y_list = torch.tensor(y_list)
 # save_graphs(dataset_path + "/data.bin", all_g_list, {"y":y_list})
 print('static',len(all_static_g_list),'dynamic',len(all_dynamic_g_list),'y',len(y_list), 'date',len(date_list), 'city',len(city_list))
-exit()
+# exit()
 attr_dict = {"y":y_list,"date":date_list,"city":city_list}
 
 with open(outf_static,'wb') as f:
