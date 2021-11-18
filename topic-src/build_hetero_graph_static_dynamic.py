@@ -363,10 +363,11 @@ for i,row in df.iterrows():
     if len(story_list_flatten) <= news_threshold:
         print(len(story_list_flatten),'articles; first skip')
         continue
-    story_text_lists = news_df.loc[news_df['StoryID'].isin(story_list_flatten)]['Text'].values
-    if len(story_text_lists) <= news_threshold:
-        print(len(story_text_lists),'articles; second skip')
-        continue
+    if len(story_list_flatten) <= news_threshold*2: # double check
+        story_text_lists = news_df.loc[news_df['StoryID'].isin(story_list_flatten)]['Text'].values
+        if len(story_text_lists) <= news_threshold:
+            print(len(story_text_lists),'articles; second skip')
+            continue
     # print(date,type(date),str(date))
     event_count_list = row['event_count_list'][:horizon] # event_count = row['event_count']
     event_count = {}
