@@ -35,13 +35,13 @@ try:
     start_year = sys.argv[9]
     stop_year = sys.argv[10]
     vocab_size = int(sys.argv[11])
-    
+    mindf = float(sys.argv[12])
 except:
-    print("usage: <event_path> <out_path> <lda_name `THA_50`> <ngram_path> <top_k_ngram `15000`> <window 7> <horizon 7> <news_threshold 3> <start_year 2010> <stop_year 2017> <vocab_size>")
+    print("usage: <event_path> <out_path> <lda_name `THA_50`> <ngram_path> <top_k_ngram `15000`> <window 7> <horizon 7> <news_threshold 3> <start_year 2010> <stop_year 2017> <vocab_size> <mindf>")
     exit()
 
 country = event_path.split('/')[-1][:3]
-dataset = '{}_w{}h{}_minday{}_mindf0.01'.format(country,window,horizon,news_threshold)
+dataset = '{}_w{}h{}_minday{}_mindf{}'.format(country,window,horizon,news_threshold,mindf)
 dataset_path = "{}/{}".format(out_path,dataset)
 os.makedirs(dataset_path, exist_ok=True)
 print('dataset_path',dataset_path)
@@ -51,6 +51,7 @@ print('dataset_path',dataset_path)
 df = pd.read_json(event_path,lines=True)
 news_df = pd.read_json('/home/sdeng/data/icews/news.1991.201703.country/icews_news_{}.json'.format(country), lines=True)
 news_df = news_df.loc[news_df['Date']>str(int(start_year)-1)+'-12-15']
+print(len(news_df),'news_df')
 '''topic model'''
 loaded_dict = corpora.Dictionary.load('/home/sdeng/data/icews/topic_models/{}.dict'.format(country))
 loaded_lda =  models.LdaModel.load('/home/sdeng/data/icews/topic_models/{}.lda'.format(lda_name))
@@ -101,7 +102,7 @@ def get_topwords(docs, top_n=800, use_tfidf=True):
                     tokenizer=lambda x: x,
                     preprocessor=lambda x: x,
                     token_pattern=None,
-                    min_df = 0.01) # ignore terms that appear in less than 5 documents, default is 1
+                    min_df = mindf) # ignore terms that appear in less than 5 documents, default is 1
         X = vectorizer.fit_transform(docs)
         indices = np.argsort(vectorizer.idf_)[::-1]
         features = vectorizer.get_feature_names()
