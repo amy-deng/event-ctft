@@ -3,16 +3,20 @@ import numpy as np
 import pandas as pd
 import sys, time, pickle
 
+# python get_causal_effect_dict.py THA_topic/check_topic_causal_data_w14h14_from2013_minprob0.05/causal_effect/effect_dict_pw3714_biy1_nocheck_0.05_3.csv THA_topic/check_topic_causal_data_w14h14_from2013_minprob0.05/causal_effect/effect_dict_pw3714_biy1_nocheck_0.05_7.csv THA_topic/check_topic_causal_data_w14h14_from2013_minprob0.05/causal_effect/effect_dict_pw3714_biy1_nocheck_0.05_14.csv THA_w7h7_minday7
+
 try:
     effect3 = sys.argv[1]
-    effect7 = sys.argv[3]
-    effect14 = sys.argv[4]
-    outpath = sys.argv[5]
+    effect7 = sys.argv[2]
+    effect14 = sys.argv[3]
+    outpath = sys.argv[4]
 except:
     print('Usage: effect3, effect7, effect14 path (../data/+...) outpath ')
     exit()
 
-
+# THA_topic/check_topic_causal_data_w14h14_from2013_minprob0.05/causal_effect/effect_dict_pw3714_biy1_nocheck_0.05_3.csv
+# THA_topic/check_topic_causal_data_w14h14_from2013_minprob0.05/causal_effect/effect_dict_pw3714_biy1_nocheck_0.05_7.csv
+# THA_topic/check_topic_causal_data_w14h14_from2013_minprob0.05/causal_effect/effect_dict_pw3714_biy1_nocheck_0.05_14.csv
 
 splitted_date_lists = [
     '2013-01-01','2013-04-01','2013-07-01','2013-10-01',
