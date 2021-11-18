@@ -373,7 +373,7 @@ class HeteroCau(nn.Module):
         # self.topic_layers = nn.ModuleList()
         # for _ in range(n_layers-1):
         #     self.topic_layers.append(GCNLayer(n_hid, n_hid, activation, dropout))
-
+        
         self.atten_layers = nn.ModuleList()
         for _ in range(n_layers):
             self.atten_layers.append(HGTLayerModified(n_hid, n_hid, len(node_dict), len(edge_dict), n_heads, use_norm = use_norm))

@@ -213,7 +213,8 @@ class StaticGraphDataNew(data.Dataset):
             ]
             self.splitted_date_lists = splitted_date_lists
             if causalfiles != '':
-                  with open(causalfiles,'rb') as f:
+                  print('{}/{}/{}.pkl'.format(path, dataset,causalfiles),'=====')
+                  with open('{}/{}/{}.pkl'.format(path, dataset,causalfiles),'rb') as f:
                         causal_time_dict = pickle.load(f)
                   self.causal_time_dict = causal_time_dict
             else:
