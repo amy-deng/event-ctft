@@ -43,7 +43,7 @@ with open(file_path,'rb') as f:
 
 print(effect_dict.keys())
 # for each type of events find significant causes topic >0.01?
-exit()
+# exit()
 
 keys = effect_dict.keys() # for each time
  
