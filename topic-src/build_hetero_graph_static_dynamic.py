@@ -458,8 +458,8 @@ for i,row in df.iterrows():
     word_graph_node = [vocab_graph_node_map[v] for v in word_node]
     graph_data[('word','wt','topic')]=(torch.tensor(word_graph_node),torch.tensor(topic_node))
     edge_tw = torch.tensor(weight)
-    print(g.num_nodes('word'),'words static')
     g = dgl.heterograph(graph_data)
+    print(g.num_nodes('word'),'words static')
     g.nodes['word'].data['id'] = torch.tensor(words_in_curr_sample).long()
     g.nodes['topic'].data['id'] = g.nodes('topic').long()
     g.edges['ww'].data['weight'] = edge_ww
@@ -568,8 +568,8 @@ for i,row in df.iterrows():
     graph_data[('word','wt','topic')] = (wt_src, wt_dst)
     wt_time = torch.tensor(wt_time).view(-1)
     wt_weight = torch.tensor(wt_weight).view(-1).float()
-    print(g.num_nodes('word'),'words dynamic')
     g = dgl.heterograph(graph_data)
+    print(g.num_nodes('word'),'words dynamic')
     # g.nodes['word'].data['id'] = torch.from_numpy(vocab_ids).long()
     g.nodes['word'].data['id'] = torch.tensor(words_in_curr_sample).long()
     g.nodes['topic'].data['id'] = g.nodes('topic').long()
