@@ -50,7 +50,7 @@ print('dataset_path',dataset_path)
 '''event and news'''
 df = pd.read_json(event_path,lines=True)
 news_df = pd.read_json('/home/sdeng/data/icews/news.1991.201703.country/icews_news_{}.json'.format(country), lines=True)
-news_df = news_df.loc[news_df['Date']>str(int(start_year)-1)+'-12-15']
+news_df = news_df.loc[(news_df['Date']>str(int(start_year)-1)+'-12-15') & (news_df['Date']<str(int(start_year)+1)+'-01-10')]
 print(len(news_df),'news_df')
 '''topic model'''
 loaded_dict = corpora.Dictionary.load('/home/sdeng/data/icews/topic_models/{}.dict'.format(country))

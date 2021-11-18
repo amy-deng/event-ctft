@@ -10,20 +10,10 @@ import pickle
 import scipy
 import csv
 from scipy import stats
-'''
-python causal_sig_test.py ../data THA_topic check_topic_causal_data_w7h7 effect_dict_pw5_biy0 0.05
-python causal_sig_test.py ../data THA_topic check_topic_causal_data_w7h14 effect_dict_pw14_biy1_nocheck 0.1
-python causal_sig_test.py ../data THA_topic check_topic_causal_data_w7h14 effect_dict_pw7_biy1_nocheck 0.1
-python causal_sig_test.py ../data THA_topic check_topic_causal_data_w7h14 effect_dict_pw3_biy1_nocheck 0.1
-
-python causal_sig_test.py ../data THA_topic check_topic_causal_data_w7h14 effect_dict_pw14_biy1 0.
-python causal_sig_test.py ../data THA_topic check_topic_causal_data_w7h14 effect_dict_pw7_biy1 0.1
-python causal_sig_test.py ../data THA_topic check_topic_causal_data_w7h14 effect_dict_pw3_biy1 0.1
-
-
-python causal_sig_test.py ../data THA_topic check_topic_causal_data_w7h14 effect_dict_pw14_biy1 0.05
-python causal_sig_test.py ../data THA_topic check_topic_causal_data_w7h14 effect_dict_pw7_biy1 0.05
+''' 
 python causal_sig_test_new.py ../data THA_topic check_topic_causal_data_w14h14_from2013_minprob0.05 effect_dict_pw3714_biy1_nocheck 0.05
+python causal_sig_test_new.py ../data EGY_topic check_topic_causal_data_w14h14_from2013_minprob0.05 effect_dict_pw3714_biy1_nocheck 0.05
+
 for each event find causes
 '''
 try:

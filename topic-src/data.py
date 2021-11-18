@@ -204,83 +204,20 @@ class StaticGraphDataNew(data.Dataset):
             print('positive',y_data.mean()) 
             # '''
             #load causal
-            splitted_date_lists = ['2010-07-01',
-            '2011-01-01','2011-07-01','2012-01-01','2012-07-01','2013-01-01','2013-07-01',
-            '2014-01-01','2014-07-01','2015-01-01','2015-07-01','2016-01-01','2016-07-01',
-            '2017-01-01','2017-07-01'
+            splitted_date_lists = [
+            '2013-01-01','2013-04-01','2013-07-01','2013-10-01',
+            '2014-01-01','2014-04-01','2014-07-01','2014-10-01',
+            '2015-01-01','2015-04-01','2015-07-01','2015-10-01',
+            '2016-01-01','2016-04-01','2016-07-01','2016-10-01',
+            '2017-01-01','2017-04-01'
             ]
             self.splitted_date_lists = splitted_date_lists
             if causalfiles != '':
-                  causalfile_list = causalfiles.split(',')
-                  causalfile_list.sort()
-                  df_list = []
-                  for i in range(len(causalfile_list)):
-                        causal_file = causalfile_list[i]
-                        df = pd.read_csv(causal_file+'.csv',sep=',')
-                        df = df.loc[df['event-type']=='protest']
-                        df_list.append(df)
-                  causal_time_dict = {}
-                  for end_date in splitted_date_lists:
-                        effect_list = []
-                        for i in range(len(df_list)):
-                              df = df_list[i]
-                              tmp = df.loc[df['end-date']==end_date]
-                              causal_topic_effect = tmp[['topic-id','effect']].values
-                              effect_all_topic = np.zeros(50)#[0. for i in range(50)]
-                              for topic_id, eff in causal_topic_effect:
-                                    effect_all_topic[int(topic_id)] = round(eff,5)
-                              # causal_time_dict_3day[end_date] = effect_all_topic
-                              effect_list.append(effect_all_topic)
-                        v = np.stack(effect_list,1) # (50,3)
-                        causal_time_dict[end_date] = v
+                  with open(causalfiles,'rb') as f:
+                        causal_time_dict = pickle.load(f)
                   self.causal_time_dict = causal_time_dict
             else:
                   self.causal_time_dict = {}
-            # print('causal_time_dict',self.causal_time_dict)
-            # causal_file = '../data/THA_topic/check_topic_causal_data_w7h14/causal_effect/effect_dict_pw3_biy1_nocheck_0.05.csv'
-            # causal_df = pd.read_csv(causal_file,sep=',')
-            # causal_df = causal_df.loc[causal_df['event-type']=='protest']
-            # causal_time_dict_3day = {}
-            # for end_date in splitted_date_lists:
-            #       tmp = causal_df.loc[causal_df['end-date']==end_date]
-            #       causal_topic_effect = tmp[['topic-id','effect']].values
-            #       effect_all_topic = np.zeros(50)#[0. for i in range(50)]
-            #       for topic_id, eff in causal_topic_effect:
-            #             effect_all_topic[int(topic_id)] = round(eff,5)
-            #       causal_time_dict_3day[end_date] = effect_all_topic
-
-            # causal_file = '../data/THA_topic/check_topic_causal_data_w7h14/causal_effect/effect_dict_pw7_biy1_nocheck_0.05.csv'
-            # causal_df = pd.read_csv(causal_file,sep=',')
-            # causal_df = causal_df.loc[causal_df['event-type']=='protest']
-            # causal_time_dict_7day = {}
-            # for end_date in splitted_date_lists:
-            #       tmp = causal_df.loc[causal_df['end-date']==end_date]
-            #       causal_topic_effect = tmp[['topic-id','effect']].values
-            #       effect_all_topic = np.zeros(50)#[0. for i in range(50)]
-            #       for topic_id, eff in causal_topic_effect:
-            #             effect_all_topic[int(topic_id)] = round(eff,5)
-            #       causal_time_dict_7day[end_date] = effect_all_topic
-
-            # causal_file = '../data/THA_topic/check_topic_causal_data_w7h14/causal_effect/effect_dict_pw14_biy1_nocheck_0.05.csv'
-            # causal_df = pd.read_csv(causal_file,sep=',')
-            # causal_df = causal_df.loc[causal_df['event-type']=='protest']
-            # causal_time_dict_14day = {}
-            # for end_date in splitted_date_lists:
-            #       tmp = causal_df.loc[causal_df['end-date']==end_date]
-            #       causal_topic_effect = tmp[['topic-id','effect']].values
-            #       effect_all_topic = np.zeros(50)#[0. for i in range(50)]
-            #       for topic_id, eff in causal_topic_effect:
-            #             effect_all_topic[int(topic_id)] = round(eff,5)
-            #       causal_time_dict_14day[end_date] = effect_all_topic
-            # causal_time_dict = {}
-            # for k in causal_time_dict_14day:
-            #       v3 = causal_time_dict_3day[k]
-            #       v7 = causal_time_dict_7day[k]
-            #       v14 = causal_time_dict_14day[k]
-            #       v = np.stack((v3,v7,v14),1) # (50,3)
-            #       causal_time_dict[k] = v
-            
-            # '''
       def __len__(self):
             return self.len
 
@@ -302,7 +239,6 @@ class StaticGraphDataNew(data.Dataset):
             else:
                   g.nodes['topic'].data['effect'] = causal_weight_tensor[g.nodes('topic').numpy()].to_sparse()
             return g, self.y_data[index]
-
 
 
 def collate_2(batch):
