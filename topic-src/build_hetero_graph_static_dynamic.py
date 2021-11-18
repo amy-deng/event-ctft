@@ -406,6 +406,9 @@ for i,row in df.iterrows():
     # print('# of stories =',len(story_text_lists_all))
     # doc_ids = [i for i in range(len(story_text_lists_all))]
     tokens_list = clean_document_list(story_text_lists_all)
+    if len(tokens_list) <= news_threshold:
+        print(len(story_text_lists),'articles; third skip')
+        continue
     sample_words = list(set([item for sublist in tokens_list for item in sublist]))
     if vocab_size > 0:
         if len(sample_words) > vocab_size:
