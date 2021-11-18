@@ -179,12 +179,19 @@ for iii, file in enumerate(file_list):
     propensity_logit = torch.logit(propensity, eps=1e-3)
     propensity_logit = propensity_logit.numpy()
     """
+
     # """ 
-    time3 = time.time()
-    cls = LogisticRegression(random_state=42,max_iter=4000,tol=5e-4)
-    cls = CalibratedClassifierCV(cls,cv=3)
-    cls.fit(X, treatment)
-    print('propensity scoring LR model trained',time.time()-time3)
+    try:
+        time3 = time.time()
+        cls = LogisticRegression(random_state=42,max_iter=4000,tol=5e-4)
+        cls = CalibratedClassifierCV(cls,cv=3)
+        cls.fit(X, treatment)
+        print('propensity scoring LR model trained',time.time()-time3)
+    except:
+        print('error')
+        effect_dict[(int(topic_id),split_date)] = [np.zeros(20), np.zeros(20), np.zeros(20)]
+        continue
+    
     propensity = cls.predict_proba(X)
     propensity = propensity[:,1]
     print('max',propensity.max(),'min',propensity.min(),'mean',propensity.mean())
