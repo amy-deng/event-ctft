@@ -41,7 +41,7 @@ except:
     exit()
 
 country = event_path.split('/')[-1][:3]
-dataset = '{}_w{}h{}_minday{}_mindf0.02'.format(country,window,horizon,news_threshold)
+dataset = '{}_w{}h{}_minday{}_mindf0.01'.format(country,window,horizon,news_threshold)
 dataset_path = "{}/{}".format(out_path,dataset)
 os.makedirs(dataset_path, exist_ok=True)
 print('dataset_path',dataset_path)
@@ -101,7 +101,7 @@ def get_topwords(docs, top_n=800, use_tfidf=True):
                     tokenizer=lambda x: x,
                     preprocessor=lambda x: x,
                     token_pattern=None,
-                    min_df = 0.02) # ignore terms that appear in less than 5 documents, default is 1
+                    min_df = 0.01) # ignore terms that appear in less than 5 documents, default is 1
         X = vectorizer.fit_transform(docs)
         indices = np.argsort(vectorizer.idf_)[::-1]
         features = vectorizer.get_feature_names()
