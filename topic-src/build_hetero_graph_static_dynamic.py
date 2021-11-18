@@ -384,8 +384,8 @@ for i,row in df.iterrows():
             ys.append(0) # TODO if involve other events to predict
     ###########
     iii+=1
-    if iii <= 284: #debug
-        continue 
+    # if iii <= 284: #debug
+    #     continue 
     # doc by day and combine
     story_len_day = [] # [0,0,1,1,3,6]
     num_nonzero_days = 0
@@ -462,7 +462,7 @@ for i,row in df.iterrows():
     g = dgl.heterograph(graph_data)
     print(g.num_nodes('word'),'words static')
     nodes1 = g.nodes('word')
-    print(nodes1)
+    # print(nodes1)
 
     g.nodes['word'].data['id'] = torch.tensor(words_in_curr_sample).long()
     g.nodes['topic'].data['id'] = g.nodes('topic').long()
@@ -584,7 +584,7 @@ for i,row in df.iterrows():
     if len(nodes1) != len(nodes2):
         words_in_curr_sample = [vocab_graph_node_map_reverse[v] for v in nodes2.numpy()]
         print('nodes1',len(nodes1), 'nodes2',len(nodes2), 'not the same',words_in_curr_sample)
-    exit()
+    # exit()
     g.nodes['word'].data['id'] = torch.tensor(words_in_curr_sample).long()
     g.nodes['topic'].data['id'] = g.nodes('topic').long()
     g.edges['ww'].data['weight'] = ww_weight
