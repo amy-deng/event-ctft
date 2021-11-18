@@ -119,6 +119,8 @@ for end_date in splitted_date_lists:
             # print(top_effect,'top_effect')
             # print(event_types[j],len_nonzero,top_p,topic_idx)
             for i in range(len(topic_idx)):
+                if (topic_idx[i],end_date) in ignored_key:
+                    print('error',(topic_idx[i],end_date))
                 r = [j,event_types[j],i,topic_idx[i],round(top_effect[i],5),round(top_z[i],5),round(top_p[i],5),end_date]
                 # print(r)
                 wrt.writerow(r)
