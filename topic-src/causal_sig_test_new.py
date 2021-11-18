@@ -13,6 +13,7 @@ from scipy import stats
 ''' 
 python causal_sig_test_new.py ../data THA_topic check_topic_causal_data_w14h14_from2013_minprob0.05 effect_dict_pw3714_biy1_nocheck 0.05
 python causal_sig_test_new.py ../data EGY_topic check_topic_causal_data_w14h14_from2013_minprob0.05 effect_dict_pw3714_biy1_nocheck 0.05
+python causal_sig_test_new.py ../data AFG_topic check_topic_causal_data_w14h14_from2013_minprob0.05 effect_dict_pw3714_biy1_nocheck 0.05
 
 for each event find causes
 '''
