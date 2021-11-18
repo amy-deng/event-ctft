@@ -384,6 +384,8 @@ for i,row in df.iterrows():
             ys.append(0) # TODO if involve other events to predict
     ###########
     iii+=1
+    if iii < 284: #debug
+        continue 
     # doc by day and combine
     story_len_day = [] # [0,0,1,1,3,6]
     num_nonzero_days = 0
@@ -456,7 +458,7 @@ for i,row in df.iterrows():
     word_graph_node = [vocab_graph_node_map[v] for v in word_node]
     graph_data[('word','wt','topic')]=(torch.tensor(word_graph_node),torch.tensor(topic_node))
     edge_tw = torch.tensor(weight)
-     
+    print(g.num_nodes('word'),'words static')
     g = dgl.heterograph(graph_data)
     g.nodes['word'].data['id'] = torch.tensor(words_in_curr_sample).long()
     g.nodes['topic'].data['id'] = g.nodes('topic').long()
@@ -566,7 +568,7 @@ for i,row in df.iterrows():
     graph_data[('word','wt','topic')] = (wt_src, wt_dst)
     wt_time = torch.tensor(wt_time).view(-1)
     wt_weight = torch.tensor(wt_weight).view(-1).float()
-
+    print(g.num_nodes('word'),'words dynamic')
     g = dgl.heterograph(graph_data)
     # g.nodes['word'].data['id'] = torch.from_numpy(vocab_ids).long()
     g.nodes['word'].data['id'] = torch.tensor(words_in_curr_sample).long()
@@ -601,7 +603,7 @@ for i,row in df.iterrows():
 y_list = torch.tensor(y_list)
 # save_graphs(dataset_path + "/data.bin", all_g_list, {"y":y_list})
 print('static',len(all_static_g_list),'dynamic',len(all_dynamic_g_list),'y',len(y_list), 'date',len(date_list), 'city',len(city_list))
-
+exit()
 attr_dict = {"y":y_list,"date":date_list,"city":city_list}
 
 with open(outf_static,'wb') as f:
