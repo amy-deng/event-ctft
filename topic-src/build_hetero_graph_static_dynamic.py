@@ -460,6 +460,8 @@ for i,row in df.iterrows():
     edge_tw = torch.tensor(weight)
     g = dgl.heterograph(graph_data)
     print(g.num_nodes('word'),'words static')
+    nodes1 = g.nodes('word')
+    print(nodes1)
     g.nodes['word'].data['id'] = torch.tensor(words_in_curr_sample).long()
     g.nodes['topic'].data['id'] = g.nodes('topic').long()
     g.edges['ww'].data['weight'] = edge_ww
@@ -569,7 +571,15 @@ for i,row in df.iterrows():
     wt_time = torch.tensor(wt_time).view(-1)
     wt_weight = torch.tensor(wt_weight).view(-1).float()
     g = dgl.heterograph(graph_data)
+    nodes2 = g.nodes('word')
     print(g.num_nodes('word'),'words dynamic')
+    print(nodes2)
+
+    combined = torch.cat((nodes1, nodes2))
+    uniques, counts = combined.unique(return_counts=True)
+    difference = uniques[counts == 1]
+    intersection = uniques[counts > 1]
+    print(difference,difference.shape,'difference',intersection.shape,'intersection')
     # g.nodes['word'].data['id'] = torch.from_numpy(vocab_ids).long()
     g.nodes['word'].data['id'] = torch.tensor(words_in_curr_sample).long()
     g.nodes['topic'].data['id'] = g.nodes('topic').long()
