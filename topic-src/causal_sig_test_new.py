@@ -23,7 +23,7 @@ python causal_sig_test.py ../data THA_topic check_topic_causal_data_w7h14 effect
 
 python causal_sig_test.py ../data THA_topic check_topic_causal_data_w7h14 effect_dict_pw14_biy1 0.05
 python causal_sig_test.py ../data THA_topic check_topic_causal_data_w7h14 effect_dict_pw7_biy1 0.05
-python causal_sig_test.py ../data THA_topic check_topic_causal_data_w14h14_from2013_minprob0.05 effect_dict_pw3714_biy1_nocheck 0.05
+python causal_sig_test_new.py ../data THA_topic check_topic_causal_data_w14h14_from2013_minprob0.05 effect_dict_pw3714_biy1_nocheck 0.05
 for each event find causes
 '''
 try:
@@ -55,15 +55,15 @@ splitted_date_lists = [
     '2017-01-01','2017-04-01'
 ]
 f3 = open('{}/{}/{}/causal_effect/{}_{}_3.csv'.format(out_path, dataset_name, raw_data_name,effect_dict_name,sig_level),'a')
-wrt3 = csv.writer(f)
+wrt3 = csv.writer(f3)
 wrt3.writerow(["event-idx", "event-type", 'rank', "topic-id","effect","z-score","p-value","end-date"])
 
 f7 = open('{}/{}/{}/causal_effect/{}_{}_7.csv'.format(out_path, dataset_name, raw_data_name,effect_dict_name,sig_level),'a')
-wrt7 = csv.writer(f)
+wrt7 = csv.writer(f7)
 wrt7.writerow(["event-idx", "event-type", 'rank', "topic-id","effect","z-score","p-value","end-date"])
 
 f14 = open('{}/{}/{}/causal_effect/{}_{}_14.csv'.format(out_path, dataset_name, raw_data_name,effect_dict_name,sig_level),'a')
-wrt14 = csv.writer(f)
+wrt14 = csv.writer(f14)
 wrt14.writerow(["event-idx", "event-type", 'rank', "topic-id","effect","z-score","p-value","end-date"])
 
 event_types = ['statement', 'appeal','express cooperate','consult','diplomatic cooperation','material cooperation','provide aid','yield','investigate','demand','disapprove','reject','threaten','protest','minitary','reduce relation','coerce','assault','fight','mass violence']
