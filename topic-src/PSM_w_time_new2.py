@@ -236,15 +236,18 @@ for iii, file in enumerate(file_list):
             used_control_indices.append(controlled_indices[min_idx])
         else:
             print('min diff is larger than the caliper {:.5f}; skip'.format(caliper))
-
-    eff_list3 = np.stack(eff_list3,0) 
-    eff_list7 = np.stack(eff_list7,0) 
-    eff_list14 = np.stack(eff_list14,0) 
-    print('eff_list3',eff_list3.shape)
-    # ATE3 = eff_list3.mean(0)
-    effect_dict[(int(topic_id),split_date)] = [eff_list3.mean(0),eff_list7.mean(0),eff_list14.mean(0)]
-    # top3 = ATE.argsort()[-3:][::-1]
-    # exit()
+    if len(eff_list3) > 0:
+        eff_list3 = np.stack(eff_list3,0) 
+        eff_list7 = np.stack(eff_list7,0) 
+        eff_list14 = np.stack(eff_list14,0) 
+        print('eff_list3',eff_list3.shape)
+        # ATE3 = eff_list3.mean(0)
+        effect_dict[(int(topic_id),split_date)] = [eff_list3.mean(0),eff_list7.mean(0),eff_list14.mean(0)]
+        # top3 = ATE.argsort()[-3:][::-1]
+        # exit()
+    else:
+        print('len eff_list3',len(eff_list3))
+        effect_dict[(int(topic_id),split_date)] = [np.zeros(20), np.zeros(20), np.zeros(20)]
 
 print(len(effect_dict),'len effect_dict')
 with open('{}/effect_dict_pw{}_biy{}_nocheck.pkl'.format(save_path,'3714',target_binary),'wb') as f:
