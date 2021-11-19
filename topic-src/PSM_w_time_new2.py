@@ -102,8 +102,8 @@ save_path = '{}/{}/{}/causal_effect'.format(out_path, dataset_name, raw_data_nam
 os.makedirs(save_path, exist_ok=True)
 effect_dict = {}
 for iii, file in enumerate(file_list):
-    if iii < 271:
-        continue
+    # if iii < 271:
+    #     continue
     file_name = file.split('/')[-1]
     tmp = file_name.split('.')[0].split('_')
     topic_id = int(tmp[2])
