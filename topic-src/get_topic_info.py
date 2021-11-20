@@ -7,6 +7,9 @@ from gensim.models.ldamulticore import LdaMulticore,LdaModel
 from gensim.test.utils import common_texts, common_corpus, common_dictionary
 from gensim.corpora.dictionary import Dictionary
 
+'''
+python get_topic_info.py THA THA_50
+'''
 
 try:
     country = sys.argv[1]
@@ -18,9 +21,10 @@ except:
 loaded_dict = corpora.Dictionary.load('/home/sdeng/data/icews/topic_models/{}.dict'.format(country))
 loaded_lda =  models.LdaModel.load('/home/sdeng/data/icews/topic_models/{}.lda'.format(lda_name))
 print('topic model and dictionary loaded')
+os.makedirs("/home/sdeng/data/icews/topic_models/{}".format(lda_name),exist_ok=True)
 
 # save all words and docs in a file
-f = open('/home/sdeng/data/icews/topic_models/{}_topic_words.csv'.format(lda_name),'a')
+f = open('/home/sdeng/data/icews/topic_models/{}/top_30_topic_words.csv'.format(lda_name),'a')
 wrt = csv.writer(f)
 wrt.writerow(["topic-id","sorted-words"])#, "event-type", 'rank', "topic-id","effect","z-score","p-value","end-date"])
 for i in range(50):
@@ -50,7 +54,6 @@ cloud = WordCloud(stopwords=STOPWORDS,
 topics = loaded_lda.show_topics(num_topics=50,num_words=30,formatted=False)
 # 1-19
 
-os.makedirs("/home/sdeng/data/icews/topic_models/{}".format(lda_name),exist_ok=True)
 
 fig, axes = plt.subplots(7, 3, figsize=(10,16), sharex=True, sharey=True)
 
@@ -73,7 +76,7 @@ for i, ax in enumerate(axes.flatten()):
 plt.axis('off')
 plt.margins(x=0, y=0)
 plt.tight_layout()
-fig.savefig("/home/sdeng/data/icews/topic_models/{}/{}-wordcloud-0-19.pdf".format(lda_name), bbox_inches='tight', dpi=300, transparent=True)
+fig.savefig("/home/sdeng/data/icews/topic_models/{}/wordcloud-0-19.pdf".format(lda_name), bbox_inches='tight', dpi=300, transparent=True)
 # plt.show()
 print('wordcloud of topics from 0 to 19 saved')
 
@@ -99,7 +102,7 @@ for i, ax in enumerate(axes.flatten()):
 plt.axis('off')
 plt.margins(x=0, y=0)
 plt.tight_layout()
-fig.savefig("/home/sdeng/data/icews/topic_models/{}/{}-wordcloud-20-39.pdf".format(lda_name), bbox_inches='tight', dpi=300, transparent=True)
+fig.savefig("/home/sdeng/data/icews/topic_models/{}/wordcloud-20-39.pdf".format(lda_name), bbox_inches='tight', dpi=300, transparent=True)
 # plt.show()
 print('wordcloud of topics from 20 to 39 saved')
 
@@ -124,6 +127,6 @@ for i, ax in enumerate(axes.flatten()):
 plt.axis('off')
 plt.margins(x=0, y=0)
 plt.tight_layout()
-fig.savefig("/home/sdeng/data/icews/topic_models/{}/{}-wordcloud-40-49.pdf".format(lda_name), bbox_inches='tight', dpi=300, transparent=True)
+fig.savefig("/home/sdeng/data/icews/topic_models/{}/wordcloud-40-49.pdf".format(lda_name), bbox_inches='tight', dpi=300, transparent=True)
 # plt.show()
 print('wordcloud of topics from 40 to 49 saved')
