@@ -408,6 +408,7 @@ for i,row in df.iterrows():
     # print('# of stories =',len(story_text_lists_all))
     # doc_ids = [i for i in range(len(story_text_lists_all))]
     tokens_list = clean_document_list(story_text_lists_all)
+    # tokens_list, sent_token_list = document_sent_tokenize(story_text_lists)
     if len(tokens_list) <= news_threshold:
         print(len(story_text_lists),'articles; third skip')
         continue
