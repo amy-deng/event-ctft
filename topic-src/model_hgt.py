@@ -75,8 +75,9 @@ class HGTLayer(nn.Module):
     def reduce_func(self, nodes):
         att = F.softmax(nodes.mailbox['a'], dim=1)
         h   = torch.sum(att.unsqueeze(dim = -1) * nodes.mailbox['v'], dim=1)
-        return {'t': h.view(-1, self.out_dim)}
-        
+        # return {'t': h.view(-1, self.out_dim)}
+        return {'t': F.relu(h.view(-1, self.out_dim))}
+
     def forward(self, G, inp_key, out_key):
         node_dict, edge_dict = G.node_dict, G.edge_dict
         for srctype, etype, dsttype in G.canonical_etypes:
@@ -191,7 +192,7 @@ class HGTLayerModified(nn.Module):
     def reduce_func(self, nodes):
         att = F.softmax(nodes.mailbox['a'], dim=1)
         h   = torch.sum(att.unsqueeze(dim = -1) * nodes.mailbox['v'], dim=1)
-        return {'t': h.view(-1, self.out_dim)}
+        return {'t': F.relu(h.view(-1, self.out_dim))}
         
     def forward(self, G, inp_key, out_key):
         # node_dict, edge_dict = G.node_dict, G.edge_dict
@@ -219,7 +220,7 @@ class HGTLayerModified(nn.Module):
             alpha = torch.sigmoid(self.skip[ntype])
             trans_out = self.a_linears[ntype](G.nodes[ntype].data['t'])
             trans_out = trans_out * alpha + G.nodes[ntype].data[inp_key] * (1-alpha)
-            trans_out = F.relu(trans_out)
+            # trans_out = F.relu(trans_out)
             if self.use_norm:
                 G.nodes[ntype].data[out_key] = self.drop(self.norms[ntype](trans_out))
             else:
@@ -317,8 +318,9 @@ class TempHGTLayerModified(nn.Module):
         att = F.softmax(nodes.mailbox['a'], dim=1)
         # print("nodes.mailbox['v']",nodes.mailbox['v'].shape)
         h   = torch.sum(att.unsqueeze(dim = -1) * nodes.mailbox['v'], dim=1)
-        return {'t': h.view(-1, self.out_dim)}
-        
+        # return {'t': h.view(-1, self.out_dim)}
+        return {'t': F.relu(h.view(-1, self.out_dim))}
+
     def forward(self, G, inp_key, out_key):
         # node_dict, edge_dict = G.node_dict, G.edge_dict
         edge_dict = []
@@ -341,7 +343,7 @@ class TempHGTLayerModified(nn.Module):
             alpha = torch.sigmoid(self.skip[ntype])
             trans_out = self.a_linears[ntype](G.nodes[ntype].data['t'])
             trans_out = trans_out * alpha + G.nodes[ntype].data[inp_key] * (1-alpha)
-            trans_out = F.relu(trans_out)
+            # trans_out = F.relu(trans_out)
             if self.use_norm:
                 G.nodes[ntype].data[out_key] = self.drop(self.norms[ntype](trans_out))
             else:
