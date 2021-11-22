@@ -630,13 +630,15 @@ class tempMP(nn.Module):
         for curr_time in range(self.seq_len):
             # print('curr_time',curr_time)
             time_emb = self.time_emb(torch.tensor(curr_time).to(self.device))
-            ww_edges_idx = (bg.edges['ww'].data['time']==curr_time).nonzero(as_tuple=False).view(-1)
-            wt_edges_idx = (bg.edges['wt'].data['time']==curr_time).nonzero(as_tuple=False).view(-1)
-            wd_edges_idx = (bg.edges['wd'].data['time']==curr_time).nonzero(as_tuple=False).view(-1)
-            td_edges_idx = (bg.edges['td'].data['time']==curr_time).nonzero(as_tuple=False).view(-1)
+            ww_edges_idx = (bg.edges['ww'].data['time']==curr_time).nonzero(as_tuple=False).view(-1).cpu().detach().tolist()
+            wt_edges_idx = (bg.edges['wt'].data['time']==curr_time).nonzero(as_tuple=False).view(-1).cpu().detach().tolist()
+            wd_edges_idx = (bg.edges['wd'].data['time']==curr_time).nonzero(as_tuple=False).view(-1).cpu().detach().tolist()
+            td_edges_idx = (bg.edges['td'].data['time']==curr_time).nonzero(as_tuple=False).view(-1).cpu().detach().tolist()
             if len(ww_edges_idx) <= 0:
                 continue
-            sub_bg = dgl.edge_subgraph(bg, {('word', 'ww', 'word'): ww_edges_idx,
+            bg_cpu = bg.to('cpu')
+            # print(ww_edges_idx,'ww_edges_idx')
+            sub_bg = dgl.edge_subgraph(bg_cpu, {('word', 'ww', 'word'): ww_edges_idx,
                                         ('word', 'wt', 'topic'): wt_edges_idx,
                                         ('topic', 'td', 'doc'): td_edges_idx,
                                         ('word', 'wd', 'doc'):wd_edges_idx,
@@ -644,9 +646,10 @@ class tempMP(nn.Module):
                                         }, 
                                         # preserve_nodes=True
                                         )
-            
+            sub_bg = sub_bg.to(self.device)
             orig_node_ids = sub_bg.ndata[dgl.NID] # {'word':,'topic':,'doc':}
             # print(sub_bg,'sub_bg')
+            # print(orig_node_ids,'orig_node_ids',type(orig_node_ids))
             # graph conv
             for i in range(self.n_layers):
                 self.gcs[i](sub_bg, 'h', 'h')
