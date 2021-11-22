@@ -199,9 +199,9 @@ def prepare(args,word_embeds,device):
     elif args.model == 'ours':
         model = tempMP(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=4, activation=F.relu, seq_len=args.seq_len,device=device, 
         num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True)
-    elif args.model == 'ours2':
-        model = tempMP2(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=4, activation=F.relu, seq_len=args.seq_len,device=device, 
-        num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True)
+    # elif args.model == 'ours2':
+    #     model = tempMP2(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=4, activation=F.relu, seq_len=args.seq_len,device=device, 
+    #     num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True)
     elif args.model == 'ours3':
         model = tempMP3(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=4, activation=F.relu, seq_len=args.seq_len,device=device, 
         num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True)
