@@ -10,6 +10,7 @@ import torch
 import torch.nn.functional as F
 from torch.distributions import bernoulli, normal
 import time
+
 # from layers import *
 # from utils import *
 # from sparsemax import Sparsemax
@@ -441,9 +442,12 @@ class TempMessagePassingLayer(nn.Module):
         for ntype in G.ntypes:
             # if ntype == 'word':
             #     continue
+            # print('ntype', ntype)
             alpha = torch.sigmoid(self.skip[ntype])
             trans_out = self.a_linears[ntype](G.nodes[ntype].data['t']) # TODO h? or ht
             trans_out = trans_out * alpha + G.nodes[ntype].data[inp_key] * (1-alpha)
+            # recurrent unit
+            # trans_out = 
             # trans_out = F.relu(trans_out)
             if self.use_norm:
                 G.nodes[ntype].data[out_key] = self.drop(self.norms[ntype](trans_out))
@@ -476,6 +480,80 @@ class RelTemporalEncoding(nn.Module):
          return self.lin(self.emb(t))
 
  
+
+class GlobalAttentionPooling(nn.Module):
+    r"""Apply Global Attention Pooling (`Gated Graph Sequence Neural Networks
+    <https://arxiv.org/abs/1511.05493.pdf>`__) over the nodes in the graph.
+
+    .. math::
+        r^{(i)} = \sum_{k=1}^{N_i}\mathrm{softmax}\left(f_{gate}
+        \left(x^{(i)}_k\right)\right) f_{feat}\left(x^{(i)}_k\right)
+
+    Parameters
+    ----------
+    gate_nn : gluon.nn.Block
+        A neural network that computes attention scores for each feature.
+    feat_nn : gluon.nn.Block, optional
+        A neural network applied to each feature before combining them
+        with attention scores.
+    """
+    def __init__(self, h_inp, h_hid):
+        super(GlobalAttentionPooling, self).__init__()
+        # with self.name_scope():
+            # self.gate_nn = nn.Linear(h_inp,1)
+            # self.feat_nn = nn.Linear(h_inp, h_inp)
+            # todo for each meta edge
+        self.feat_nns = nn.ModuleDict({
+            'word':nn.Linear(h_inp, h_hid),
+            'topic':nn.Linear(h_inp, h_hid),
+            'doc':nn.Linear(h_inp, h_hid),
+        })
+        self.gate_nns = nn.ModuleDict({
+            'word':nn.Linear(h_inp, 1),
+            'topic':nn.Linear(h_inp, 1),
+            'doc':nn.Linear(h_inp, 1),
+        })
+
+    def forward(self, graph, inp_key):
+        r"""Compute global attention pooling.
+
+        Parameters
+        ----------
+        graph : DGLGraph
+            The graph.
+        feat : mxnet.NDArray
+            The input feature with shape :math:`(N, D)` where
+            :math:`N` is the number of nodes in the graph.
+
+        Returns
+        -------
+        mxnet.NDArray
+            The output feature with shape :math:`(B, D)`, where
+            :math:`B` refers to the batch size.
+        """
+        with graph.local_scope():
+            # gate = self.gate_nn(feat)
+            # assert gate.shape[-1] == 1, "The output of gate_nn should have size 1 at the last axis."
+            # feat = self.feat_nn(feat) if self.feat_nn else feat
+            readout = {}
+            for ntype in ['word','topic','doc']:
+                feat = graph.nodes[ntype].data[inp_key]
+                # print('pool - ',feat.shape)
+                gate = self.gate_nns[ntype](feat) # feat[ntype] 
+                feat = self.feat_nns[ntype](feat)
+                # print('gate - ',gate.shape,feat.shape)
+                graph.nodes[ntype].data['gate'] = gate
+                gate = dgl.softmax_nodes(graph, 'gate',ntype=ntype)
+                graph.nodes[ntype].data['r'] = feat * gate
+                readout[ntype] = dgl.sum_nodes(graph, 'r', ntype=ntype)
+                # h
+            # graph.ndata['gate'] = gate
+            # gate = dgl.softmax_nodes(graph, 'gate')
+            # graph.ndata['r'] = feat * gate
+            # readout = dgl.sum_nodes(graph, 'r')
+            return readout
+
+
 # learn embedding by time order
 class tempMP(nn.Module):
     def __init__(self, n_inp, n_hid, n_layers, n_heads, activation, device, seq_len, num_topic=50, vocab_size=15000, dropout=0.5, pool='max', use_norm = True):
@@ -492,9 +570,9 @@ class tempMP(nn.Module):
         self.word_embeds = None
         # initialize rel and ent embedding
         self.topic_embeds = nn.Parameter(torch.Tensor(num_topic, n_hid))
-        self.doc_gen_embeds = nn.Parameter(torch.Tensor(1,n_hid))
-        self.time_emb = RelTemporalEncoding(n_hid//n_heads,seq_len)
-
+        self.doc_gen_embeds = nn.Parameter(torch.Tensor(1, n_hid))
+        self.time_emb = RelTemporalEncoding(n_hid, seq_len)
+        self.attn_pool = GlobalAttentionPooling(n_hid*2, n_hid)
         self.adapt_ws  = nn.Linear(n_inp,  n_hid)
         node_dict = {'doc': 0, 'topic': 1, 'word': 2}
         edge_dict = {'td': 0, 'tt': 1, 'wd': 2, 'wt': 3, 'ww': 4}
@@ -520,24 +598,44 @@ class tempMP(nn.Module):
                 p.data.uniform_(-stdv, stdv)
 
     def forward(self, g_list, y_data): 
+        # print(len(g_list),'g_list ')
         bg = dgl.batch(g_list).to(self.device)  
         word_emb = self.word_embeds[bg.nodes['word'].data['id']].view(-1, self.word_embeds.shape[1])
         topic_emb = self.topic_embeds[bg.nodes['topic'].data['id']].view(-1, self.topic_embeds.shape[1])
         doc_emb = self.doc_gen_embeds.repeat(bg.number_of_nodes('doc'),1)
-        word_emb = self.adapt_ws(word_emb)
-        bg.nodes['word'].data['h'] = word_emb
+        bg.nodes['word'].data['h'] = self.adapt_ws(word_emb)
         bg.nodes['topic'].data['h'] = topic_emb
         bg.nodes['doc'].data['h'] = doc_emb
-        # print(bg,'bg')
+        # bg.edges['ww'].data['timeh'] = self.time_emb(bg.edges['ww'].data['time'].long())
+        # # print(bg.edges['ww'].data['timeh'].shape,'timeh',bg.edges['ww'].data['time'])
+        # bg.edges['wd'].data['timeh'] = self.time_emb(bg.edges['wd'].data['time'].long())
+        # bg.edges['wt'].data['timeh'] = self.time_emb(bg.edges['wt'].data['time'].long())
+        # bg.edges['td'].data['timeh'] = self.time_emb(bg.edges['td'].data['time'].long())
+        
+        # bg.edges['ww'].data['timeh'] = self.time_emb(bg.edges['ww'].data['time'].long())
+        # # print(bg.edges['ww'].data['timeh'].shape,'timeh',bg.edges['ww'].data['time'])
+        # bg.edges['wd'].data['timeh'] = self.time_emb(bg.edges['wd'].data['time'].long())
+        # bg.edges['wt'].data['timeh'] = self.time_emb(bg.edges['wt'].data['time'].long())
+        # bg.edges['td'].data['timeh'] = self.time_emb(bg.edges['td'].data['time'].long())
+        for ntype in ['word','topic','doc']:
+            # print('==',ntype,sub_bg.nodes[ntype].data['h'].shape,bg.nodes[ntype].data['h'].shape)
+            allone = torch.zeros(bg.num_nodes(ntype)).long()
+            # print(allone.shape,'alllllll')
+            bg.nodes[ntype].data['timeh'] = self.time_emb(allone)
+
+        # print(bg,'bg====')
         # graph for different time step
         # get number of time steps, assume 7
+        tt_edges_idx = list(range(len(bg.edges(etype='tt'))))
         for curr_time in range(self.seq_len):
-            print('curr_time',curr_time)
+            # print('curr_time',curr_time)
+            time_emb = self.time_emb(torch.tensor(curr_time))
             ww_edges_idx = (bg.edges['ww'].data['time']==curr_time).nonzero().view(-1)
             wt_edges_idx = (bg.edges['wt'].data['time']==curr_time).nonzero().view(-1)
             wd_edges_idx = (bg.edges['wd'].data['time']==curr_time).nonzero().view(-1)
             td_edges_idx = (bg.edges['td'].data['time']==curr_time).nonzero().view(-1)
-            tt_edges_idx = list(range(len(bg.edges(etype='tt'))))
+            if len(ww_edges_idx) <= 0:
+                continue
             sub_bg = dgl.edge_subgraph(bg, {('word', 'ww', 'word'): ww_edges_idx,
                                         ('word', 'wt', 'topic'): wt_edges_idx,
                                         ('topic', 'td', 'doc'): td_edges_idx,
@@ -546,6 +644,7 @@ class tempMP(nn.Module):
                                         }, 
                                         # preserve_nodes=True
                                         )
+            
             orig_node_ids = sub_bg.ndata[dgl.NID] # {'word':,'topic':,'doc':}
             # print(sub_bg,'sub_bg')
             # graph conv
@@ -557,7 +656,21 @@ class tempMP(nn.Module):
             for ntype in ['word','topic','doc']:
                 # print('==',ntype,sub_bg.nodes[ntype].data['h'].shape,bg.nodes[ntype].data['h'].shape)
                 bg.nodes[ntype].data['h'][orig_node_ids[ntype]] = sub_bg.nodes[ntype].data['h']
-        # print(orig_node_ids,'orig_node_ids')
+                bg.nodes[ntype].data['timeh'][orig_node_ids[ntype]] = time_emb
+        # print(bg.nodes[ntype].data['h'].shape,bg.nodes[ntype].data['timeh'].shape)
+        for ntype in ['word','topic','doc']:
+            bg.nodes[ntype].data['h'] = torch.cat((bg.nodes[ntype].data['h'],bg.nodes[ntype].data['timeh']),dim=-1)
+        # print(bg.nodes[ntype].data['h'].shape,'h')
+
+        
+        attn_pool_out = self.attn_pool(bg, 'h')
+        # print(attn_pool_out.keys(),attn_pool_out)
+        global_info = []
+        for ntype in attn_pool_out.keys():
+            # print(attn_pool_out[ntype].shape,ntype)
+            global_info.append(attn_pool_out[ntype])
+        global_info = torch.cat(global_info,dim=-1)
+        # print(global_info.shape,'global_info')
         # 
         # bg = sub_bg
         # print(sub_bg.edges['ww'].data['time'],sub_bg.edges['ww'].data['weight'])
@@ -571,18 +684,17 @@ class tempMP(nn.Module):
         # bg.edges['wt'].data['timeh'] = self.time_emb(bg.edges['wt'].data['time'].long())
         # bg.edges['td'].data['timeh'] = self.time_emb(bg.edges['td'].data['time'].long())
         # print(bg.edges['td'].data['timeh'])
-        for i in range(self.n_layers):
-            self.gcs[i](bg, 'h', 'h')
-
-        if self.pool == 'max':
-            global_doc_info = dgl.max_nodes(bg, feat='h',ntype='doc')
-            global_word_info = dgl.max_nodes(bg, feat='h',ntype='word')
-            global_topic_info = dgl.max_nodes(bg, feat='h',ntype='topic')
-        elif self.pool == 'mean':
-            global_doc_info = dgl.mean_nodes(bg, feat='h',ntype='doc')
-            global_word_info = dgl.mean_nodes(bg, feat='h',ntype='word')
-            global_topic_info = dgl.mean_nodes(bg, feat='h',ntype='topic')
-        global_info = torch.cat((global_doc_info, global_word_info, global_topic_info),-1)
+        # for i in range(self.n_layers):
+        #     self.gcs[i](bg, 'h', 'h')
+        # if self.pool == 'max':
+        #     global_doc_info = dgl.max_nodes(bg, feat='h',ntype='doc')
+        #     global_word_info = dgl.max_nodes(bg, feat='h',ntype='word')
+        #     global_topic_info = dgl.max_nodes(bg, feat='h',ntype='topic')
+        # elif self.pool == 'mean':
+        #     global_doc_info = dgl.mean_nodes(bg, feat='h',ntype='doc')
+        #     global_word_info = dgl.mean_nodes(bg, feat='h',ntype='word')
+        #     global_topic_info = dgl.mean_nodes(bg, feat='h',ntype='topic')
+        # global_info = torch.cat((global_doc_info, global_word_info, global_topic_info),-1)
         # print(global_info.shape,'global_info')
         y_pred = self.out_layer(global_info)
         # print(y_pred.shape,'y_pred',y_pred,y_data.shape,'y_data')
