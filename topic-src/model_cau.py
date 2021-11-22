@@ -619,7 +619,7 @@ class tempMP(nn.Module):
         # bg.edges['td'].data['timeh'] = self.time_emb(bg.edges['td'].data['time'].long())
         for ntype in ['word','topic','doc']:
             # print('==',ntype,sub_bg.nodes[ntype].data['h'].shape,bg.nodes[ntype].data['h'].shape)
-            allone = torch.zeros(bg.num_nodes(ntype)).long()
+            allone = torch.zeros(bg.num_nodes(ntype)).long().to(self.device)
             # print(allone.shape,'alllllll')
             bg.nodes[ntype].data['timeh'] = self.time_emb(allone)
 
