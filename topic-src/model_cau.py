@@ -629,7 +629,7 @@ class tempMP(nn.Module):
         tt_edges_idx = list(range(len(bg.edges(etype='tt'))))
         for curr_time in range(self.seq_len):
             # print('curr_time',curr_time)
-            time_emb = self.time_emb(torch.tensor(curr_time))
+            time_emb = self.time_emb(torch.tensor(curr_time).to(self.device))
             ww_edges_idx = (bg.edges['ww'].data['time']==curr_time).nonzero().view(-1)
             wt_edges_idx = (bg.edges['wt'].data['time']==curr_time).nonzero().view(-1)
             wd_edges_idx = (bg.edges['wd'].data['time']==curr_time).nonzero().view(-1)
