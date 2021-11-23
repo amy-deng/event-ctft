@@ -56,13 +56,15 @@ class GCNLayer(nn.Module):
         h = g.nodes[ntype].data[inp_key]
         h = torch.mm(h, self.weight)
         # normalization by square root of src degree
-        h = h * g.nodes[ntype].data['norm'].unsqueeze(1)
+        # h = h * g.nodes[ntype].data['norm'].unsqueeze(1)
         g.nodes[ntype].data['_h'] = h
-        g.update_all(fn.copy_src(src='_h', out='m'),
+        g.update_all(
+                        # fn.copy_src(src='_h', out='m'),
+                        fn.u_mul_e('_h', 'weight', 'm'),
                           fn.sum(msg='m', out='_h'),etype=etype)
         h = g.nodes[ntype].data.pop('_h')
         # normalization by square root of dst degree
-        h = h * g.nodes[ntype].data['norm'].unsqueeze(1)
+        # h = h * g.nodes[ntype].data['norm'].unsqueeze(1)
         # bias
         if self.bias is not None:
             h = h + self.bias
@@ -688,7 +690,8 @@ class HGTLayerHeteroAsyn(nn.Module):
         att = F.softmax(nodes.mailbox['a'], dim=1)
         h   = torch.sum(att.unsqueeze(dim = -1) * nodes.mailbox['v'], dim=1)
         return {'t': F.relu(h.view(-1, self.out_dim))}
-        
+        # return {'t': h.view(-1, self.out_dim)}
+
     def forward(self, G, inp_key, out_key):
         # node_dict, edge_dict = G.node_dict, G.edge_dict
         edge_dict = []
@@ -742,6 +745,94 @@ class HGTLayerHeteroAsyn(nn.Module):
         G.multi_update_all({etype : (self.message_func, self.reduce_func) \
                             for etype in edge_dict}, cross_reducer = 'mean')
         
+        ntype = 'doc'
+        alpha = torch.sigmoid(self.skip[ntype])
+        trans_out = self.a_linears[ntype](G.nodes[ntype].data['t'])#+ G.time_emb) # TODO h? or ht
+        trans_out = trans_out * alpha + G.nodes[ntype].data[inp_key] * (1-alpha)
+        if self.use_norm:
+            G.nodes[ntype].data[out_key] = self.drop(self.norms[ntype](trans_out))
+        else:
+            G.nodes[ntype].data[out_key] = self.drop(trans_out)
+
+    def __repr__(self):
+        return '{}(in_dim={}, out_dim={}, num_types={}, num_relations={})'.format(
+            self.__class__.__name__, self.in_dim, self.out_dim,
+            self.num_types, self.num_relations)
+
+
+class RGCNLayerHeteroAsyn(nn.Module):
+    def __init__(self, in_dim, out_dim, ntypes, etypes, n_heads, dropout = 0.5, use_norm = False):
+        super(RGCNLayerHeteroAsyn, self).__init__()
+        self.in_dim        = in_dim
+        self.out_dim       = out_dim
+        self.etypes        = etypes
+        self.ntypes        = ntypes
+        self.num_types     = len(ntypes)
+        self.num_relations = len(etypes) 
+        
+        self.use_norm    = use_norm
+
+        self.weight = nn.ModuleDict()
+        for etype in etypes:
+            self.weight[etype] = nn.Linear(in_dim, out_dim)
+ 
+        self.a_linears   = nn.ModuleDict()
+        self.skip = nn.ParameterDict() 
+        self.rnns = nn.ModuleDict()
+        for ntype in ntypes:
+            self.skip[ntype] = nn.Parameter(torch.ones(1))
+            self.a_linears[ntype] = nn.Linear(out_dim,  out_dim)
+            if ntype == 'topic':
+                self.rnns[ntype] = nn.RNNCell(out_dim, out_dim)
+            if use_norm:
+                self.norms[ntype] = nn.LayerNorm(out_dim) 
+        self.drop           = nn.Dropout(dropout)
+        
+        self.init_weights()
+
+    def init_weights(self):
+        for p in self.parameters():
+            if p.data.ndimension() >= 2:
+                nn.init.xavier_uniform_(p.data, gain=nn.init.calculate_gain('relu'))
+            else:
+                stdv = 1. / math.sqrt(p.size(0))
+                p.data.uniform_(-stdv, stdv)
+ 
+    def forward(self, G, inp_key, out_key):
+        # node_dict, edge_dict = G.node_dict, G.edge_dict
+        # print(G.canonical_etypes)
+        funcs = {}
+        for srctype, etype, dsttype in [('topic', 'tt', 'topic'), ('word', 'wt', 'topic')]:
+
+            Wh = self.weight[etype](G.nodes[srctype].data[inp_key])   #   feat_dict[srctype]
+            G.nodes[srctype].data['Wh_%s' % etype] = Wh
+            funcs[etype] = (fn.copy_u('Wh_%s' % etype, 'm'), fn.mean('m', 't'))
+
+        G.multi_update_all(funcs, 'sum')
+
+        # msg at last time
+        ntype = 'topic'
+        alpha = torch.sigmoid(self.skip[ntype])
+        trans_out = self.a_linears[ntype](G.nodes[ntype].data['t'])# + G.time_emb) # TODO h? or ht
+        trans_out = trans_out * alpha + G.nodes[ntype].data[inp_key] * (1-alpha)
+        trans_out = self.rnns[ntype](trans_out, G.nodes[ntype].data['ht-1'])
+        if self.use_norm:
+            G.nodes[ntype].data[out_key] = self.drop(self.norms[ntype](trans_out))
+        else:
+            G.nodes[ntype].data[out_key] = self.drop(trans_out)
+        G.nodes[ntype].data[inp_key] = G.nodes[ntype].data[out_key]
+
+        edge_dict = []
+
+        funcs = {}
+        for srctype, etype, dsttype in [('topic', 'td', 'doc'), ('word', 'wd', 'doc')]:
+
+            Wh = self.weight[etype](G.nodes[srctype].data[inp_key])   #   feat_dict[srctype]
+            G.nodes[srctype].data['Wh_%s' % etype] = Wh
+            funcs[etype] = (fn.copy_u('Wh_%s' % etype, 'm'), fn.mean('m', 't'))
+
+        G.multi_update_all(funcs, 'sum')
+
         ntype = 'doc'
         alpha = torch.sigmoid(self.skip[ntype])
         trans_out = self.a_linears[ntype](G.nodes[ntype].data['t'])#+ G.time_emb) # TODO h? or ht
@@ -1224,9 +1315,6 @@ class tempMP5(nn.Module):
             'word':nn.RNNCell(n_hid, n_hid),
             # 'topic':nn.RNNCell(n_hid, n_hid),
         })
-        node_dict = {'doc': 0, 'topic': 1, 'word': 2}
-        edge_dict = {'td': 0, 'tt': 1, 'wd': 2, 'wt': 3, 'ww': 4}
-
         self.gcn_word_layers = nn.ModuleList()
         # self.gcn_topic_layers = nn.ModuleList()
 
@@ -1237,7 +1325,9 @@ class tempMP5(nn.Module):
 
         self.hetero_layers = nn.ModuleList()
         for _ in range(1):
-            self.hetero_layers.append(HGTLayerHeteroAsyn(n_hid, n_hid, etypes=['wt','wd','td','tt'],ntypes=['word','topic','doc'], n_heads=4, dropout=dropout))
+            # self.hetero_layers.append(HGTLayerHeteroAsyn(n_hid, n_hid, etypes=['wt','wd','td','tt'],ntypes=['word','topic','doc'], n_heads=4, dropout=dropout))
+            self.hetero_layers.append(RGCNLayerHeteroAsyn(n_hid, n_hid, etypes=['wt','wd','td','tt'],ntypes=['word','topic','doc'], n_heads=4, dropout=dropout))
+
         
         # self.gcs = nn.ModuleList()
         # for _ in range(n_layers):

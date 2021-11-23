@@ -42,8 +42,10 @@ class GCNLayer(nn.Module):
         # normalization by square root of src degree
         h = h * g.nodes[ntype].data['norm'].unsqueeze(1)
         g.nodes[ntype].data['h'] = h
-        g.update_all(fn.copy_src(src='h', out='m'),
-                          fn.sum(msg='m', out='h'),etype=etype)
+        g.update_all(
+            # fn.copy_src(src='h', out='m'),
+                        fn.u_mul_e('h', 'weight', 'm'),
+                        fn.sum(msg='m', out='h'),etype=etype)
         h = g.nodes[ntype].data.pop('h')
         # normalization by square root of dst degree
         h = h * g.nodes[ntype].data['norm'].unsqueeze(1)

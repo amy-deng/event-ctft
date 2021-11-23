@@ -18,7 +18,7 @@ try:
 except:
     print('Usage: models, dataset, datafiles, horizons, hidden, layer, note, gpu, others')
     exit()
-available_models = ['gcn','gat','heteroall','gcnetall3','gcnetall4','hgtall','hanall','rgcnall','temphgtall','ours','hgtallcau','ours2','ours3','ours4','ours5']
+available_models = ['gcn','gat','heteroall','gcnetall3','gcnetall4','hgtall','hanall','rgcnall','temphgtall','ours','hgtallcau','ours2','ours3','ours4','ours5','ours5rgcn']
 
 model_l = models.split(',')
 for m in model_l:
