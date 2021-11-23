@@ -1589,7 +1589,6 @@ class tempMP6cau(nn.Module):
                 p.data.uniform_(-stdv, stdv)
 
     def forward(self, g_list, y_data): 
-        # print(len(g_list),'g_list ')
         bg = dgl.batch(g_list).to(self.device)  
         word_emb = self.word_embeds[bg.nodes['word'].data['id']].view(-1, self.word_embeds.shape[1])
         word_emb = self.adapt_ws(word_emb)
