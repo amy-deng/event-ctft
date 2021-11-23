@@ -651,7 +651,7 @@ class HGTAllcau(nn.Module):
         # print(self.cau_embeds.shape,'self.cau_embeds')
         t = (effect * causal_w) @ self.cau_embeds 
         # print(t.shape,'t',t)
-        bg.nodes['topic'].data['h'] = topic_emb
+        bg.nodes['topic'].data['h'] = topic_emb + t
         bg.nodes['doc'].data['h'] = doc_emb
         for i in range(self.n_layers):
             self.gcs[i](bg, 'h', 'h')
