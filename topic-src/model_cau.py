@@ -1306,7 +1306,6 @@ class tempMP5(nn.Module):
             #     sub_bg.nodes[ntype].data['ht'] = sub_bg.nodes[ntype].data['h0'] + time_emb # add time into input, not good
             # print(sub_bg,'sub_bg')
             # print(orig_node_ids,'orig_node_ids',type(orig_node_ids))
-            # graph conv
             # sub_bg.time_emb = time_emb
             for layer in self.gcn_word_layers:
                 layer(sub_bg, inp_key='h0', out_key='ht', ntype='word', etype='ww')
