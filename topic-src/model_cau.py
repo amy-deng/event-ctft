@@ -882,8 +882,8 @@ class tempMP4(nn.Module):
                                         # preserve_nodes=True
                                         )
             sub_bg = sub_bg.to(self.device)
-            sub_bg = dgl.remove_self_loop(sub_bg, etype='tt')
-            sub_bg = dgl.remove_self_loop(sub_bg, etype='ww')
+            # sub_bg = dgl.remove_self_loop(sub_bg, etype='tt')
+            # sub_bg = dgl.remove_self_loop(sub_bg, etype='ww')
             orig_node_ids = sub_bg.ndata[dgl.NID] # {'word':,'topic':,'doc':}
             # for ntype in ['word','topic','doc']:
             #     # sub_bg.nodes[ntype].data['ht-1'] = sub_bg.nodes[ntype].data['ht']
