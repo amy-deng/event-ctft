@@ -489,6 +489,7 @@ class TempMessagePassingLayer3(nn.Module):
             self.__class__.__name__, self.in_dim, self.out_dim,
             self.num_types, self.num_relations)
 
+# very similar to 3
 class TempMessagePassingLayer6(nn.Module):
     def __init__(self, in_dim, out_dim, num_types, num_relations, n_heads, dropout = 0.5, use_norm = False):
         super(TempMessagePassingLayer6, self).__init__()
@@ -504,21 +505,21 @@ class TempMessagePassingLayer6(nn.Module):
         self.k_linears   = nn.ModuleDict()
         self.q_linears   = nn.ModuleDict()
         self.v_linears   = nn.ModuleDict()
-        self.a_linears   = nn.ModuleDict()
+        # self.a_linears   = nn.ModuleDict()
         self.norms       = nn.ModuleDict()
         for t in ['word','topic','doc']:
             self.k_linears[t] = nn.Linear(in_dim,   out_dim)
             self.q_linears[t] = nn.Linear(in_dim,   out_dim)
             self.v_linears[t] = nn.Linear(in_dim,   out_dim)
-            self.a_linears[t] = nn.Linear(out_dim,  out_dim)
+            # self.a_linears[t] = nn.Linear(out_dim,  out_dim)
             if use_norm:
                 self.norms[t] = nn.LayerNorm(out_dim)
         
-        self.skip = nn.ParameterDict({
-                'word': nn.Parameter(torch.ones(1)),
-                'topic': nn.Parameter(torch.ones(1)),
-                'doc': nn.Parameter(torch.ones(1)),
-        })
+        # self.skip = nn.ParameterDict({
+        #         'word': nn.Parameter(torch.ones(1)),
+        #         'topic': nn.Parameter(torch.ones(1)),
+        #         'doc': nn.Parameter(torch.ones(1)),
+        # })
         self.relation_pri = nn.ParameterDict({
                 'ww': nn.Parameter(torch.ones(self.n_heads)),
                 'wt': nn.Parameter(torch.ones(self.n_heads)),
@@ -573,8 +574,9 @@ class TempMessagePassingLayer6(nn.Module):
     def reduce_func(self, nodes):
         att = F.softmax(nodes.mailbox['a'], dim=1)
         h   = torch.sum(att.unsqueeze(dim = -1) * nodes.mailbox['v'], dim=1)
-        return {'t': F.relu(h.view(-1, self.out_dim))}
-        
+        return {'t': h.view(-1, self.out_dim)}
+        # return {'t': F.relu(h.view(-1, self.out_dim))}
+
     def forward(self, G, inp_key, out_key):
         # node_dict, edge_dict = G.node_dict, G.edge_dict
         edge_dict = []
@@ -597,9 +599,10 @@ class TempMessagePassingLayer6(nn.Module):
                             for etype in edge_dict}, cross_reducer = 'mean')
         
         for ntype in G.ntypes:
-            alpha = torch.sigmoid(self.skip[ntype])
-            trans_out = self.a_linears[ntype](G.nodes[ntype].data.pop('t') + G.time_emb) # TODO h? or ht
-            trans_out = trans_out * alpha + G.nodes[ntype].data[inp_key] * (1-alpha)
+            # alpha = torch.sigmoid(self.skip[ntype])
+            # trans_out = self.a_linears[ntype](G.nodes[ntype].data.pop('t') + G.time_emb) # TODO h? or ht
+            # trans_out = trans_out * alpha + G.nodes[ntype].data[inp_key] * (1-alpha)
+            trans_out = G.nodes[ntype].data.pop('t') + G.time_emb
             trans_out = F.relu(trans_out)
             if self.use_norm:
                 G.nodes[ntype].data[out_key] = self.drop(self.norms[ntype](trans_out))
