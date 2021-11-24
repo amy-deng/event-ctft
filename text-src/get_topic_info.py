@@ -14,8 +14,9 @@ python get_topic_info.py THA THA_50
 try:
     lda_dict_name = sys.argv[1]
     lda_name = sys.argv[2]
+    num_topic = int(sys.argv[3])
 except:
-    print('Usage: lda_dict_name <THA/THA_2012>, lda_name <THA_50>')
+    print('Usage: lda_dict_name <THA/THA_2012>, lda_name <THA_50> <num_topic 50>')
 # country = 'THA'
 # lda_name = 'THA_50'
 loaded_dict = corpora.Dictionary.load('/home/sdeng/data/icews/topic_models/{}.dict'.format(lda_dict_name))
@@ -51,7 +52,7 @@ cloud = WordCloud(stopwords=STOPWORDS,
                   color_func=lambda *args, **kwargs: cols[i],
                   prefer_horizontal=1.0)
 
-topics = loaded_lda.show_topics(num_topics=50,num_words=30,formatted=False)
+topics = loaded_lda.show_topics(num_topics=num_topic,num_words=30,formatted=False)
 # 1-19
 
 
@@ -80,53 +81,54 @@ fig.savefig("/home/sdeng/data/icews/topic_models/{}/wordcloud-0-19.pdf".format(l
 # plt.show()
 print('wordcloud of topics from 0 to 19 saved')
 
+if num_topic > 20:
+    fig, axes = plt.subplots(7, 3, figsize=(10,16), sharex=True, sharey=True)
 
-fig, axes = plt.subplots(7, 3, figsize=(10,16), sharex=True, sharey=True)
+    for i, ax in enumerate(axes.flatten()):
+        if i >= 20:
+            break
+        j = i+20
+        fig.add_subplot(ax)
+        topic_words = dict(topics[j][1])
+    #     print((topic_words))
+        topic_words_term = {}
+        for k in topic_words:
+            topic_words_term[loaded_dict[int(k)]] = topic_words[k]
+    #     print(topic_words_term)
+        cloud.generate_from_frequencies(topic_words_term, max_font_size=300)
+        plt.gca().imshow(cloud)
+        plt.gca().set_title('Topic ' + str(i), fontdict=dict(size=10))
+        plt.gca().axis('off')
+        plt.subplots_adjust(wspace=0, hspace=0)
+    plt.axis('off')
+    plt.margins(x=0, y=0)
+    plt.tight_layout()
+    fig.savefig("/home/sdeng/data/icews/topic_models/{}/wordcloud-20-39.pdf".format(lda_name), bbox_inches='tight', dpi=300, transparent=True)
+    # plt.show()
+    print('wordcloud of topics from 20 to 39 saved')
 
-for i, ax in enumerate(axes.flatten()):
-    if i >= 20:
-        break
-    j = i+20
-    fig.add_subplot(ax)
-    topic_words = dict(topics[j][1])
-#     print((topic_words))
-    topic_words_term = {}
-    for k in topic_words:
-        topic_words_term[loaded_dict[int(k)]] = topic_words[k]
-#     print(topic_words_term)
-    cloud.generate_from_frequencies(topic_words_term, max_font_size=300)
-    plt.gca().imshow(cloud)
-    plt.gca().set_title('Topic ' + str(i), fontdict=dict(size=10))
-    plt.gca().axis('off')
-    plt.subplots_adjust(wspace=0, hspace=0)
-plt.axis('off')
-plt.margins(x=0, y=0)
-plt.tight_layout()
-fig.savefig("/home/sdeng/data/icews/topic_models/{}/wordcloud-20-39.pdf".format(lda_name), bbox_inches='tight', dpi=300, transparent=True)
-# plt.show()
-print('wordcloud of topics from 20 to 39 saved')
+if num_topic > 40:
+    fig, axes = plt.subplots(7, 3, figsize=(10,16), sharex=True, sharey=True)
 
-fig, axes = plt.subplots(7, 3, figsize=(10,16), sharex=True, sharey=True)
-
-for i, ax in enumerate(axes.flatten()):
-    if i >= 10:
-        break
-    j = i+40
-    fig.add_subplot(ax)
-    topic_words = dict(topics[j][1])
-#     print((topic_words))
-    topic_words_term = {}
-    for k in topic_words:
-        topic_words_term[loaded_dict[int(k)]] = topic_words[k]
-#     print(topic_words_term)
-    cloud.generate_from_frequencies(topic_words_term, max_font_size=300)
-    plt.gca().imshow(cloud)
-    plt.gca().set_title('Topic ' + str(i), fontdict=dict(size=10))
-    plt.gca().axis('off')
-    plt.subplots_adjust(wspace=0, hspace=0)
-plt.axis('off')
-plt.margins(x=0, y=0)
-plt.tight_layout()
-fig.savefig("/home/sdeng/data/icews/topic_models/{}/wordcloud-40-49.pdf".format(lda_name), bbox_inches='tight', dpi=300, transparent=True)
-# plt.show()
-print('wordcloud of topics from 40 to 49 saved')
+    for i, ax in enumerate(axes.flatten()):
+        if i >= 10:
+            break
+        j = i+40
+        fig.add_subplot(ax)
+        topic_words = dict(topics[j][1])
+    #     print((topic_words))
+        topic_words_term = {}
+        for k in topic_words:
+            topic_words_term[loaded_dict[int(k)]] = topic_words[k]
+    #     print(topic_words_term)
+        cloud.generate_from_frequencies(topic_words_term, max_font_size=300)
+        plt.gca().imshow(cloud)
+        plt.gca().set_title('Topic ' + str(i), fontdict=dict(size=10))
+        plt.gca().axis('off')
+        plt.subplots_adjust(wspace=0, hspace=0)
+    plt.axis('off')
+    plt.margins(x=0, y=0)
+    plt.tight_layout()
+    fig.savefig("/home/sdeng/data/icews/topic_models/{}/wordcloud-40-49.pdf".format(lda_name), bbox_inches='tight', dpi=300, transparent=True)
+    # plt.show()
+    print('wordcloud of topics from 40 to 49 saved')
