@@ -542,7 +542,7 @@ class TempMessagePassingLayer6(nn.Module):
                 'td': nn.Parameter(torch.Tensor(n_heads, self.d_k, self.d_k)),
         })
         self.drop           = nn.Dropout(dropout)
-        self.rnn = nn.RNNCell(out_dim, out_dim)
+        # self.rnn = nn.RNNCell(out_dim, out_dim)
         self.init_weights()
 
     def init_weights(self):
@@ -602,7 +602,7 @@ class TempMessagePassingLayer6(nn.Module):
             # alpha = torch.sigmoid(self.skip[ntype])
             # trans_out = self.a_linears[ntype](G.nodes[ntype].data.pop('t') + G.time_emb) # TODO h? or ht
             # trans_out = trans_out * alpha + G.nodes[ntype].data[inp_key] * (1-alpha)
-            trans_out = G.nodes[ntype].data.pop('t') + G.time_emb
+            trans_out = G.nodes[ntype].data.pop('t') #+ G.time_emb
             trans_out = F.relu(trans_out)
             if self.use_norm:
                 G.nodes[ntype].data[out_key] = self.drop(self.norms[ntype](trans_out))
@@ -610,7 +610,7 @@ class TempMessagePassingLayer6(nn.Module):
                 G.nodes[ntype].data[out_key] = self.drop(trans_out)
 
     def __repr__(self):
-        return '{}(in_dim={}, out_dim={}, num_types={}, num_types={})'.format(
+        return '{}(in_dim={}, out_dim={}, num_types={}, num_relations={})'.format(
             self.__class__.__name__, self.in_dim, self.out_dim,
             self.num_types, self.num_relations)
 
@@ -1432,11 +1432,13 @@ class tempMP6(nn.Module):
         self.word_embeds = None
         self.topic_embeds = nn.Parameter(torch.Tensor(num_topic, n_hid))
         self.doc_gen_embeds = nn.Parameter(torch.Tensor(1, n_hid))
-        self.time_emb = RelTemporalEncoding(n_hid, seq_len)
+        # self.time_emb = RelTemporalEncoding(n_hid, seq_len)
         self.attn_pool = GlobalAttentionPooling(n_hid, n_hid)
-        self.rnns = nn.ModuleDict({
-            'word':nn.RNNCell(n_hid, n_hid),
-            'topic':nn.RNNCell(n_hid, n_hid),
+        # self.rnn = nn.RNNCell(n_hid, n_hid)
+        self.temp_skip = nn.ParameterDict({
+                'word': nn.Parameter(torch.ones(1)),
+                'topic': nn.Parameter(torch.ones(1)),
+                # 'doc': nn.Parameter(torch.ones(1)),
         })
         self.adapt_ws  = nn.Linear(n_inp,  n_hid)
         node_dict = {'doc': 0, 'topic': 1, 'word': 2}
@@ -1483,7 +1485,7 @@ class tempMP6(nn.Module):
         tt_edges_idx = list(range(len(bg.edges(etype='tt'))))
         for curr_time in range(self.seq_len):
             # print('curr_time',curr_time)
-            time_emb = self.time_emb(torch.tensor(curr_time).to(self.device))
+            # time_emb = self.time_emb(torch.tensor(curr_time).to(self.device))
             ww_edges_idx = (bg.edges['ww'].data['time']==curr_time).nonzero(as_tuple=False).view(-1).cpu().detach().tolist()
             wt_edges_idx = (bg.edges['wt'].data['time']==curr_time).nonzero(as_tuple=False).view(-1).cpu().detach().tolist()
             wd_edges_idx = (bg.edges['wd'].data['time']==curr_time).nonzero(as_tuple=False).view(-1).cpu().detach().tolist()
@@ -1501,7 +1503,7 @@ class tempMP6(nn.Module):
                                         )
             sub_bg = sub_bg.to(self.device)
             orig_node_ids = sub_bg.ndata[dgl.NID] # {'word':,'topic':,'doc':}
-            sub_bg.time_emb = time_emb
+            # sub_bg.time_emb = time_emb
             for i in range(self.n_layers):
                 if i == 0:
                     self.gcs[i](sub_bg, 'h0', 'ht')
@@ -1509,7 +1511,10 @@ class tempMP6(nn.Module):
                     self.gcs[i](sub_bg, 'ht', 'ht')
 
             for ntype in ['word','topic']:
-                sub_bg.nodes[ntype].data['ht-1'] = self.rnns[ntype](sub_bg.nodes[ntype].data['ht'], sub_bg.nodes[ntype].data['ht-1'])
+                # sub_bg.nodes[ntype].data['ht-1'] = self.rnn(sub_bg.nodes[ntype].data['ht'], sub_bg.nodes[ntype].data['ht-1'])
+                alpha = torch.sigmoid(self.temp_skip[ntype])
+                sub_bg.nodes[ntype].data['ht-1'] = alpha * sub_bg.nodes[ntype].data['ht'] + (1-alpha) * sub_bg.nodes[ntype].data['ht-1']
+
             # update h to bg
             for ntype in out_key_dict:
                 key = out_key_dict[ntype]
@@ -1558,11 +1563,12 @@ class tempMP6cau(nn.Module):
         self.doc_gen_embeds = nn.Parameter(torch.Tensor(1, n_hid))
         self.cau_embeds = nn.Parameter(torch.Tensor(3,n_hid))
         self.cau_weight = nn.Parameter(torch.Tensor(num_topic,3))
-        self.time_emb = RelTemporalEncoding(n_hid, seq_len)
+        # self.time_emb = RelTemporalEncoding(n_hid, seq_len)
         self.attn_pool = GlobalAttentionPooling(n_hid, n_hid)
-        self.rnns = nn.ModuleDict({
-            'word':nn.RNNCell(n_hid, n_hid),
-            'topic':nn.RNNCell(n_hid, n_hid),
+        # self.rnn = nn.RNNCell(n_hid, n_hid)
+        self.temp_skip = nn.ParameterDict({
+                'word': nn.Parameter(torch.ones(1)),
+                'topic': nn.Parameter(torch.ones(1)),
         })
         self.adapt_ws  = nn.Linear(n_inp,  n_hid)
         node_dict = {'doc': 0, 'topic': 1, 'word': 2}
@@ -1615,7 +1621,7 @@ class tempMP6cau(nn.Module):
         tt_edges_idx = list(range(len(bg.edges(etype='tt'))))
         for curr_time in range(self.seq_len):
             # print('curr_time',curr_time)
-            time_emb = self.time_emb(torch.tensor(curr_time).to(self.device))
+            # time_emb = self.time_emb(torch.tensor(curr_time).to(self.device))
             ww_edges_idx = (bg.edges['ww'].data['time']==curr_time).nonzero(as_tuple=False).view(-1).cpu().detach().tolist()
             wt_edges_idx = (bg.edges['wt'].data['time']==curr_time).nonzero(as_tuple=False).view(-1).cpu().detach().tolist()
             wd_edges_idx = (bg.edges['wd'].data['time']==curr_time).nonzero(as_tuple=False).view(-1).cpu().detach().tolist()
@@ -1633,7 +1639,7 @@ class tempMP6cau(nn.Module):
                                         )
             sub_bg = sub_bg.to(self.device)
             orig_node_ids = sub_bg.ndata[dgl.NID] # {'word':,'topic':,'doc':}
-            sub_bg.time_emb = time_emb
+            # sub_bg.time_emb = time_emb
             for i in range(self.n_layers):
                 if i == 0:
                     self.gcs[i](sub_bg, 'h0', 'ht')
@@ -1641,7 +1647,10 @@ class tempMP6cau(nn.Module):
                     self.gcs[i](sub_bg, 'ht', 'ht')
 
             for ntype in ['word','topic']:
-                sub_bg.nodes[ntype].data['ht-1'] = self.rnns[ntype](sub_bg.nodes[ntype].data['ht'], sub_bg.nodes[ntype].data['ht-1'])
+                # sub_bg.nodes[ntype].data['ht-1'] = self.rnn(sub_bg.nodes[ntype].data['ht'], sub_bg.nodes[ntype].data['ht-1'])
+                alpha = torch.sigmoid(self.temp_skip[ntype])
+                sub_bg.nodes[ntype].data['ht-1'] = alpha * sub_bg.nodes[ntype].data['ht'] + (1-alpha) * sub_bg.nodes[ntype].data['ht-1']
+
             # update h to bg
             for ntype in out_key_dict:
                 key = out_key_dict[ntype]
