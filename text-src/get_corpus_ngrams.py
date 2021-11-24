@@ -15,7 +15,7 @@ from sklearn.feature_extraction.text import CountVectorizer,TfidfVectorizer
 
 
 '''
-python get_corpus_ngrams.py '/home/sdeng/data/icews/corpus/THA_doc_tokens_from_2010.txt' 2 /home/sdeng/data/icews/corpus/ngrams
+python get_corpus_ngrams.py '/home/sdeng/data/icews/corpus/THA_doc_tokens_from_2010.txt' 2 /home/sdeng/data/icews/corpus/ngrams year
 '''
 
 try:
@@ -23,8 +23,9 @@ try:
     # topic_model_name = sys.argv[2] # THA
     ngram = int(sys.argv[2])
     out_path = sys.argv[3]
+    year = sys.argv[4]
 except:
-    print("usage: <corpus_path (abs)> <ngram> <out_path `/home/sdeng/data/icews/corpus/ngrams`> ")
+    print("usage: <corpus_path (abs)> <ngram> <out_path `/home/sdeng/data/icews/corpus/ngrams`> <year>")
     exit()
 
 if not os.path.exists(out_path):
@@ -37,8 +38,9 @@ with open(corpus_path,'r') as f:
 
 country = corpus_path.split('/')[-1][:3]
 print('country',country)
-out_file = "{}/{}_{}gram_tfidf.txt".format(out_path,country,ngram)
-
+# out_file = "{}/{}_{}gram_tfidf.txt".format(out_path,country,ngram)
+out_file = "{}/{}_from{}_{}gram_tfidf.txt".format(out_path,country,year,ngram)
+print('out_file',out_file)
 c_vec = TfidfVectorizer(ngram_range=(1, ngram),stop_words='english', min_df=20)
 
 ngrams = c_vec.fit_transform(corpus)
