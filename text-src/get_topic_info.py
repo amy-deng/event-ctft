@@ -112,7 +112,7 @@ if num_topic > 40:
     fig, axes = plt.subplots(7, 3, figsize=(10,16), sharex=True, sharey=True)
 
     for i, ax in enumerate(axes.flatten()):
-        if i >= 10:
+        if i >= num_topic-40:
             break
         j = i+40
         fig.add_subplot(ax)
@@ -130,6 +130,6 @@ if num_topic > 40:
     plt.axis('off')
     plt.margins(x=0, y=0)
     plt.tight_layout()
-    fig.savefig("/home/sdeng/data/icews/topic_models/{}/wordcloud-40-49.pdf".format(lda_name), bbox_inches='tight', dpi=300, transparent=True)
+    fig.savefig("/home/sdeng/data/icews/topic_models/{}/wordcloud-40-.pdf".format(lda_name), bbox_inches='tight', dpi=300, transparent=True)
     # plt.show()
     print('wordcloud of topics from 40 to 49 saved')
