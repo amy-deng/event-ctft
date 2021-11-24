@@ -17,6 +17,7 @@ try:
     num_topic = int(sys.argv[3])
 except:
     print('Usage: lda_dict_name <THA/THA_2012>, lda_name <THA_50> <num_topic 50>')
+    exit()
 # country = 'THA'
 # lda_name = 'THA_50'
 loaded_dict = corpora.Dictionary.load('/home/sdeng/data/icews/topic_models/{}.dict'.format(lda_dict_name))
@@ -28,7 +29,7 @@ os.makedirs("/home/sdeng/data/icews/topic_models/{}".format(lda_name),exist_ok=T
 f = open('/home/sdeng/data/icews/topic_models/{}/top_30_topic_words.csv'.format(lda_name),'a')
 wrt = csv.writer(f)
 wrt.writerow(["topic-id","sorted-words"])#, "event-type", 'rank', "topic-id","effect","z-score","p-value","end-date"])
-for i in range(50):
+for i in range(num_topic):
     l = [i]
     for t in loaded_lda.get_topic_terms(i,30):
         l.append(loaded_dict[int(t[0])])
