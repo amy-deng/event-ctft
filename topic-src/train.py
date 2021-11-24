@@ -39,6 +39,7 @@ parser.add_argument('--shuffle', action="store_false")
 parser.add_argument("--cau_setup", type=str, default="pos1", help="pos1,sign1,raw")
 parser.add_argument("--note", type=str, default="", help="")
 parser.add_argument("--n-topics", type=int, default=50, help='number of topics')
+parser.add_argument("--n-heads", type=int, default=4, help='number of attention heads')
 
 args = parser.parse_args()
 print(args)
@@ -185,34 +186,34 @@ def prepare(args,word_embeds,device):
     elif args.model == 'temp_word':
         model = temp_word_graph2(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device,pool=args.pool)
     elif args.model == 'hgt':
-        model = HGT(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=4, device=device, 
+        model = HGT(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, device=device, 
         num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True)
     elif args.model == 'hgtall':
-        model = HGTAll(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=4, device=device, 
+        model = HGTAll(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, device=device, 
         num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True)
     elif args.model == 'hgtallcau':
-        model = HGTAllcau(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=4, device=device, 
+        model = HGTAllcau(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, device=device, 
         num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True)
     elif args.model == 'temphgtall':
         model = TempHGTAll(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=4, seq_len=args.seq_len,device=device, 
         num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True)
     elif args.model == 'ours':
-        model = tempMP(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=4, activation=F.relu, seq_len=args.seq_len,device=device, 
+        model = tempMP(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
         num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True)
     # elif args.model == 'ours2':
     #     model = tempMP2(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=4, activation=F.relu, seq_len=args.seq_len,device=device, 
     #     num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True)
     elif args.model == 'ours3':
-        model = tempMP3(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=4, activation=F.relu, seq_len=args.seq_len,device=device, 
+        model = tempMP3(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
         num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True)
     elif args.model == 'ours4':
-        model = tempMP4(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=4, activation=F.relu, seq_len=args.seq_len,device=device, 
+        model = tempMP4(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
         num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True)
     elif args.model == 'ours6':
-        model = tempMP6(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=4, activation=F.relu, seq_len=args.seq_len,device=device, 
+        model = tempMP6(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
         num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True)
     elif args.model == 'cau6':
-        model = tempMP6cau(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=4, activation=F.relu, seq_len=args.seq_len,device=device, 
+        model = tempMP6cau(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
         num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True)
         # model = static_hgt(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device,pool=args.pool)
     # elif args.model == 'temp_word_hetero':
@@ -223,7 +224,7 @@ def prepare(args,word_embeds,device):
         model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
     total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print('#params:', total_params)
-    token = '{}_seed{}topic{}w{}h{}lr{}bs{}p{}hid{}l{}tr{}va{}po{}'.format(model_name, args.seed, args.n_topics, args.seq_len, args.horizon,args.lr,args.batch_size,args.patience,args.n_hidden,args.n_layers,args.train,args.val,args.pool)
+    token = '{}_seed{}topic{}w{}h{}lr{}bs{}p{}hid{}l{}tr{}va{}po{}nh{}'.format(model_name, args.seed, args.n_topics, args.seq_len, args.horizon,args.lr,args.batch_size,args.patience,args.n_hidden,args.n_layers,args.train,args.val,args.pool,args.n_heads)
     if args.shuffle is False:
         token += '_noshuf'
     if args.note != "":

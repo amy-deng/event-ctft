@@ -1514,7 +1514,7 @@ class tempMP6(nn.Module):
             for ntype in out_key_dict:
                 key = out_key_dict[ntype]
                 bg.nodes[ntype].data[key][orig_node_ids[ntype]] = sub_bg.nodes[ntype].data[key]
-
+            # break
         if self.pool == 'max':
             global_info = []
             for ntype in out_key_dict:
