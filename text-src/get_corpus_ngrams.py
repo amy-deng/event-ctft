@@ -41,7 +41,7 @@ print('country',country)
 # out_file = "{}/{}_{}gram_tfidf.txt".format(out_path,country,ngram)
 out_file = "{}/{}_from{}_{}gram_tfidf.txt".format(out_path,country,year,ngram)
 print('out_file',out_file)
-c_vec = TfidfVectorizer(ngram_range=(1, ngram),stop_words='english', min_df=20)
+c_vec = TfidfVectorizer(ngram_range=(1, ngram),stop_words='english', min_df=15) # before add from{} is 20
 
 ngrams = c_vec.fit_transform(corpus)
 

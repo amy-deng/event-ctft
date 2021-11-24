@@ -12,7 +12,7 @@ python get_corpus_doc.py --start_year 2013 --country EGY
 step 2. 
 python get_corpus_ngrams.py '/home/sdeng/data/icews/corpus/IND_doc_tokens_from_2012.txt' 1 /home/sdeng/data/icews/corpus/ngrams
 python get_corpus_ngrams.py '/home/sdeng/data/icews/corpus/RUS_doc_tokens_from_2010.txt' 1 /home/sdeng/data/icews/corpus/ngrams
-python get_corpus_ngrams.py '/home/sdeng/data/icews/corpus/RUS_doc_tokens_from_2010.txt' 1 /home/sdeng/data/icews/corpus/ngrams
+python get_corpus_ngrams.py '/home/sdeng/data/icews/corpus/AFG_doc_tokens_from_2012.txt' 1 /home/sdeng/data/icews/corpus/ngrams 2012
 
 step 3. 
 python train_topic_model.py '/home/sdeng/data/icews/corpus/AFG_doc_tokens_from_2010.txt' AFG 50 /home/sdeng/data/icews/topic_models
