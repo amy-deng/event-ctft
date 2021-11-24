@@ -12,13 +12,13 @@ python get_topic_info.py THA THA_50
 '''
 
 try:
-    country = sys.argv[1]
+    lda_dict_name = sys.argv[1]
     lda_name = sys.argv[2]
 except:
-    print('Usage: country <THA>, lda_name <THA_50>')
+    print('Usage: lda_dict_name <THA/THA_2012>, lda_name <THA_50>')
 # country = 'THA'
 # lda_name = 'THA_50'
-loaded_dict = corpora.Dictionary.load('/home/sdeng/data/icews/topic_models/{}.dict'.format(country))
+loaded_dict = corpora.Dictionary.load('/home/sdeng/data/icews/topic_models/{}.dict'.format(lda_dict_name))
 loaded_lda =  models.LdaModel.load('/home/sdeng/data/icews/topic_models/{}.lda'.format(lda_name))
 print('topic model and dictionary loaded')
 os.makedirs("/home/sdeng/data/icews/topic_models/{}".format(lda_name),exist_ok=True)
