@@ -42,7 +42,7 @@ except:
     exit()
 
 country = event_path.split('/')[-1][:3]
-dataset = '{}_w{}h{}_minday{}_mindf{}'.format(country,window,horizon,news_threshold,mindf)
+dataset = '{}_w{}h{}_mind{}n{}df{}'.format(country,window,horizon,days_threshold,news_threshold,mindf)
 dataset_path = "{}/{}".format(out_path,dataset)
 os.makedirs(dataset_path, exist_ok=True)
 print('dataset_path',dataset_path)
@@ -67,12 +67,12 @@ if top_k_ngram > 0:
 print('vocab loaded',len(vocab))
 
 if vocab_size > 0:
-    outf_dynamic = dataset_path + '/dynamic_tf_{}-{}_{}.pkl'.format(start_year,stop_year,vocab_size)
-    outf_static = dataset_path + '/static_tf_{}-{}_{}.pkl'.format(start_year,stop_year,vocab_size)
+    outf_dynamic = dataset_path + '/dyn_tf_{}-{}_{}.pkl'.format(start_year,stop_year,vocab_size)
+    outf_static = dataset_path + '/sta_tf_{}-{}_{}.pkl'.format(start_year,stop_year,vocab_size)
     outf_attr =  dataset_path + '/attr_tf_{}-{}_{}.pkl'.format(start_year,stop_year,vocab_size)
 else:
-    outf_dynamic = dataset_path + '/dynamic_tf_{}-{}.pkl'.format(start_year,stop_year)
-    outf_static = dataset_path + '/static_tf_{}-{}.pkl'.format(start_year,stop_year)
+    outf_dynamic = dataset_path + '/dyn_tf_{}-{}.pkl'.format(start_year,stop_year)
+    outf_static = dataset_path + '/sta_tf_{}-{}.pkl'.format(start_year,stop_year)
     outf_attr =  dataset_path + '/attr_tf_{}-{}.pkl'.format(start_year,stop_year)
 
 print(outf_dynamic)
@@ -626,8 +626,8 @@ for i,row in df.iterrows():
     date_list.append(date)
     
     print('iii={} \t {} \t {} \t {} day_has_data \t  {} vocab {} doc {} ww sta-{} dyn-{}'.format(iii,date,city,num_nonzero_days,time.ctime(),len(sample_words),len(tokens_list),len(edge_ww),len(ww_weight)))
-    # if iii >= 12:
-    #     break
+    if iii >= 15:
+        break
 
 y_list = torch.tensor(y_list)
 # save_graphs(dataset_path + "/data.bin", all_g_list, {"y":y_list})
