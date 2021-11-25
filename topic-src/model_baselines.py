@@ -636,3 +636,4 @@ class TempHGT(nn.Module):
         loss = self.criterion(y_pred.view(-1), y_data)
         y_pred = torch.sigmoid(y_pred)
         return loss, y_pred
+
