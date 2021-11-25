@@ -43,7 +43,7 @@ from matplotlib import pyplot as plt
 import matplotlib.colors as mcolors
 
 cols = [color for name, color in mcolors.TABLEAU_COLORS.items()]  # more colors: 'mcolors.XKCD_COLORS'
-cols = cols + cols
+cols = cols + cols + cols + cols + cols
 cloud = WordCloud(stopwords=STOPWORDS,
                   background_color='white',
                   width=2500,
