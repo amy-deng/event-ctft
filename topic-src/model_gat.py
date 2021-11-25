@@ -70,7 +70,6 @@ class GAT(nn.Module):
         self.criterion = F.binary_cross_entropy_with_logits #soft_cross_entropy
         self.init_weights()
 
-
     def init_weights(self):
         for p in self.parameters():
             if p.data.ndimension() >= 2:

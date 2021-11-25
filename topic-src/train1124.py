@@ -54,15 +54,14 @@ from torch.utils.data import DataLoader
 from torch.utils.data.sampler import SubsetRandomSampler
 
 from models import *
-from model_baselines import *
-# from model_gcn import *
-# from model_gat import *
-# from model_hgt import *
-# from model_gcn_hetero import *
-# from model_han import *
-# from model_hetero import *
-# from model_rgcn import *
-# from model_cau import *
+from model_gcn import *
+from model_gat import *
+from model_hgt import *
+from model_gcn_hetero import *
+from model_han import *
+from model_hetero import *
+from model_rgcn import *
+from model_cau import *
 from utils import *
 from data import *
 
@@ -121,39 +120,104 @@ test_loader = DataLoader(static_graph_dataset, batch_size=args.batch_size,
 train_loader.len = len(train_indices)
 valid_loader.len = len(val_indices)
 test_loader.len = len(test_indices)
- 
+
+# print(train_loader,train_loader.len)
+
+# train_loader = DataLoader(train_dataset_loader, batch_size=args.batch_size,
+#                         shuffle=True, collate_fn=collate_2)
+# valid_loader = DataLoader(valid_dataset_loader, batch_size=args.batch_size,
+#                         shuffle=False, collate_fn=collate_2)
+# test_loader = DataLoader(test_dataset_loader, batch_size=args.batch_size,
+                        # shuffle=False, collate_fn=collate_2)
+
 def prepare(args,word_embeds,device): 
     if args.model == 'gcn':
         model = GCN(in_feats=emb_size, n_hidden=args.n_hidden, n_layers=args.n_layers, activation=F.relu, 
         vocab_size=vocab_size, device=device, dropout=args.dropout,pool=args.pool)
     if args.model == 'gat':
         model = GAT(in_feats=emb_size, n_hidden=args.n_hidden, n_layers=args.n_layers, activation=F.relu, 
-        vocab_size=vocab_size, heads=args.n_heads,device=device, dropout=args.dropout,pool=args.pool)
-    elif args.model == 'rgcn':
-        model = RGCN(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, activation=F.relu, 
+        vocab_size=vocab_size, heads=4,device=device, dropout=args.dropout,pool=args.pool)
+    elif args.model == 'gcnet':
+        model = GCNHet(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, activation=F.relu, 
+        vocab_size=vocab_size, device=device, dropout=args.dropout,pool=args.pool)
+    elif args.model == 'gcnetall':
+        model = GCNHetAll(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, activation=F.relu, 
         vocab_size=vocab_size, device=device, dropout=args.dropout,pool=args.pool) 
-    # elif args.model == 'hgtall':
-    #     model = HGTAll(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, device=device, 
+    elif args.model == 'gcnetall2':
+        model = GCNHetAll2(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, activation=F.relu, 
+        vocab_size=vocab_size, device=device, dropout=args.dropout,pool=args.pool)
+    elif args.model == 'gcnetall3':
+        model = GCNHetAll3(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, activation=F.relu, 
+        vocab_size=vocab_size, device=device, dropout=args.dropout,pool=args.pool)
+    elif args.model == 'gcnetall4':
+        model = GCNHetAll4(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, activation=F.relu, 
+        vocab_size=vocab_size, device=device, dropout=args.dropout,pool=args.pool) 
+    elif args.model == 'han':
+        model = HAN(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, activation=F.relu, 
+        vocab_size=vocab_size, device=device, dropout=args.dropout,pool=args.pool) 
+    elif args.model == 'hanall':
+        model = HANAll(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, activation=F.relu, 
+        vocab_size=vocab_size, device=device, dropout=args.dropout,pool=args.pool) 
+    elif args.model == 'hetero':
+        model = Hetero(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, activation=F.relu, 
+        vocab_size=vocab_size, device=device, dropout=args.dropout,pool=args.pool) 
+    elif args.model == 'heteroall':
+        model = HeteroAll(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, activation=F.relu, 
+        vocab_size=vocab_size, device=device, dropout=args.dropout,pool=args.pool) 
+    elif args.model == 'rgcnall':
+        model = RGCNAll(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, activation=F.relu, 
+        vocab_size=vocab_size, device=device, dropout=args.dropout,pool=args.pool) 
+    elif args.model == 'topic':
+        model = static_topic_graph(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device, pool=args.pool)
+    elif args.model == 'tcau0':
+        model = static_topic_cau0(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device, pool=args.pool)
+    elif args.model == 'hetero2':
+        model = static_heto_graph2(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device, pool=args.pool)
+    elif args.model == 'cau0':
+        model = static_heto_cau0(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device, pool=args.pool)
+    elif args.model == 'cau11':
+        model = static_heto_cau1(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device, pool=args.pool) 
+    elif args.model == 'word':
+        model = static_word_graph(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device,pool=args.pool)
+    elif args.model == 'word2':
+        model = static_word_graph2(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device,pool=args.pool)
+    elif args.model == 'temp_hetero':
+        model = temp_heto_graph(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device,pool=args.pool)
+    elif args.model == 'temp_word':
+        model = temp_word_graph2(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device,pool=args.pool)
+    elif args.model == 'hgt':
+        model = HGT(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, device=device, 
+        num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True)
+    elif args.model == 'hgtall':
+        model = HGTAll(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, device=device, 
+        num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True)
+    elif args.model == 'hgtallcau':
+        model = HGTAllcau(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, device=device, 
+        num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True)
+    elif args.model == 'temphgtall':
+        model = TempHGTAll(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=4, seq_len=args.seq_len,device=device, 
+        num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True)
+    elif args.model == 'ours':
+        model = tempMP(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
+        num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True)
+    # elif args.model == 'ours2':
+    #     model = tempMP2(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=4, activation=F.relu, seq_len=args.seq_len,device=device, 
     #     num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True)
-    # elif args.model == 'temphgtall':
-    #     model = TempHGTAll(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=4, seq_len=args.seq_len,device=device, 
-    #     num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True)
-    # elif args.model == 'ours':
-    #     model = tempMP(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
-    #     num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True)
-    # elif args.model == 'ours3':
-    #     model = tempMP3(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
-    #     num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True)
-    # elif args.model == 'ours4':
-    #     model = tempMP4(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
-    #     num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True)
-    # elif args.model == 'ours6':
-    #     model = tempMP6(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
-    #     num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True)
-    # elif args.model == 'cau6':
-    #     model = tempMP6cau(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
-    #     num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True)
- 
+    elif args.model == 'ours3':
+        model = tempMP3(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
+        num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True)
+    elif args.model == 'ours4':
+        model = tempMP4(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
+        num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True)
+    elif args.model == 'ours6':
+        model = tempMP6(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
+        num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True)
+    elif args.model == 'cau6':
+        model = tempMP6cau(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
+        num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True)
+        # model = static_hgt(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device,pool=args.pool)
+    # elif args.model == 'temp_word_hetero':
+    #     model = temp_word_hetero(h_inp=emb_size, vocab_size=vocab_size, h_dim=args.n_hidden, device=device,pool=args.pool)
     model_name = model.__class__.__name__
     # print(model)
     optimizer = torch.optim.Adam(
