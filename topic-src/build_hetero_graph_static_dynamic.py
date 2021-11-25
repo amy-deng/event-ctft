@@ -20,7 +20,7 @@ from numpy import linalg
 ### testing
  
 '''
-python build_hetero_graph_time.py /home/sdeng/data/icews/detailed_event_json/THA_2010_w21h14_city.json ../data THA_50 /home/sdeng/data/icews/corpus/ngrams/THA_1gram_tfidf.txt 15000 7 7 7 2017 2017 1000 
+python build_hetero_graph_static_dynamic.py /home/sdeng/data/icews/detailed_event_json/THA_2010_w21h14_city.json ../data THA_2012_50 /home/sdeng/data/icews/corpus/ngrams/THA_from2012_1gram_tfidf.txt -1 7 7 7 3 2017 2017 1000 
 '''
 try:
     event_path = sys.argv[1] # /home/sdeng/data/icews/detailed_event_json/THA_2010_w21h7_city.json
@@ -54,7 +54,8 @@ news_df = pd.read_json('/home/sdeng/data/icews/news.1991.201703.country/icews_ne
 news_df = news_df.loc[(news_df['Date']>str(int(start_year)-1)+'-12-15') & (news_df['Date']<str(int(start_year)+1)+'-01-10')]
 print(len(news_df),'news_df')
 '''topic model'''
-loaded_dict = corpora.Dictionary.load('/home/sdeng/data/icews/topic_models/{}.dict'.format(country))
+dict_name = '_'.join(lda_name.split('_')[:2])
+loaded_dict = corpora.Dictionary.load('/home/sdeng/data/icews/topic_models/{}.dict'.format(dict_name))
 loaded_lda =  models.LdaModel.load('/home/sdeng/data/icews/topic_models/{}.lda'.format(lda_name))
 print('topic model and dictionary loaded')
 '''vocabulary'''
