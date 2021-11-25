@@ -442,8 +442,8 @@ for i,row in df.iterrows():
     nodes1 = g.nodes('word')
     # print(nodes1)
 
-    g.nodes['word'].data['id'] = torch.tensor(words_in_curr_sample).int()
-    g.nodes['topic'].data['id'] = g.nodes('topic').int()
+    g.nodes['word'].data['id'] = torch.tensor(words_in_curr_sample).long()
+    g.nodes['topic'].data['id'] = g.nodes('topic').long()
     g.edges['ww'].data['weight'] = edge_ww
     g.edges['wd'].data['weight'] = edge_wd
     g.edges['td'].data['weight'] = edge_td
@@ -457,7 +457,7 @@ for i,row in df.iterrows():
 
     norm_edges(g,ntype='word',etype='ww')
     # norm_edges(g,ntype='topic',etype='tt') 
-    g = g.int()
+    # g = g.int()
     all_static_g_list.append(g)
 
     '''dynamic graph'''
@@ -577,8 +577,8 @@ for i,row in df.iterrows():
         words_in_curr_sample = [vocab_graph_node_map_reverse[v] for v in nodes2.numpy()]
         print('nodes1',len(nodes1), 'nodes2',len(nodes2), 'not the same',words_in_curr_sample)
     # exit()
-    g.nodes['word'].data['id'] = torch.tensor(words_in_curr_sample).int()
-    g.nodes['topic'].data['id'] = g.nodes('topic').int()
+    g.nodes['word'].data['id'] = torch.tensor(words_in_curr_sample).long()
+    g.nodes['topic'].data['id'] = g.nodes('topic').long()
 
     g.edges['ww'].data['weight'] = ww_weight
     g.edges['ww'].data['time'] = ww_time
@@ -606,7 +606,7 @@ for i,row in df.iterrows():
     #     g.ids[id] = idx
     #     idx += 1
     # print(g)
-    g = g.int()
+    # g = g.int()
     all_dynamic_g_list.append(g)
     #####
     event_count_list = row['event_count_list'][:horizon] # event_count = row['event_count']
