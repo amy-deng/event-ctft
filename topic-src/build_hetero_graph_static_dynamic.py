@@ -351,7 +351,7 @@ all_static_g_list, all_dynamic_g_list, y_list, city_list, date_list = [], [], []
 
 iii=0
 # topic---topic
-topic_i, topic_j, weight = topic_topic_sim(thr=0.15) # 85
+topic_i, topic_j, weight = topic_topic_sim(thr=0.2) # 85
 edge_tt = torch.tensor(weight).float()
 print('# topic nodes',len(set(topic_i)),len(set(topic_j)),'weight',len(weight))
 for i,row in df.iterrows():
