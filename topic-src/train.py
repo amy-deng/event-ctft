@@ -131,7 +131,7 @@ def prepare(args,word_embeds,device):
         vocab_size=vocab_size, heads=args.n_heads,device=device, dropout=args.dropout,pool=args.pool)
     elif args.model == 'rgcn':
         model = RGCN(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, activation=F.relu, 
-        vocab_size=vocab_size, device=device, dropout=args.dropout,pool=args.pool) 
+        vocab_size=vocab_size, device=device, num_topic=args.n_topics, dropout=args.dropout,pool=args.pool) 
     elif args.model == 'hgt':
         model = HGT(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, device=device, 
         num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True)
