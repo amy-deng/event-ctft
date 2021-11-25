@@ -307,7 +307,7 @@ def doc_topic_dist(tokens_list):
             weight.append(w)
     return doc_node, topic_node, weight
     
-def topic_topic_sim(thr=0.15):
+def topic_topic_sim(thr=0.2):
     term_topic_mat = loaded_lda.get_topics()
     num_topics = len(term_topic_mat)
     cosine_similarity = 1 - cdist(term_topic_mat, term_topic_mat, metric='cosine')
