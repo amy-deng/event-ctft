@@ -438,7 +438,7 @@ for i,row in df.iterrows():
     edge_wt = torch.tensor(weight)
 
     g = dgl.heterograph(graph_data)
-    print(g.num_nodes('word'),'words static')
+    # print(g.num_nodes('word'),'words static')
     nodes1 = g.nodes('word')
     # print(nodes1)
 
