@@ -592,6 +592,7 @@ class TempHGTAll(nn.Module):
         y_pred = torch.sigmoid(y_pred)
         return loss, y_pred
 
+
 class HGTAllcau(nn.Module):
     def __init__(self, n_inp, n_hid, n_layers, n_heads, device, num_topic=50, vocab_size=15000, dropout=0.5, pool='max', use_norm = True):
         super(HGTAllcau, self).__init__()
