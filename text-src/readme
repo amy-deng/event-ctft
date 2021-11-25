@@ -15,9 +15,9 @@ python get_corpus_ngrams.py '/home/sdeng/data/icews/corpus/RUS_doc_tokens_from_2
 python get_corpus_ngrams.py '/home/sdeng/data/icews/corpus/AFG_doc_tokens_from_2012.txt' 1 /home/sdeng/data/icews/corpus/ngrams 2012
 
 step 3. 
-python train_topic_model.py '/home/sdeng/data/icews/corpus/THA_doc_tokens_from_2012.txt' THA_2012 50 /home/sdeng/data/icews/topic_models
+python train_topic_model.py '/home/sdeng/data/icews/corpus/THA_doc_tokens_from_2012.txt' THA_2012 40 /home/sdeng/data/icews/topic_models
 python train_topic_model.py '/home/sdeng/data/icews/corpus/AFG_doc_tokens_from_2012.txt' AFG_2012 50 /home/sdeng/data/icews/topic_models
-python train_topic_model.py '/home/sdeng/data/icews/corpus/EGY_doc_tokens_from_2012.txt' EGY_2012 50 /home/sdeng/data/icews/topic_models
+python train_topic_model.py '/home/sdeng/data/icews/corpus/EGY_doc_tokens_from_2012.txt' EGY_2012 60 /home/sdeng/data/icews/topic_models
 python train_topic_model.py '/home/sdeng/data/icews/corpus/NGA_doc_tokens_from_2012.txt' NGA_2012 50 /home/sdeng/data/icews/topic_models
 python train_topic_model.py '/home/sdeng/data/icews/corpus/IND_doc_tokens_from_2012.txt' IND 50 /home/sdeng/data/icews/topic_models
 python train_topic_model.py '/home/sdeng/data/icews/corpus/RUS_doc_tokens_from_2012.txt' RUS_2012 50 /home/sdeng/data/icews/topic_models

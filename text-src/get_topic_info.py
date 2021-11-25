@@ -133,3 +133,55 @@ if num_topic > 40:
     fig.savefig("/home/sdeng/data/icews/topic_models/{}/wordcloud-40-.pdf".format(lda_name), bbox_inches='tight', dpi=300, transparent=True)
     # plt.show()
     print('wordcloud of topics from 40 to 49 saved')
+
+if num_topic > 60:
+    fig, axes = plt.subplots(7, 3, figsize=(10,16), sharex=True, sharey=True)
+
+    for i, ax in enumerate(axes.flatten()):
+        if i >= num_topic-60:
+            break
+        j = i+60
+        fig.add_subplot(ax)
+        topic_words = dict(topics[j][1])
+    #     print((topic_words))
+        topic_words_term = {}
+        for k in topic_words:
+            topic_words_term[loaded_dict[int(k)]] = topic_words[k]
+    #     print(topic_words_term)
+        cloud.generate_from_frequencies(topic_words_term, max_font_size=300)
+        plt.gca().imshow(cloud)
+        plt.gca().set_title('Topic ' + str(i), fontdict=dict(size=10))
+        plt.gca().axis('off')
+        plt.subplots_adjust(wspace=0, hspace=0)
+    plt.axis('off')
+    plt.margins(x=0, y=0)
+    plt.tight_layout()
+    fig.savefig("/home/sdeng/data/icews/topic_models/{}/wordcloud-60-.pdf".format(lda_name), bbox_inches='tight', dpi=300, transparent=True)
+    # plt.show()
+    print('wordcloud of topics from 60 to 79 saved')
+
+if num_topic > 80:
+    fig, axes = plt.subplots(7, 3, figsize=(10,16), sharex=True, sharey=True)
+
+    for i, ax in enumerate(axes.flatten()):
+        if i >= num_topic-80:
+            break
+        j = i+80
+        fig.add_subplot(ax)
+        topic_words = dict(topics[j][1])
+    #     print((topic_words))
+        topic_words_term = {}
+        for k in topic_words:
+            topic_words_term[loaded_dict[int(k)]] = topic_words[k]
+    #     print(topic_words_term)
+        cloud.generate_from_frequencies(topic_words_term, max_font_size=300)
+        plt.gca().imshow(cloud)
+        plt.gca().set_title('Topic ' + str(i), fontdict=dict(size=10))
+        plt.gca().axis('off')
+        plt.subplots_adjust(wspace=0, hspace=0)
+    plt.axis('off')
+    plt.margins(x=0, y=0)
+    plt.tight_layout()
+    fig.savefig("/home/sdeng/data/icews/topic_models/{}/wordcloud-80-.pdf".format(lda_name), bbox_inches='tight', dpi=300, transparent=True)
+    # plt.show()
+    print('wordcloud of topics from 80 to 99 saved')
