@@ -450,15 +450,15 @@ class SeqHGTLayer(nn.Module):
         self.k_linears   = nn.ModuleDict()
         self.q_linears   = nn.ModuleDict()
         self.v_linears   = nn.ModuleDict()
-        self.a_linears   = nn.ModuleDict()
+        # self.a_linears   = nn.ModuleDict()
         self.norms       = nn.ModuleDict()
-        self.skip = nn.ParameterDict() 
+        # self.skip = nn.ParameterDict() 
         for t in ntypes:
             self.k_linears[t] = nn.Linear(in_dim,   out_dim)
             self.q_linears[t] = nn.Linear(in_dim,   out_dim)
             self.v_linears[t] = nn.Linear(in_dim,   out_dim)
-            self.a_linears[t] = nn.Linear(out_dim,  out_dim)
-            self.skip[t] = nn.Parameter(torch.ones(1))
+            # self.a_linears[t] = nn.Linear(out_dim,  out_dim)
+            # self.skip[t] = nn.Parameter(torch.ones(1))
             if use_norm:
                 self.norms[t] = nn.LayerNorm(out_dim)
         self.relation_pri = nn.ParameterDict()
@@ -1035,14 +1035,14 @@ class Temp1(nn.Module):
         tt_edges_idx = list(range(len(bg.edges(etype='tt'))))
         for curr_time in range(self.seq_len):
             # print('curr_time',curr_time)
-            time1 = time.time()
+            # time1 = time.time()
             # time_emb = self.time_emb(torch.tensor(curr_time).to(self.device))
             ww_edges_idx = (bg.edges['ww'].data['time']==curr_time).nonzero(as_tuple=False).view(-1).cpu().detach().tolist()
             wt_edges_idx = (bg.edges['wt'].data['time']==curr_time).nonzero(as_tuple=False).view(-1).cpu().detach().tolist()
             wd_edges_idx = (bg.edges['wd'].data['time']==curr_time).nonzero(as_tuple=False).view(-1).cpu().detach().tolist()
             td_edges_idx = (bg.edges['td'].data['time']==curr_time).nonzero(as_tuple=False).view(-1).cpu().detach().tolist()
-            time2 = time.time()
-            print('find idx',time2-time1)
+            # time2 = time.time()
+            # print('find idx',time2-time1) 
             if len(ww_edges_idx) <= 0:
                 continue
             bg_cpu = bg.to('cpu')
@@ -1060,28 +1060,28 @@ class Temp1(nn.Module):
                                         )
             sub_bg = sub_bg.to(self.device)
             orig_node_ids = sub_bg.ndata[dgl.NID] # {'word':,'topic':,'doc':}
-            time3 = time.time()
-            print('get subgraph',time3-time2)
+            # time3 = time.time()
+            # print('get subgraph',time3-time2)
             # sub_bg.time_emb = time_emb
             for i in range(self.n_layers):
                 if i == 0:
                     self.gcs[i](sub_bg, 'h0', 'ht')
                 else:
                     self.gcs[i](sub_bg, 'ht', 'ht')
-            time4 = time.time()
-            print('graph conv info',time4-time3)
+            # time4 = time.time()
+            # print('graph conv info',time4-time3)
             for ntype in ['word','topic']:
                 # sub_bg.nodes[ntype].data['ht-1'] = self.rnn(sub_bg.nodes[ntype].data['ht'], sub_bg.nodes[ntype].data['ht-1'])
                 alpha = torch.sigmoid(self.temp_skip[ntype])
                 sub_bg.nodes[ntype].data['ht-1'] = alpha * sub_bg.nodes[ntype].data['ht'] + (1-alpha) * sub_bg.nodes[ntype].data['ht-1']
-            time5 = time.time()
-            print('temporal info',time5-time4)
+            # time5 = time.time()
+            # print('temporal info',time5-time4)
             # update h to bg
             for ntype in out_key_dict:
                 key = out_key_dict[ntype]
                 bg.nodes[ntype].data[key][orig_node_ids[ntype].long()] = sub_bg.nodes[ntype].data[key]
-            time6 = time.time()
-            print('copy back to bg',time6-time5)
+            # time6 = time.time()
+            # print('copy back to bg',time6-time5)
 
         if self.pool == 'max':
             global_info = []
