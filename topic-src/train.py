@@ -55,6 +55,7 @@ from torch.utils.data.sampler import SubsetRandomSampler
 
 from models import *
 from model_baselines import *
+from model_ours import *
 # from model_gcn import *
 # from model_gat import *
 # from model_hgt import *
@@ -147,9 +148,9 @@ def prepare(args,word_embeds,device):
     # elif args.model == 'ours4':
     #     model = tempMP4(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
     #     num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True)
-    # elif args.model == 'ours6':
-    #     model = tempMP6(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
-    #     num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True)
+    elif args.model == 'temp1':
+        model = Temp1(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
+        num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True)
     # elif args.model == 'cau6':
     #     model = tempMP6cau(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
     #     num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True)
