@@ -19,7 +19,7 @@ python PSM_w_time_new2.py ../data THA_topic check_topic_causal_data_w14h14_from2
 python PSM_w_time_new2.py ../data THA_topic check_topic_causal_data_w14h14_from2013_minprob0.05 3,7,14 1 0
 
 
-python PSM_w_time.py ../data THA_2012_50_topic raw_topic_causal_data_w14h14_from2013_minprob0.1_ngram-1 3,7,14 1 0
+python PSM_w_time.py ../data THA_2012_50_topic raw_topic_causal_data_w14h14_from2013_minprob0.1_ngram-1 3 1 0
 
 for each event find causes
 '''
@@ -34,7 +34,7 @@ try:
     out_path = sys.argv[1]
     dataset_name = sys.argv[2] # THA_topic
     raw_data_name = sys.argv[3] 
-    pred_window = int(sys.argv[4])
+    pred_window = sys.argv[4]
     target_binary = int(sys.argv[5])
     check = int(sys.argv[6])
     # event_code = int(sys.argv[4])
