@@ -18,6 +18,9 @@ python build_causal_raw_data_w_time2.py /home/sdeng/data/icews/detailed_event_js
 python build_causal_raw_data_w_time2.py /home/sdeng/data/icews/detailed_event_json/IND_2010_w21h14_city.json ../data 14 14 IND_50 /home/sdeng/data/icews/corpus/ngrams/IND_1gram_tfidf.txt 25000 2012 0.2
 
 python build_causal_raw_data.py /home/sdeng/data/icews/detailed_event_json/THA_2010_w21h14_city.json ../data 14 14 THA_2012_50 /home/sdeng/data/icews/corpus/ngrams/THA_from2012_1gram_tfidf.txt -1 2013 0.1 THA_2012_50
+python build_causal_raw_data.py /home/sdeng/data/icews/detailed_event_json/EGY_2010_w21h14_city.json ../data 14 14 EGY_2012_60 /home/sdeng/data/icews/corpus/ngrams/EGY_from2012_1gram_tfidf.txt -1 2013 0.1 EGY_2012_60
+python build_causal_raw_data.py /home/sdeng/data/icews/detailed_event_json/AFG_2010_w21h14_city.json ../data 14 14 AFG_2012_60 /home/sdeng/data/icews/corpus/ngrams/AFG_from2012_1gram_tfidf.txt -1 2013 0.1 AFG_2012_60
+python build_causal_raw_data.py /home/sdeng/data/icews/detailed_event_json/RUS_2010_w21h14_city.json ../data 14 14 RUS_2012_60 /home/sdeng/data/icews/corpus/ngrams/RUS_from2012_1gram_tfidf.txt -1 2013 0.15 RUS_2012_60
 
 '''
 try:

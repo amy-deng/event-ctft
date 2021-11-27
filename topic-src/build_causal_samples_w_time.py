@@ -14,6 +14,8 @@ from sklearn.feature_extraction.text import CountVectorizer,TfidfVectorizer
 python build_causal_samples_w_time_new.py ../data THA_topic check_topic_causal_data_w7h7
 python build_causal_samples_w_time_new2.py ../data THA_topic check_topic_causal_data_w14h14_from2013_minprob0.05 '' '' 0
 
+python build_causal_samples_w_time.py ../data THA_2012_50_topic raw_topic_causal_data_w14h14_from2013_minprob0.1 '' '' 0
+
 '''
 try:
     out_path = sys.argv[1]
@@ -26,9 +28,11 @@ except:
     print("usage: <out_path> <dataset `THA_topic`> <raw_data_name `raw_w10h7`> <start_date> <end_date> <no_check check 1/0>")
     exit()
 
-
+num_topics = int(dataset.split('_')[2])
+print('# topics =',num_topics)
 save_path = '{}/{}/{}'.format(out_path,dataset,raw_data_name)
 os.makedirs(save_path, exist_ok=True)
+
 
 
 with open('{}/{}/{}.pkl'.format(out_path,dataset,raw_data_name),'rb') as f:
@@ -82,7 +86,7 @@ samples_by_time = {}
 
 # save samples for each time intervals
 
-for topic_id in range(50):
+for topic_id in range(num_topics):
     treatment_assign_by_topic = []
     covariate_by_topic = []
     outcome_by_topic = []
@@ -116,7 +120,7 @@ for topic_id in range(50):
                         pass
         print(end, len(treatment_assign_by_topic),'treatment_assign_by_topic')
         if check == 0: 
-            out_path = "{}/nocheck2_topic_{}_{}.pkl".format(save_path,topic_id,end)
+            out_path = "{}/nocheck_topic_{}_{}.pkl".format(save_path,topic_id,end)
         else:
-            out_path = "{}/check2_topic_{}_{}.pkl".format(save_path,topic_id,end)
+            out_path = "{}/check_topic_{}_{}.pkl".format(save_path,topic_id,end)
         save_samples(treatment_assign_by_topic,outcome_by_topic,covariate_by_topic,out_path)
