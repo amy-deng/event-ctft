@@ -18,6 +18,9 @@ import scipy
 python PSM_w_time_new2.py ../data THA_topic check_topic_causal_data_w14h14_from2013_minprob0.05 14 1 0
 python PSM_w_time_new2.py ../data THA_topic check_topic_causal_data_w14h14_from2013_minprob0.05 3,7,14 1 0
 
+
+python PSM_w_time.py ../data THA_2012_50_topic raw_topic_causal_data_w14h14_from2013_minprob0.1_ngram-1 3,7,14 1 0
+
 for each event find causes
 '''
 # out_path='../data'
@@ -92,9 +95,9 @@ BATCH_SIZE = 64
 
 
 if check == 1:
-    file_list = glob.glob('{}/{}/{}/check2_topic*.pkl'.format(out_path, dataset_name, raw_data_name))
+    file_list = glob.glob('{}/{}/{}/check_topic*.pkl'.format(out_path, dataset_name, raw_data_name))
 else:
-    file_list = glob.glob('{}/{}/{}/nocheck2_topic*.pkl'.format(out_path, dataset_name, raw_data_name))
+    file_list = glob.glob('{}/{}/{}/nocheck_topic*.pkl'.format(out_path, dataset_name, raw_data_name))
 
 file_list.sort()
 print('file_list',len(file_list))
@@ -117,7 +120,7 @@ for iii, file in enumerate(file_list):
     covariate = dataset['covariate']
     covariate = np.concatenate([v.toarray() for v in covariate],0) 
     print(covariate.shape,'covariate')
-    covariate = covariate[:,:5000]
+    covariate = covariate[:,:10000]
     print(covariate.shape,'covariate')
     
     # print("dataset['outcome']",dataset['outcome'].shape)
