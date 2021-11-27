@@ -15,9 +15,9 @@ python build_causal_raw_data_w_time2.py /home/sdeng/data/icews/detailed_event_js
 python build_causal_raw_data_w_time2.py /home/sdeng/data/icews/detailed_event_json/EGY_2010_w21h14_city.json ../data 14 14 EGY_50 /home/sdeng/data/icews/corpus/ngrams/EGY_1gram_tfidf.txt 15000 2013 0.1
 python build_causal_raw_data_w_time2.py /home/sdeng/data/icews/detailed_event_json/RUS_2010_w21h14_city.json ../data 14 14 RUS_50 /home/sdeng/data/icews/corpus/ngrams/RUS_1gram_tfidf.txt 5000 2013 0.1
 python build_causal_raw_data_w_time2.py /home/sdeng/data/icews/detailed_event_json/AFG_2010_w21h14_city.json ../data 14 14 AFG_50 /home/sdeng/data/icews/corpus/ngrams/AFG_1gram_tfidf.txt 25000 2013 0.1
-
 python build_causal_raw_data_w_time2.py /home/sdeng/data/icews/detailed_event_json/IND_2010_w21h14_city.json ../data 14 14 IND_50 /home/sdeng/data/icews/corpus/ngrams/IND_1gram_tfidf.txt 25000 2012 0.2
 
+python build_causal_raw_data_w_time2.py /home/sdeng/data/icews/detailed_event_json/THA_2010_w21h14_city.json ../data 14 14 THA_2012_50 /home/sdeng/data/icews/corpus/ngrams/THA_from2012_1gram_tfidf.txt -1 2013 0.1 THA_2012_50
 
 '''
 try:
@@ -30,17 +30,18 @@ try:
     top_k_ngram = int(sys.argv[7])
     start_year = sys.argv[8]
     min_prob = float(sys.argv[9])
+    dataset = sys.argv[10]
 except:
-    print("usage: <event_path> <out_path> <window <=13 > <horizon <=7 > <lda_name `THA_50`> <ngram_path> <top_k_ngram `15000`> <start_year> <min_prob>")
+    print("usage: <event_path> <out_path> <window <=13 > <horizon <=7 > <lda_name `THA_50`> <ngram_path> <top_k_ngram `15000`> <start_year> <min_prob> <dataset>")
     exit()
 
 country = event_path.split('/')[-1][:3]
-dataset = country + '_topic'
+dataset = dataset + '_topic'
 dataset_path = "{}/{}".format(out_path,dataset)
 os.makedirs(dataset_path, exist_ok=True)
 print('dataset_path',dataset_path)
 
-out_file = "check_topic_causal_data_w{}h{}_from{}_minprob{}_ngram{}.pkl".format(window,horizon,start_year,min_prob,top_k_ngram)
+out_file = "raw_topic_causal_data_w{}h{}_from{}_minprob{}_ngram{}.pkl".format(window,horizon,start_year,min_prob,top_k_ngram)
 print('out_file',out_file)
 
 df = pd.read_json(event_path,lines=True)
@@ -49,14 +50,16 @@ df = df.loc[df['date'] >= str(start_year)+'-01-01']
 print('# of event (sample) recored after {}-01-01'.format(start_year),len(df))
 
 news_df = pd.read_json('/home/sdeng/data/icews/news.1991.201703.country/icews_news_{}.json'.format(country), lines=True)
-
-loaded_dict = corpora.Dictionary.load('/home/sdeng/data/icews/topic_models/{}.dict'.format(country))
+dict_name = '_'.join(lda_name.split('_')[:2])
+loaded_dict = corpora.Dictionary.load('/home/sdeng/data/icews/topic_models/{}.dict'.format(dict_name))
 loaded_lda =  models.LdaModel.load('/home/sdeng/data/icews/topic_models/{}.lda'.format(lda_name))
-print('topic model and dictionary loaded')
+num_topics = int(lda_name.split('_')[-1])
+print('topic model and dictionary loaded', num_topics,'topics')
 
 with open(ngram_path,'r') as f:
     ngram = f.read().splitlines()
-ngram = ngram[:top_k_ngram]
+if top_k_ngram > 0:
+    ngram = ngram[:top_k_ngram]
 print('ngram loaded',len(ngram))
 
 c_vec = CountVectorizer(ngram_range=(1, 1),stop_words='english',vocabulary=ngram,binary=False)
@@ -92,7 +95,7 @@ for i,row in df.iterrows():
     corpus_bow = [loaded_dict.doc2bow(text) for text in processed_tokens]
     r =  loaded_lda.get_document_topics(corpus_bow,per_word_topics=False,minimum_probability=min_prob)
     topic_ids = []
-    topic_vec = np.zeros(50)
+    topic_vec = np.zeros(num_topics)
     for j in range(len(r)):
         topic_id = [a_tuple[0] for a_tuple in r[j]]
         topic_ids += topic_id
@@ -135,7 +138,7 @@ for i,row in df.iterrows():
     corpus_bow = [loaded_dict.doc2bow(text) for text in processed_tokens]
     r =  loaded_lda.get_document_topics(corpus_bow,per_word_topics=False,minimum_probability=min_prob)
     topic_ids = []
-    topic_vec = np.zeros(50)
+    topic_vec = np.zeros(num_topics)
     for j in range(len(r)):
         topic_id = [a_tuple[0] for a_tuple in r[j]]
         topic_ids += topic_id
