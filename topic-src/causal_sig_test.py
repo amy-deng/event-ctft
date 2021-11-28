@@ -16,6 +16,9 @@ python causal_sig_test_new.py ../data EGY_topic check_topic_causal_data_w14h14_f
 python causal_sig_test_new.py ../data AFG_topic check_topic_causal_data_w14h14_from2013_minprob0.05 effect_dict_pw3714_biy1_nocheck 0.05
 python causal_sig_test_new.py ../data RUS_topic check_topic_causal_data_w14h14_from2013_minprob0.1 effect_dict_pw3714_biy1_nocheck 0.05
 
+
+python causal_sig_test.py ../data RUS_topic raw_topic_causal_data_w14h14_from2013_minprob0.15_ngram-1 effect_dict_pw3714_biy1_nocheck 0.05 60
+
 for each event find causes
 '''
 try:
@@ -24,8 +27,9 @@ try:
     raw_data_name = sys.argv[3] 
     effect_dict_name = sys.argv[4] 
     sig_level = float(sys.argv[5])
+    num_topics = int(sys.argv[6])
 except:
-    print("usage: <out_path> <dataset_name `THA_topic`> <raw_data_name `check_topic_causal_data_w7h7`> <effect_dict_name> <sig_level 0.05 0.01>")
+    print("usage: <out_path> <dataset_name `THA_topic`> <raw_data_name `check_topic_causal_data_w7h7`> <effect_dict_name> <sig_level 0.05 0.01> <num_topics>")
     exit()
 
 file_path = "{}/{}/{}/causal_effect/{}.pkl".format(out_path,dataset_name,raw_data_name,effect_dict_name)
@@ -66,7 +70,7 @@ for end_date in splitted_date_lists:
     res3 = []
     res7 = []
     res14 = []
-    for topic in range(50):
+    for topic in range(num_topics):
         key = (topic,end_date)
         if key not in effect_dict:
             print('key',key)

@@ -20,6 +20,9 @@ python PSM_w_time_new2.py ../data THA_topic check_topic_causal_data_w14h14_from2
 
 
 python PSM_w_time.py ../data THA_2012_50_topic raw_topic_causal_data_w14h14_from2013_minprob0.1_ngram-1 3 1 0
+python PSM_w_time.py ../data AFG_2012_60_topic raw_topic_causal_data_w14h14_from2013_minprob0.1_ngram-1 3 1 0
+python PSM_w_time.py ../data RUS_2012_60_topic raw_topic_causal_data_w14h14_from2013_minprob0.15_ngram-1 3 1 0
+python PSM_w_time.py ../data EGY_2012_60_topic raw_topic_causal_data_w14h14_from2013_minprob0.1_ngram-1 3 1 0
 
 for each event find causes
 '''

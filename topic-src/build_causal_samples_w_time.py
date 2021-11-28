@@ -15,6 +15,9 @@ python build_causal_samples_w_time_new.py ../data THA_topic check_topic_causal_d
 python build_causal_samples_w_time_new2.py ../data THA_topic check_topic_causal_data_w14h14_from2013_minprob0.05 '' '' 0
 
 python build_causal_samples_w_time.py ../data THA_2012_50_topic raw_topic_causal_data_w14h14_from2013_minprob0.1_ngram-1 '' '' 0
+python build_causal_samples_w_time.py ../data AFG_2012_60_topic raw_topic_causal_data_w14h14_from2013_minprob0.1_ngram-1 '' '' 0
+python build_causal_samples_w_time.py ../data RUS_2012_60_topic raw_topic_causal_data_w14h14_from2013_minprob0.15_ngram-1 '' '' 0
+python build_causal_samples_w_time.py ../data EGY_2012_60_topic raw_topic_causal_data_w14h14_from2013_minprob0.1_ngram-1 '' '' 0
 
 '''
 try:
