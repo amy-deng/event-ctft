@@ -1319,7 +1319,7 @@ class Temp2(nn.Module):
         word_emb = self.adapt_ws(word_emb)
         bg.nodes['word'].data['h0'] = word_emb
         topic_ids = bg.nodes['topic'].data['id'].long()
-        # print(bg.nodes['topic'].data['effect'].to_dense().shape,'======')
+        print(bg.nodes['topic'].data['effect'].to_dense().shape,'======','topic_ids',topic_ids.shape)
         bg.nodes['topic'].data['h0'] = topic_emb
         bg.nodes['doc'].data['h0'] = doc_emb 
         # word and topic take info from last time step
@@ -1364,9 +1364,9 @@ class Temp2(nn.Module):
             
             causal_w = self.cau_weight[curr_time][topic_ids]
             effect = sub_bg.nodes['topic'].data['effect'].to_dense()
-            # print('causal_w',causal_w.shape,self.cau_weight.shape,topic_ids.shape,'topic_ids')
+            print('causal_w',causal_w.shape,'cau_weight',self.cau_weight.shape,'topic_ids',topic_ids.shape)
             effect = (effect >0)*1. + (effect < 0)*(-1.)
-            # print('effect',effect.shape)
+            print('effect',effect.shape)
             t = (effect * causal_w) @ self.cau_embeds 
 
             sub_bg.nodes['topic'].data['h0'] += t
