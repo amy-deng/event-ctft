@@ -1333,8 +1333,8 @@ class Temp2(nn.Module):
         
         bg.nodes['doc'].data['ht'] = bg.nodes['doc'].data['h0']
 
-        # tt_edges_idx = list(range(len(bg.edges(etype='tt'))))
-        tt_edges_idx = [True for i in range(len(bg.edges(etype='tt')))]
+        tt_edges_idx = list(range(len(bg.edges(etype='tt'))))
+        # tt_edges_idx = [True for i in range(len(bg.edges(etype='tt')))]
         for curr_time in range(self.seq_len):
             # print('curr_time',curr_time)
             # time1 = time.time()
@@ -1370,10 +1370,9 @@ class Temp2(nn.Module):
             effect = (effect >0)*1. + (effect < 0)*(-1.)
             causal_w = self.cau_weight[curr_time][topic_ids]
             # effect = sub_bg.nodes['topic'].data['effect'].to_dense()
-            print('causal_w',causal_w.shape,'cau_weight',self.cau_weight.shape,'topic_ids',topic_ids.shape)
-            
+            # print('causal_w',causal_w.shape,'cau_weight',self.cau_weight.shape,'topic_ids',topic_ids.shape)
             t = (effect * causal_w) @ self.cau_embeds 
-            print('t',t.shape)
+            # print('t',t.shape)
 
             sub_bg.nodes['topic'].data['h0'] += t
             for i in range(self.n_layers):
