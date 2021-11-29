@@ -15,6 +15,10 @@ python get_causal_effect_dict.py AFG_topic/check_topic_causal_data_w14h14_from20
 python get_causal_effect_dict.py RUS_topic/check_topic_causal_data_w14h14_from2013_minprob0.1/causal_effect/effect_dict_pw3714_biy1_nocheck_0.05_3.csv RUS_topic/check_topic_causal_data_w14h14_from2013_minprob0.1/causal_effect/effect_dict_pw3714_biy1_nocheck_0.05_7.csv RUS_topic/check_topic_causal_data_w14h14_from2013_minprob0.1/causal_effect/effect_dict_pw3714_biy1_nocheck_0.05_14.csv RUS_w7h7_minday10_mindf0.01 0.05
 python get_causal_effect_dict.py RUS_topic/check_topic_causal_data_w14h14_from2013_minprob0.1/causal_effect/effect_dict_pw3714_biy1_nocheck_0.1_3.csv RUS_topic/check_topic_causal_data_w14h14_from2013_minprob0.1/causal_effect/effect_dict_pw3714_biy1_nocheck_0.1_7.csv RUS_topic/check_topic_causal_data_w14h14_from2013_minprob0.1/causal_effect/effect_dict_pw3714_biy1_nocheck_0.1_14.csv RUS_w7h7_minday10_mindf0.01 0.1
 
+
+
+python get_causal_effect_dict.py RUS_2012_60_topic/raw_topic_causal_data_w14h14_from2013_minprob0.15_ngram-1/causal_effect/effect_dict_pw3714_biy1_nocheck_0.05_3.csv RUS_2012_60_topic/raw_topic_causal_data_w14h14_from2013_minprob0.15_ngram-1/causal_effect/effect_dict_pw3714_biy1_nocheck_0.05_7.csv RUS_2012_60_topic/raw_topic_causal_data_w14h14_from2013_minprob0.15_ngram-1/causal_effect/effect_dict_pw3714_biy1_nocheck_0.05_14.csv RUS_w7h7_mind3n10df0.01 0.05
+
 """
 try:
     effect3 = sys.argv[1]
@@ -22,8 +26,9 @@ try:
     effect14 = sys.argv[3]
     outpath = sys.argv[4]
     note = sys.argv[5]
+    num_topics = int(sys.argv[6])
 except:
-    print('Usage: effect3, effect7, effect14 path (../data/+...) outpath, note ')
+    print('Usage: effect3, effect7, effect14 path (../data/+...) outpath, note, num_topics ')
     exit()
 
 # THA_topic/check_topic_causal_data_w14h14_from2013_minprob0.05/causal_effect/effect_dict_pw3714_biy1_nocheck_0.05_3.csv
@@ -45,7 +50,7 @@ causal_time_dict_3day = {}
 for end_date in splitted_date_lists:
         tmp = causal_df.loc[causal_df['end-date']==end_date]
         causal_topic_effect = tmp[['topic-id','effect']].values
-        effect_all_topic = np.zeros(50)#[0. for i in range(50)]
+        effect_all_topic = np.zeros(num_topics)#[0. for i in range(50)]
         for topic_id, eff in causal_topic_effect:
             effect_all_topic[int(topic_id)] = round(eff,5)
         causal_time_dict_3day[end_date] = effect_all_topic
@@ -57,7 +62,7 @@ causal_time_dict_7day = {}
 for end_date in splitted_date_lists:
         tmp = causal_df.loc[causal_df['end-date']==end_date]
         causal_topic_effect = tmp[['topic-id','effect']].values
-        effect_all_topic = np.zeros(50)#[0. for i in range(50)]
+        effect_all_topic = np.zeros(num_topics)#[0. for i in range(50)]
         for topic_id, eff in causal_topic_effect:
             effect_all_topic[int(topic_id)] = round(eff,5)
         causal_time_dict_7day[end_date] = effect_all_topic
@@ -69,7 +74,7 @@ causal_time_dict_14day = {}
 for end_date in splitted_date_lists:
         tmp = causal_df.loc[causal_df['end-date']==end_date]
         causal_topic_effect = tmp[['topic-id','effect']].values
-        effect_all_topic = np.zeros(50)#[0. for i in range(50)]
+        effect_all_topic = np.zeros(num_topics)#[0. for i in range(50)]
         for topic_id, eff in causal_topic_effect:
             effect_all_topic[int(topic_id)] = round(eff,5)
         causal_time_dict_14day[end_date] = effect_all_topic
