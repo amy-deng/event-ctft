@@ -1333,7 +1333,8 @@ class Temp2(nn.Module):
         
         bg.nodes['doc'].data['ht'] = bg.nodes['doc'].data['h0']
 
-        tt_edges_idx = list(range(len(bg.edges(etype='tt'))))
+        # tt_edges_idx = list(range(len(bg.edges(etype='tt'))))
+        tt_edges_idx = [True for i in range(len(bg.edges(etype='tt')))]
         for curr_time in range(self.seq_len):
             # print('curr_time',curr_time)
             # time1 = time.time()
