@@ -1318,11 +1318,11 @@ class Temp2(nn.Module):
         doc_emb = self.doc_gen_embeds.repeat(bg.number_of_nodes('doc'),1)
         word_emb = self.adapt_ws(word_emb)
         bg.nodes['word'].data['h0'] = word_emb
-        topic_ids = bg.nodes['topic'].data['id'].long()
-        effect = bg.nodes['topic'].data['effect'].to_dense()
-        effect = (effect >0)*1. + (effect < 0)*(-1.)
-        print('effect',effect.shape)
-        print(bg.nodes['topic'].data['effect'].to_dense().shape,'======','topic_ids',topic_ids.shape)
+        # topic_ids = bg.nodes['topic'].data['id'].long()
+        # effect = bg.nodes['topic'].data['effect'].to_dense()
+        # effect = (effect >0)*1. + (effect < 0)*(-1.)
+        # print('effect',effect.shape)
+        # print(bg.nodes['topic'].data['effect'].to_dense().shape,'======','topic_ids',topic_ids.shape)
         bg.nodes['topic'].data['h0'] = topic_emb
         bg.nodes['doc'].data['h0'] = doc_emb 
         # word and topic take info from last time step
@@ -1364,7 +1364,9 @@ class Temp2(nn.Module):
             # time3 = time.time()
             # print('get subgraph',time3-time2)
             # sub_bg.time_emb = time_emb
-            
+            topic_ids = sub_bg.nodes['topic'].data['id'].long()
+            effect = sub_bg.nodes['topic'].data['effect'].to_dense()
+            effect = (effect >0)*1. + (effect < 0)*(-1.)
             causal_w = self.cau_weight[curr_time][topic_ids]
             # effect = sub_bg.nodes['topic'].data['effect'].to_dense()
             print('causal_w',causal_w.shape,'cau_weight',self.cau_weight.shape,'topic_ids',topic_ids.shape)
