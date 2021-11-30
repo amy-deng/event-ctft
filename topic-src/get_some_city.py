@@ -100,3 +100,30 @@ def days_between(d1, d2):
 # df4=df.loc[(df['date']<'2016-01-01') & (df['date']>'2015-01-01')]
 
 # df1=df.loc[(df['date']<'2015-01-01') & (df['date']>'2014-01-01')]
+import pickle
+dataset = 'THA_w7h7_mind3n7df0.01'
+dataset = 'EGY_w7h7_mind3n7df0.01'
+dataset = 'AFG_w7h7_mind3n7df0.01'
+dataset = 'RUS_w7h7_mind3n10df0.01'
+d = []
+with open(dataset+'/dyn_tf_2014-2015_900.pkl','rb') as f:
+    d += pickle.load(f)
+
+with open(dataset+'/dyn_tf_2015-2016_900.pkl','rb') as f:
+    d += pickle.load(f)
+
+with open(dataset+'/dyn_tf_2016-2017_900.pkl','rb') as f:
+    d += pickle.load(f)
+
+
+l = []
+for g in d:
+    u = g.edges['ww'].data['time'].unique()
+    l.append(len(u))
+
+l = np.array(l)
+
+# THA 6.409209383145091
+# EGY 6.37345003646973
+# AFG 6.411987860394537
+# RUS 6.23073611708997

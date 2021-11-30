@@ -1423,3 +1423,175 @@ class Temp2(nn.Module):
 
  
 
+ 
+class Temp21(nn.Module):
+    def __init__(self, n_inp, n_hid, n_layers, n_heads, activation, device, seq_len, num_topic=50, vocab_size=15000, dropout=0.5, pool='max', use_norm = True):
+        super().__init__()
+        self.n_inp = n_inp
+        self.n_hid = n_hid
+        self.n_layers = n_layers
+        self.vocab_size = vocab_size
+        self.num_topic = num_topic
+        self.seq_len = seq_len
+        self.device = device
+        self.pool = pool
+        self.dropout = nn.Dropout(dropout)
+        self.word_embeds = None
+
+        # self.topic_gen_embeds = nn.Parameter(torch.Tensor(10, n_hid))
+        # self.topic_weights = nn.Parameter(torch.Tensor(num_topic, 10))
+        self.topic_embeds = nn.Parameter(torch.Tensor(num_topic, n_hid))
+        self.doc_gen_embeds = nn.Parameter(torch.Tensor(1, n_hid))
+        self.cau_embeds = nn.Parameter(torch.Tensor(3,n_hid))
+        # self.cau_time_weight = nn.Parameter(torch.Tensor(seq_len)) #TODO
+        self.cau_weight = nn.Parameter(torch.Tensor(seq_len,num_topic,3)) # TODO
+        # self.time_emb = RelTemporalEncoding(n_hid, seq_len)
+        if self.pool == 'attn':
+            self.attn_pool = GlobalAttentionPooling(n_hid, n_hid)
+        # self.rnn = nn.RNNCell(n_hid, n_hid)
+        # self.temp_skip = nn.ParameterDict({
+        #         'word': nn.Parameter(torch.ones(1)),
+        #         'topic': nn.Parameter(torch.ones(1)),
+        # })
+        self.rnns = nn.ModuleDict({
+            'word': nn.RNNCell(n_hid, n_hid),
+            'topic': nn.RNNCell(n_hid, n_hid)}
+        )
+        self.adapt_ws  = nn.Linear(n_inp,  n_hid)
+        etypes = ['wt','wd','td','tt','ww','tw','dt','dw']
+        ntypes = ['word','topic','doc']
+        self.gcs = nn.ModuleList()
+        for _ in range(n_layers):
+            self.gcs.append(SeqHGTLayer(n_hid, n_hid, ntypes, etypes, n_heads, use_norm = use_norm))
+        self.out_layer = nn.Sequential(
+                # nn.Linear(n_hid*3, n_hid),
+                # nn.BatchNorm1d(n_hid),
+                nn.Linear(n_hid*3, 1) 
+        )
+        self.threshold = 0.5
+        self.out_func = torch.sigmoid
+        self.criterion = F.binary_cross_entropy_with_logits #soft_cross_entropy
+        self.init_weights()
+
+    def init_weights(self):
+        for p in self.parameters():
+            if p.data.ndimension() >= 2:
+                nn.init.xavier_uniform_(p.data, gain=nn.init.calculate_gain('relu'))
+            else:
+                stdv = 1. / math.sqrt(p.size(0))
+                p.data.uniform_(-stdv, stdv)
+
+    def forward(self, g_list, y_data): 
+        # print(len(g_list),'g_list ')
+        bg = dgl.batch(g_list).to(self.device)  
+        # init_topic_emb = torch.mm(self.topic_weights,self.topic_gen_embeds)
+        word_emb = self.word_embeds[bg.nodes['word'].data['id'].long()].view(-1, self.word_embeds.shape[1])
+        topic_emb = self.topic_embeds[bg.nodes['topic'].data['id'].long()].view(-1, self.topic_embeds.shape[1])
+        doc_emb = self.doc_gen_embeds.repeat(bg.number_of_nodes('doc'),1)
+        word_emb = self.adapt_ws(word_emb)
+        bg.nodes['word'].data['h0'] = word_emb
+        # topic_ids = bg.nodes['topic'].data['id'].long()
+        # effect = bg.nodes['topic'].data['effect'].to_dense()
+        # effect = (effect >0)*1. + (effect < 0)*(-1.)
+        # print('effect',effect.shape)
+        # print(bg.nodes['topic'].data['effect'].to_dense().shape,'======','topic_ids',topic_ids.shape)
+        bg.nodes['topic'].data['h0'] = topic_emb
+        bg.nodes['doc'].data['h0'] = doc_emb 
+        # word and topic take info from last time step
+        out_key_dict = {'doc':'ht','topic':'ht-1','word':'ht-1'}
+     
+        for ntype in ['word','topic']: 
+            bg.nodes[ntype].data['ht-1'] = torch.zeros(bg.nodes[ntype].data['h0'].size()).to(self.device)
+        
+        bg.nodes['doc'].data['ht'] = bg.nodes['doc'].data['h0']
+
+        tt_edges_idx = list(range(len(bg.edges(etype='tt'))))
+        # tt_edges_idx = [True for i in range(len(bg.edges(etype='tt')))]
+        for curr_time in range(self.seq_len):
+            # print('curr_time',curr_time)
+            # time1 = time.time()
+            # time_emb = self.time_emb(torch.tensor(curr_time).to(self.device))
+            ww_edges_idx = (bg.edges['ww'].data['time']==curr_time).nonzero(as_tuple=False).view(-1).cpu().detach().tolist()
+            wt_edges_idx = (bg.edges['wt'].data['time']==curr_time).nonzero(as_tuple=False).view(-1).cpu().detach().tolist()
+            wd_edges_idx = (bg.edges['wd'].data['time']==curr_time).nonzero(as_tuple=False).view(-1).cpu().detach().tolist()
+            td_edges_idx = (bg.edges['td'].data['time']==curr_time).nonzero(as_tuple=False).view(-1).cpu().detach().tolist()
+            # time2 = time.time()
+            # print('find idx',time2-time1) 
+            if len(ww_edges_idx) <= 0:
+                continue
+            bg_cpu = bg.to('cpu')
+            sub_bg = dgl.edge_subgraph(bg_cpu, 
+                                        {('word', 'ww', 'word'): ww_edges_idx,
+                                        ('topic', 'tt', 'topic'): tt_edges_idx,
+                                        ('word', 'wt', 'topic'): wt_edges_idx,
+                                        ('topic', 'td', 'doc'): td_edges_idx,
+                                        ('word', 'wd', 'doc'):wd_edges_idx,
+                                        ('topic', 'tw', 'word'): wt_edges_idx,
+                                        ('doc', 'dt', 'topic'): td_edges_idx,
+                                        ('doc', 'dw', 'word'):wd_edges_idx
+                                        }, 
+                                        # preserve_nodes=True
+                                        )
+            sub_bg = sub_bg.to(self.device)
+            orig_node_ids = sub_bg.ndata[dgl.NID] # {'word':,'topic':,'doc':}
+            # time3 = time.time()
+            # print('get subgraph',time3-time2)
+            # sub_bg.time_emb = time_emb
+            topic_ids = sub_bg.nodes['topic'].data['id'].long()
+            effect = sub_bg.nodes['topic'].data['effect'].to_dense()
+            effect = (effect >0)*1. + (effect < 0)*(-1.)
+            causal_w = self.cau_weight[curr_time][topic_ids]
+            # effect = sub_bg.nodes['topic'].data['effect'].to_dense()
+            # print('causal_w',causal_w.shape,'cau_weight',self.cau_weight.shape,'topic_ids',topic_ids.shape)
+            t = (effect @ causal_w) @ self.cau_embeds 
+            # print('t',t.shape)
+
+            sub_bg.nodes['topic'].data['h0'] += t
+            for i in range(self.n_layers):
+                if i == 0:
+                    self.gcs[i](sub_bg, 'h0', 'ht')
+                else:
+                    self.gcs[i](sub_bg, 'ht', 'ht')
+            # time4 = time.time()
+            # print('graph conv info',time4-time3)
+            for ntype in ['word','topic']:
+                # sub_bg.nodes[ntype].data['ht-1'] = self.rnn(sub_bg.nodes[ntype].data['ht'], sub_bg.nodes[ntype].data['ht-1'])
+                sub_bg.nodes[ntype].data['ht-1'] = self.rnns[ntype](sub_bg.nodes[ntype].data['ht'],sub_bg.nodes[ntype].data['ht-1'])
+                # alpha = torch.sigmoid(self.temp_skip[ntype])
+                # sub_bg.nodes[ntype].data['ht-1'] = alpha * sub_bg.nodes[ntype].data['ht'] + (1-alpha) * sub_bg.nodes[ntype].data['ht-1']
+            # time5 = time.time()
+            # print('temporal info',time5-time4)
+            # update h to bg
+            for ntype in out_key_dict:
+                key = out_key_dict[ntype]
+                bg.nodes[ntype].data[key][orig_node_ids[ntype].long()] = sub_bg.nodes[ntype].data[key]
+            # time6 = time.time()
+            # print('copy back to bg',time6-time5)
+
+        if self.pool == 'max':
+            global_info = []
+            for ntype in out_key_dict:
+                key = out_key_dict[ntype]
+                global_info.append( dgl.max_nodes(bg, feat=key,ntype=ntype))
+            global_info = torch.cat(global_info,-1)
+        elif self.pool == 'mean':
+            global_info = []
+            for ntype in out_key_dict:
+                key = out_key_dict[ntype]
+                global_info.append( dgl.mean_nodes(bg, feat=key,ntype=ntype))
+            global_info = torch.cat(global_info,-1)
+        elif self.pool == 'attn':
+            attn_pool_out = self.attn_pool(bg, out_key_dict)
+            global_info = []
+            for ntype in attn_pool_out.keys():
+                global_info.append(attn_pool_out[ntype])
+            global_info = torch.cat(global_info,dim=-1)
+
+        # print(global_info.shape,'global_info')
+        y_pred = self.out_layer(global_info)
+        # print(y_pred.shape,'y_pred',y_pred,y_data.shape,'y_data')
+        loss = self.criterion(y_pred.view(-1), y_data)
+        y_pred = torch.sigmoid(y_pred)
+        return loss, y_pred
+
+ 
