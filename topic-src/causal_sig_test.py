@@ -17,9 +17,10 @@ python causal_sig_test_new.py ../data AFG_topic check_topic_causal_data_w14h14_f
 python causal_sig_test_new.py ../data RUS_topic check_topic_causal_data_w14h14_from2013_minprob0.1 effect_dict_pw3714_biy1_nocheck 0.05
 
 
-python causal_sig_test.py ../data RUS_2012_60_topic raw_topic_causal_data_w14h14_from2013_minprob0.15_ngram-1 effect_dict_pw3714_biy1_nocheck 0.1 60
-python causal_sig_test.py ../data AFG_2012_60_topic raw_topic_causal_data_w14h14_from2013_minprob0.1_ngram-1 effect_dict_pw3714_biy1_nocheck 0.1 60
-python causal_sig_test.py ../data THA_2012_50_topic raw_topic_causal_data_w14h14_from2013_minprob0.1_ngram-1 effect_dict_pw3714_biy1_nocheck 0.1 50
+python causal_sig_test.py ../data RUS_2012_60_topic raw_topic_causal_data_w14h14_from2013_minprob0.15_ngram-1 effect_dict_pw3714_biy1_nocheck 0.001 60
+python causal_sig_test.py ../data AFG_2012_60_topic raw_topic_causal_data_w14h14_from2013_minprob0.1_ngram-1 effect_dict_pw3714_biy1_nocheck 0.001 60
+python causal_sig_test.py ../data THA_2012_50_topic raw_topic_causal_data_w14h14_from2013_minprob0.1_ngram-1 effect_dict_pw3714_biy1_nocheck 0.001 50
+python causal_sig_test.py ../data EGY_2012_60_topic raw_topic_causal_data_w14h14_from2013_minprob0.1_ngram-1 effect_dict_pw3714_biy1_nocheck 0.001 60
 
 for each event find causes
 '''

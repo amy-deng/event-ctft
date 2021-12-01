@@ -1437,7 +1437,6 @@ class Temp21(nn.Module):
         self.pool = pool
         self.dropout = nn.Dropout(dropout)
         self.word_embeds = None
-
         # self.topic_gen_embeds = nn.Parameter(torch.Tensor(10, n_hid))
         # self.topic_weights = nn.Parameter(torch.Tensor(num_topic, 10))
         self.topic_embeds = nn.Parameter(torch.Tensor(num_topic, n_hid))
@@ -1446,17 +1445,18 @@ class Temp21(nn.Module):
         # self.cau_time_weight = nn.Parameter(torch.Tensor(seq_len)) #TODO
         self.cau_weight = nn.Parameter(torch.Tensor(seq_len,num_topic,3)) # TODO
         # self.time_emb = RelTemporalEncoding(n_hid, seq_len)
+        self.cau_linear = nn.Linear(n_hid,n_hid)
         if self.pool == 'attn':
             self.attn_pool = GlobalAttentionPooling(n_hid, n_hid)
         # self.rnn = nn.RNNCell(n_hid, n_hid)
-        # self.temp_skip = nn.ParameterDict({
-        #         'word': nn.Parameter(torch.ones(1)),
-        #         'topic': nn.Parameter(torch.ones(1)),
-        # })
-        self.rnns = nn.ModuleDict({
-            'word': nn.RNNCell(n_hid, n_hid),
-            'topic': nn.RNNCell(n_hid, n_hid)}
-        )
+        self.temp_skip = nn.ParameterDict({
+                'word': nn.Parameter(torch.ones(1)),
+                'topic': nn.Parameter(torch.ones(1)),
+        })
+        # self.rnns = nn.ModuleDict({
+        #     'word': nn.RNNCell(n_hid, n_hid),
+        #     'topic': nn.RNNCell(n_hid, n_hid)}
+        # )
         self.adapt_ws  = nn.Linear(n_inp,  n_hid)
         etypes = ['wt','wd','td','tt','ww','tw','dt','dw']
         ntypes = ['word','topic','doc']
@@ -1546,7 +1546,7 @@ class Temp21(nn.Module):
             t = (effect * causal_w) @ self.cau_embeds 
             # print('t',t.shape)
 
-            sub_bg.nodes['topic'].data['h0'] += t
+            sub_bg.nodes['topic'].data['h0'] += self.cau_linear(t)
             for i in range(self.n_layers):
                 if i == 0:
                     self.gcs[i](sub_bg, 'h0', 'ht')
@@ -1556,9 +1556,9 @@ class Temp21(nn.Module):
             # print('graph conv info',time4-time3)
             for ntype in ['word','topic']:
                 # sub_bg.nodes[ntype].data['ht-1'] = self.rnn(sub_bg.nodes[ntype].data['ht'], sub_bg.nodes[ntype].data['ht-1'])
-                sub_bg.nodes[ntype].data['ht-1'] = self.rnns[ntype](sub_bg.nodes[ntype].data['ht'],sub_bg.nodes[ntype].data['ht-1'])
-                # alpha = torch.sigmoid(self.temp_skip[ntype])
-                # sub_bg.nodes[ntype].data['ht-1'] = alpha * sub_bg.nodes[ntype].data['ht'] + (1-alpha) * sub_bg.nodes[ntype].data['ht-1']
+                # sub_bg.nodes[ntype].data['ht-1'] = self.rnns[ntype](sub_bg.nodes[ntype].data['ht'],sub_bg.nodes[ntype].data['ht-1'])
+                alpha = torch.sigmoid(self.temp_skip[ntype])
+                sub_bg.nodes[ntype].data['ht-1'] = alpha * sub_bg.nodes[ntype].data['ht'] + (1-alpha) * sub_bg.nodes[ntype].data['ht-1']
             # time5 = time.time()
             # print('temporal info',time5-time4)
             # update h to bg
