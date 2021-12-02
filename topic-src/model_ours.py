@@ -1549,9 +1549,10 @@ class Temp2(nn.Module):
         y_pred = torch.sigmoid(y_pred)
         return loss, y_pred
 
- 
 
 # compare with Temp2 add a linear layer of the weighted causal embedding
+# worse than Temp2
+# 12/1 [-1,0,1] to original effect
 class Temp21(nn.Module):
     def __init__(self, n_inp, n_hid, n_layers, n_heads, activation, device, seq_len, num_topic=50, vocab_size=15000, dropout=0.5, pool='max', use_norm = True):
         super().__init__()
@@ -1573,7 +1574,7 @@ class Temp21(nn.Module):
         # self.cau_time_weight = nn.Parameter(torch.Tensor(seq_len)) #TODO
         self.cau_weight = nn.Parameter(torch.Tensor(seq_len,num_topic,3)) # TODO
         # self.time_emb = RelTemporalEncoding(n_hid, seq_len)
-        self.cau_linear = nn.Linear(n_hid,n_hid)
+        # self.cau_linear = nn.Linear(n_hid,n_hid)
         if self.pool == 'attn':
             self.attn_pool = GlobalAttentionPooling(n_hid, n_hid)
         # self.rnn = nn.RNNCell(n_hid, n_hid)
@@ -1667,14 +1668,14 @@ class Temp21(nn.Module):
             # sub_bg.time_emb = time_emb
             topic_ids = sub_bg.nodes['topic'].data['id'].long()
             effect = sub_bg.nodes['topic'].data['effect'].to_dense()
-            effect = (effect >0)*1. + (effect < 0)*(-1.)
+            # effect = (effect >0)*1. + (effect < 0)*(-1.) # directly use the weights
             causal_w = self.cau_weight[curr_time][topic_ids]
             # effect = sub_bg.nodes['topic'].data['effect'].to_dense()
             # print('causal_w',causal_w.shape,'cau_weight',self.cau_weight.shape,'topic_ids',topic_ids.shape)
             t = (effect * causal_w) @ self.cau_embeds 
             # print('t',t.shape)
 
-            sub_bg.nodes['topic'].data['h0'] += self.cau_linear(t)
+            sub_bg.nodes['topic'].data['h0'] += t
             for i in range(self.n_layers):
                 if i == 0:
                     self.gcs[i](sub_bg, 'h0', 'ht')
