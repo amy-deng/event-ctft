@@ -1667,12 +1667,12 @@ class Temp21(nn.Module):
             # print('get subgraph',time3-time2)
             # sub_bg.time_emb = time_emb
             topic_ids = sub_bg.nodes['topic'].data['id'].long()
-            effect = sub_bg.nodes['topic'].data['effect'].to_dense().double()
+            effect = sub_bg.nodes['topic'].data['effect'].to_dense()
             # effect = (effect >0)*1. + (effect < 0)*(-1.) # directly use the weights
             causal_w = self.cau_weight[curr_time][topic_ids]
             # effect = sub_bg.nodes['topic'].data['effect'].to_dense()
             # print('causal_w',causal_w.shape,'cau_weight',self.cau_weight.shape,'topic_ids',topic_ids.shape)
-            t = (effect * causal_w) @ self.cau_embeds 
+            t = (effect.double() * causal_w) @ self.cau_embeds 
             # print('t',t.shape)
 
             sub_bg.nodes['topic'].data['h0'] += t
