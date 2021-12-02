@@ -1672,6 +1672,7 @@ class Temp21(nn.Module):
             causal_w = self.cau_weight[curr_time][topic_ids]
             # effect = sub_bg.nodes['topic'].data['effect'].to_dense()
             # print('causal_w',causal_w.shape,'cau_weight',self.cau_weight.shape,'topic_ids',topic_ids.shape)
+            print(causal_w.type(),effect.type(),self.cau_embeds.type())
             t = (effect.double() * causal_w) @ self.cau_embeds 
             # print('t',t.shape)
 
