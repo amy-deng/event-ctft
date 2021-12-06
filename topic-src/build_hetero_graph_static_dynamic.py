@@ -15,9 +15,6 @@ from scipy.spatial.distance import cdist
 import dgl
 from dgl.data.utils import save_graphs,load_graphs
 from numpy import linalg
-
-#### build datasets
-### testing
  
 '''
 python build_hetero_graph_static_dynamic.py /home/sdeng/data/icews/detailed_event_json/THA_2010_w21h14_city.json ../data THA_2012_50 /home/sdeng/data/icews/corpus/ngrams/THA_from2012_1gram_tfidf.txt -1 7 7 7 3 2017 2017 1000 

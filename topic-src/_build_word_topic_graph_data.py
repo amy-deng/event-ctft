@@ -15,8 +15,7 @@ from scipy.spatial.distance import cdist
 import dgl
 from dgl.data.utils import save_graphs,load_graphs
 
-#### build datasets
-### testing
+ 
  
 '''
 python build_word_topic_graph_data.py /home/sdeng/data/icews/detailed_event_json/THA_2010_w21h7_city.json ../data THA_50 /home/sdeng/data/icews/corpus/ngrams/THA_1gram_tfidf.txt 15000 7 7 3 ../data/THA_topic/check_topic_causal_data_w7h7/causal_effect/effect_dict_pw7_biy1_0.05.csv

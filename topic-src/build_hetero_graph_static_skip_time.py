@@ -21,6 +21,7 @@ from numpy import linalg
  
 '''
 only tried on IND
+skip timestamps
 python build_hetero_graph_static3.py /home/sdeng/data/icews/detailed_event_json/THA_2010_w21h7_city.json ../data THA_50 /home/sdeng/data/icews/corpus/ngrams/THA_1gram_tfidf.txt 15000 7 7 6 2014 2015
 '''
 try:
