@@ -611,12 +611,20 @@ class SeqHGTLayerFlex(nn.Module):
         return {'t': h.view(-1, self.out_dim)}
         # return {'t': F.relu(h.view(-1, self.out_dim))}
 
-    def forward(self, G, inp_key, out_key):
+    def forward(self, G, inp_key, out_key, etypes=None,ntypes=None):
         # node_dict, edge_dict = G.node_dict, G.edge_dict
         edge_dict = []
-        for srctype, etype, dsttype in G.canonical_etypes:
-            # if etype == 'ww':
-            #     continue
+        # print(G.canonical_etypes,'====')
+        # print(G.ntypes,'====G.ntypes=====')
+        if etypes is not None:
+            canonical_etypes = [v for v in G.canonical_etypes if v[1] in etypes]
+        else:
+            canonical_etypes = G.canonical_etypes
+        if ntypes is not None:
+            ntypes = [v for v in G.ntypes if v in ntypes]
+        else:
+            ntypes = G.ntypes
+        for srctype, etype, dsttype in canonical_etypes:
             edge_dict.append(etype)
             # print(srctype, etype, dsttype)
             k_linear = self.k_linears[srctype]
@@ -652,7 +660,7 @@ class SeqHGTLayerFlex(nn.Module):
         # G.multi_update_all({etype : (self.message_func, self.reduce_func) \
         #                     for etype in edge_dict}, cross_reducer = 'mean')
 
-        for ntype in G.ntypes:
+        for ntype in ntypes:
             # alpha = torch.sigmoid(self.skip[ntype])
             # trans_out = self.a_linears[ntype](G.nodes[ntype].data.pop('t') + G.time_emb) # TODO h? or ht
             # trans_out = trans_out * alpha + G.nodes[ntype].data[inp_key] * (1-alpha)
@@ -1754,6 +1762,7 @@ class Temp3(nn.Module):
                 'word': nn.Parameter(torch.ones(1)),
                 'topic': nn.Parameter(torch.ones(1)),
         })
+        # self.causal_score_linear = nn.Linear(n_hid,n_hid)
         # self.rnns = nn.ModuleDict({
         #     'word': nn.RNNCell(n_hid, n_hid),
         #     'topic': nn.RNNCell(n_hid, n_hid)}
@@ -1838,17 +1847,6 @@ class Temp3(nn.Module):
             # time3 = time.time()
             # print('get subgraph',time3-time2)
             # sub_bg.time_emb = time_emb
-            '''
-            topic_ids = sub_bg.nodes['topic'].data['id'].long()
-            effect = sub_bg.nodes['topic'].data['effect'].to_dense()
-            effect = (effect >0)*1. + (effect < 0)*(-1.)
-            causal_w = self.cau_weight[curr_time][topic_ids]
-            # effect = sub_bg.nodes['topic'].data['effect'].to_dense()
-            # print('causal_w',causal_w.shape,'cau_weight',self.cau_weight.shape,'topic_ids',topic_ids.shape)
-            t = (effect * causal_w) @ self.cau_embeds 
-            # print('t',t.shape)
-            sub_bg.nodes['topic'].data['h0'] += self.cau_linear(t)
-            '''
             for i in range(self.n_layers):
                 if i == 0:
                     self.gcs[i](sub_bg, 'h0', 'ht')
@@ -1870,24 +1868,36 @@ class Temp3(nn.Module):
                 bg.nodes[ntype].data[key][orig_node_ids[ntype].long()] = sub_bg.nodes[ntype].data[key]
             # time6 = time.time()
             # print('copy back to bg',time6-time5)
-        bg.nodes['topic'].data['ht-1'] # emb of topics with attention
-
-
+        learned_topic_emb = bg.nodes['topic'].data['ht-1'] # emb of topics with attention
+        # print('learned_topic_emb++++++++++',learned_topic_emb.shape)
         topic_ids = bg.nodes['topic'].data['id'].long()
         effect = bg.nodes['topic'].data['effect'].to_dense()
         effect = (effect >0)*1. + (effect < 0)*(-1.)
         causal_w = self.cau_weight[topic_ids]
         # effect = sub_bg.nodes['topic'].data['effect'].to_dense()
         # print('causal_w',causal_w.shape,'cau_weight',self.cau_weight.shape,'topic_ids',topic_ids.shape)
-        t = (effect * causal_w) @ self.cau_embeds 
-        # print('t',t.shape)
-        causal_emb = t
-        print()
-
-
-
+        causal_emb = (effect * causal_w) @ self.cau_embeds 
+        # print('causal_emb=============',causal_emb.shape)
+        score = torch.sum(learned_topic_emb * causal_emb, dim=-1).unsqueeze(-1)
+        # print(score.shape,'vvvvvscorevv')
+        bg.nodes['topic'].data['ht-1'] = score * causal_emb + (1-score) * learned_topic_emb
+        # print(bg.nodes['topic'].data['ht-1'])
+        # print(bg.edges(etype='ww'))
+        # for etype in ['ww','wt']:
+        #     s,t = bg.edges(etype=etype)
+        #     print(etype,s,t,s.shape)
+        bg.nodes['doc'].data['ht-1'] = bg.nodes['doc'].data['ht'] 
+        # print(bg.nodes['doc'].data['ht-1'].shape)
+        # print(bg.nodes['topic'].data['ht-1'].shape)
+        # print(bg.nodes['word'].data['ht-1'].shape)
+        for i in range(self.n_layers):
+            if i == 0:
+                self.gcs[i](bg, 'ht-1', 'ht',etypes=['tw','td','tt'],ntypes=['word','doc','topic'])
+            else:
+                self.gcs[i](bg, 'ht', 'ht',etypes=['tw','td','tt'],ntypes=['word','doc','topic'])
 
         # update causal emb
+        out_key_dict = {'doc':'ht','topic':'ht','word':'ht'}
         if self.pool == 'max':
             global_info = []
             for ntype in out_key_dict:

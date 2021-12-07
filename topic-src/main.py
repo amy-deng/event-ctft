@@ -19,7 +19,7 @@ except:
     print('Usage: models, dataset, datafiles, horizons, hidden, layer, note, gpu, others')
     exit()
 available_models = ['gcn','gat','heteroall','gcnetall3','gcnetall4','hgtall','hanall','rgcnall','temphgtall',\
-    'ours','hgtallcau','ours2','ours3','ours4','ours5','ours5rgcn','ours6','cau6','rgcn','hgt','temphgt','temp1','temp11','temp2','temp21']
+    'ours','hgtallcau','ours2','ours3','ours4','ours5','ours5rgcn','ours6','cau6','rgcn','hgt','temphgt','temp1','temp11','temp2','temp21','temp3']
 
 model_l = models.split(',')
 for m in model_l:
