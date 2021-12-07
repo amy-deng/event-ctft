@@ -17,7 +17,7 @@ from dgl.data.utils import save_graphs,load_graphs
 from numpy import linalg
  
 '''
-python build_hetero_graph_static_dynamic.py /home/sdeng/data/icews/detailed_event_json/THA_2010_w21h14_city.json ../data THA_2012_50 /home/sdeng/data/icews/corpus/ngrams/THA_from2012_1gram_tfidf.txt -1 7 7 7 3 2017 2017 1000 
+python build_hetero_graph_static_dynamic.py /home/sdeng/data/icews/detailed_event_json/THA_2010_w21h14_city.json ../data THA_2012_50 /home/sdeng/data/icews/corpus/ngrams/THA_from2012_1gram_tfidf.txt -1 7 7 7 3 2017 2017 900 0.01
 '''
 try:
     event_path = sys.argv[1] # /home/sdeng/data/icews/detailed_event_json/THA_2010_w21h7_city.json
@@ -77,8 +77,8 @@ print(outf_static)
 
 start_date = '{}-01-01'.format(start_year)
 if stop_year == '2017':
-    stop_date = '{}-03-20'.format(stop_year)
-    # stop_date = '{}-01-12'.format(stop_year)
+    # stop_date = '{}-03-20'.format(stop_year)
+    stop_date = '{}-01-15'.format(stop_year)
 else:
     stop_date = '{}-01-01'.format(stop_year)
 

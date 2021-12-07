@@ -542,7 +542,7 @@ class SeqHGTLayer(nn.Module):
             self.num_types, self.num_relations)
 
 #TODO
-class DualSeqHGTLayer(nn.Module):
+class SeqHGTLayerFlex(nn.Module):
     def __init__(self, in_dim, out_dim, ntypes, etypes, n_heads, dropout = 0.5, use_norm = False):
         super().__init__()
         self.in_dim        = in_dim
@@ -1724,7 +1724,7 @@ class Temp21(nn.Module):
         y_pred = torch.sigmoid(y_pred)
         return loss, y_pred
 
-# dual message passing involving causal nodes
+# first get context; update topic emb; update doc and graph
 class Temp3(nn.Module):
     def __init__(self, n_inp, n_hid, n_layers, n_heads, activation, device, seq_len, num_topic=50, vocab_size=15000, dropout=0.5, pool='max', use_norm = True):
         super().__init__()
@@ -1744,7 +1744,7 @@ class Temp3(nn.Module):
         self.doc_gen_embeds = nn.Parameter(torch.Tensor(1, n_hid))
         self.cau_embeds = nn.Parameter(torch.Tensor(3,n_hid))
         # self.cau_time_weight = nn.Parameter(torch.Tensor(seq_len)) #TODO
-        self.cau_weight = nn.Parameter(torch.Tensor(seq_len,num_topic,3)) # TODO
+        self.cau_weight = nn.Parameter(torch.Tensor(num_topic,3)) # TODO
         # self.time_emb = RelTemporalEncoding(n_hid, seq_len)
         self.cau_linear = nn.Linear(n_hid,n_hid)
         if self.pool == 'attn':
@@ -1763,7 +1763,7 @@ class Temp3(nn.Module):
         ntypes = ['word','topic','doc']
         self.gcs = nn.ModuleList()
         for _ in range(n_layers):
-            self.gcs.append(SeqHGTLayer(n_hid, n_hid, ntypes, etypes, n_heads, use_norm = use_norm))
+            self.gcs.append(SeqHGTLayerFlex(n_hid, n_hid, ntypes, etypes, n_heads, use_norm = use_norm))
         self.out_layer = nn.Sequential(
                 # nn.Linear(n_hid*3, n_hid),
                 # nn.BatchNorm1d(n_hid),
@@ -1838,6 +1838,7 @@ class Temp3(nn.Module):
             # time3 = time.time()
             # print('get subgraph',time3-time2)
             # sub_bg.time_emb = time_emb
+            '''
             topic_ids = sub_bg.nodes['topic'].data['id'].long()
             effect = sub_bg.nodes['topic'].data['effect'].to_dense()
             effect = (effect >0)*1. + (effect < 0)*(-1.)
@@ -1846,8 +1847,8 @@ class Temp3(nn.Module):
             # print('causal_w',causal_w.shape,'cau_weight',self.cau_weight.shape,'topic_ids',topic_ids.shape)
             t = (effect * causal_w) @ self.cau_embeds 
             # print('t',t.shape)
-
             sub_bg.nodes['topic'].data['h0'] += self.cau_linear(t)
+            '''
             for i in range(self.n_layers):
                 if i == 0:
                     self.gcs[i](sub_bg, 'h0', 'ht')
@@ -1863,12 +1864,30 @@ class Temp3(nn.Module):
             # time5 = time.time()
             # print('temporal info',time5-time4)
             # update h to bg
+            
             for ntype in out_key_dict:
                 key = out_key_dict[ntype]
                 bg.nodes[ntype].data[key][orig_node_ids[ntype].long()] = sub_bg.nodes[ntype].data[key]
             # time6 = time.time()
             # print('copy back to bg',time6-time5)
+        bg.nodes['topic'].data['ht-1'] # emb of topics with attention
 
+
+        topic_ids = bg.nodes['topic'].data['id'].long()
+        effect = bg.nodes['topic'].data['effect'].to_dense()
+        effect = (effect >0)*1. + (effect < 0)*(-1.)
+        causal_w = self.cau_weight[topic_ids]
+        # effect = sub_bg.nodes['topic'].data['effect'].to_dense()
+        # print('causal_w',causal_w.shape,'cau_weight',self.cau_weight.shape,'topic_ids',topic_ids.shape)
+        t = (effect * causal_w) @ self.cau_embeds 
+        # print('t',t.shape)
+        causal_emb = t
+        print()
+
+
+
+
+        # update causal emb
         if self.pool == 'max':
             global_info = []
             for ntype in out_key_dict:
