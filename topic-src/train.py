@@ -11,7 +11,7 @@ from sklearn.utils import shuffle
  
 parser = argparse.ArgumentParser(description='')
 parser.add_argument("--dp", type=str, default="../data", help="data path")
-parser.add_argument("--dropout", type=float, default=0.5, help="dropout probability")
+parser.add_argument("--dropout", type=float, default=0.4, help="dropout probability")
 parser.add_argument("--n-hidden", type=int, default=32, help="number of hidden units")
 parser.add_argument("--n-layers", type=int, default=2, help="number of hidden layers")
 parser.add_argument("--gpu", type=int, default=0, help="gpu")
