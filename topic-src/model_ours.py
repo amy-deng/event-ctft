@@ -2128,7 +2128,7 @@ class Temp41(nn.Module):
         #     'word': nn.RNNCell(n_hid, n_hid),
         #     'topic': nn.RNNCell(n_hid, n_hid)}
         # )
-        self.add_attn = AddAttention(n_hid,n_hid)
+        self.add_attn = AddAttention(n_hid,n_hid, dropout)
         self.adapt_ws  = nn.Linear(n_inp,  n_hid)
         etypes = ['wt','wd','td','tt','ww','tw','dt','dw']
         ntypes = ['word','topic','doc']
