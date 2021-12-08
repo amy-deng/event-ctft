@@ -2271,16 +2271,18 @@ class Temp41(nn.Module):
 
  
 class AddAttention(nn.Module):
-    def __init__(self, dim1, dim2):
+    def __init__(self, dim1, dim2, dropout):
         super().__init__()
         self.linear_in = nn.Linear(dim1 + dim2, (dim1 + dim2)//2, bias=True)
         self.v = nn.Parameter(torch.Tensor((dim1 + dim2)//2, 1))
         stdv = 1. / math.sqrt(self.v.size(0))
+        self.drop  = nn.Dropout(dropout)
         self.v.data.uniform_(-stdv, stdv)
 
     def forward(self, inp1, inp2):
         inp = torch.cat((inp1,inp2),dim=-1)
         # print(inp.shape,inp1.shape,inp2.shape)
+        inp = self.drop(inp)
         h = torch.tanh(self.linear_in(inp))
         # print(h.shape,'h',self.v.shape,'v')
         attention_weights = torch.mm(h,self.v)
