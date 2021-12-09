@@ -1995,10 +1995,10 @@ class Temp4(nn.Module):
 
         topic_ids = bg.nodes['topic'].data['id'].long()
         effect = bg.nodes['topic'].data['effect'].to_dense()
-        # effect = (effect >0)*1. + (effect < 0)*(-1.)
-        effect = (effect != 0)*1
+        effect = (effect >0)*1. + (effect < 0)*(-1.)
+        # effect = (effect != 0)*1
         # print('effect',effect.shape)
-        causal_w = self.cau_weight[topic_ids]
+        causal_w = torch.sigmoid(self.cau_weight[topic_ids])
         cau_embeds = (effect * causal_w) @ self.cau_embeds 
         # print(bg.nodes['topic'].data['effect'].to_dense().shape,'======','topic_ids',topic_ids.shape)
         bg.nodes['topic'].data['c'] = cau_embeds
