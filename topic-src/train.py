@@ -73,8 +73,9 @@ use_cuda = args.gpu >= 0 and torch.cuda.is_available()
 print("cuda",use_cuda)
 
 torch.manual_seed(args.seed) 
-if use_cuda:
-    torch.cuda.manual_seed(args.seed)
+random.seed(args.seed)
+# if use_cuda:
+#     torch.cuda.manual_seed(args.seed)
 device = torch.device('cuda' if use_cuda else 'cpu')
 print('device',device)
 with open('{}/{}/word_emb_300.pkl'.format(args.dp,args.dataset), 'rb') as f:
