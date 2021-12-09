@@ -181,7 +181,7 @@ def prepare(args,word_embeds,device):
         model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
     total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print('#params:', total_params)
-    token = '{}_seed{}topic{}w{}h{}lr{}bs{}p{}hid{}l{}tr{}va{}po{}nh{}'.format(model_name, args.seed, args.n_topics, args.seq_len, args.horizon,args.lr,args.batch_size,args.patience,args.n_hidden,args.n_layers,args.train,args.val,args.pool,args.n_heads)
+    token = '{}_seed{}topic{}w{}h{}lr{}bs{}p{}hid{}l{}tr{}va{}po{}nh{}dp{}'.format(model_name, args.seed, args.n_topics, args.seq_len, args.horizon,args.lr,args.batch_size,args.patience,args.n_hidden,args.n_layers,args.train,args.val,args.pool,args.n_heads,args.dropout)
     if args.shuffle is False:
         token += '_noshuf'
     if args.note != "":
