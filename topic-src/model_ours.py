@@ -2445,10 +2445,10 @@ class Temp5(nn.Module):
         y_pred = self.out_layer(global_info)
         # print(y_pred.shape,'y_pred',y_pred,y_data.shape,'y_data')
         emb_dis = torch.norm(self.cau_embeds_pos - self.cau_embeds_neg)
-        # print(emb_dis,emb_dis.shape,'emb_dis')
+        # print(emb_dis*0.01,emb_dis.shape,'emb_dis')
         # v = F.hinge_embedding_loss(emb_dis,torch.tensor(-1),margin=5.)
         # print(v,'v')
-        loss = self.criterion(y_pred.view(-1), y_data) + F.hinge_embedding_loss(emb_dis,torch.tensor(-1),margin=5.)
+        loss = self.criterion(y_pred.view(-1), y_data) + 0.01*emb_dis
         # print(loss,'loss')
         y_pred = torch.sigmoid(y_pred)
         return loss, y_pred
