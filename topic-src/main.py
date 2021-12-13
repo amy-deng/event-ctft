@@ -20,7 +20,7 @@ except:
     exit()
 available_models = ['gcn','gat','heteroall','gcnetall3','gcnetall4','hgtall','hanall','rgcnall','temphgtall',\
     'ours','hgtallcau','ours2','ours3','ours4','ours5','ours5rgcn','ours6','cau6','rgcn','hgt','temphgt',\
-        'temp1','temp11','temp2','temp21','temp3','temp4','temp41','temp5']
+        'temp1','temp11','temp2','temp21','temp3','temp4','temp41','temp5','temp6']
 
 model_l = models.split(',')
 for m in model_l:
