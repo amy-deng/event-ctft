@@ -2536,7 +2536,7 @@ class Temp6(nn.Module):
 
         # topic_ids = bg.nodes['topic'].data['id'].long()
         effect = bg.nodes['topic'].data['effect'].to_dense()
-        effect = (effect >0)*1. + (effect < 0)*(-1.)
+        # effect = (effect >0)*1. + (effect < 0)*(-1.)
         pos_effect = (effect >0)*1.
         neg_effect = (effect <0)*1.
         rdm_effect = (effect == 0)*1.
