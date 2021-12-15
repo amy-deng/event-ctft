@@ -1631,7 +1631,7 @@ class Temp4(nn.Module):
         # self.cau_time_weight = nn.Parameter(torch.Tensor(seq_len)) #TODO
         self.cau_weight = nn.Parameter(torch.Tensor(num_topic,3)) # TODO
         # self.time_emb = RelTemporalEncoding(n_hid, seq_len)
-        self.cau_linear = nn.Linear(n_hid,n_hid)
+        # self.cau_linear = nn.Linear(n_hid,n_hid)
         if self.pool == 'attn':
             self.attn_pool = GlobalAttentionPooling(n_hid, n_hid)
         # self.rnn = nn.RNNCell(n_hid, n_hid)
@@ -1801,7 +1801,7 @@ class Temp41(nn.Module):
         # self.cau_time_weight = nn.Parameter(torch.Tensor(seq_len)) #TODO
         self.cau_weight = nn.Parameter(torch.Tensor(num_topic,3)) # TODO
         # self.time_emb = RelTemporalEncoding(n_hid, seq_len)
-        self.cau_linear = nn.Linear(n_hid,n_hid)
+        # self.cau_linear = nn.Linear(n_hid,n_hid)
         if self.pool == 'attn':
             self.attn_pool = GlobalAttentionPooling(n_hid, n_hid)
         # self.rnn = nn.RNNCell(n_hid, n_hid)
@@ -1982,7 +1982,7 @@ class Temp5(nn.Module):
         # self.time_emb = RelTemporalEncoding(n_hid, seq_len)
         self.cau_w1 = nn.Parameter(torch.Tensor(n_hid,10))
         self.cau_w2 = nn.Parameter(torch.Tensor(10,n_hid))
-        self.cau_linear = nn.Linear(n_hid,n_hid)
+        # self.cau_linear = nn.Linear(n_hid,n_hid)
         if self.pool == 'attn':
             self.attn_pool = GlobalAttentionPooling(n_hid, n_hid)
         # self.rnn = nn.RNNCell(n_hid, n_hid)
@@ -2172,7 +2172,7 @@ class Temp6(nn.Module):
         # self.time_emb = RelTemporalEncoding(n_hid, seq_len)
         self.cau_w1 = nn.Parameter(torch.Tensor(n_hid,10))
         self.cau_w2 = nn.Parameter(torch.Tensor(10,n_hid))
-        self.cau_linear = nn.Linear(n_hid,n_hid)
+        # self.cau_linear = nn.Linear(n_hid,n_hid)
         if self.pool == 'attn':
             self.attn_pool = GlobalAttentionPooling(n_hid, n_hid)
         # self.rnn = nn.RNNCell(n_hid, n_hid)
@@ -2369,9 +2369,23 @@ class RelTemporalEncoding(nn.Module):
         self.emb = emb
         self.lin = nn.Linear(n_inp, n_hid)
     def forward(self, t):
+        # print(self.emb(t),'self.emb(t)')
+        return self.lin(self.emb(t))
         # return x + self.lin(self.emb(t))
-         return self.lin(self.emb(t))
 
+class TemporalEncoding(nn.Module):
+    def __init__(self, n_inp, max_len = 7, dropout = 0.2):
+        super(TemporalEncoding, self).__init__()
+        position = torch.arange(0., max_len).unsqueeze(1)
+        div_term = torch.exp(torch.arange(0, n_inp, 2) *
+                             -(math.log(10000.0) / n_inp))
+        emb = nn.Embedding(max_len, n_inp)
+        emb.weight.data[:, 0::2] = torch.sin(position * div_term) / math.sqrt(n_inp)
+        emb.weight.data[:, 1::2] = torch.cos(position * div_term) / math.sqrt(n_inp)
+        emb.requires_grad = False
+        self.emb = emb
+    def forward(self, t):
+        return self.emb(t)
 
 class Temp7(nn.Module):
     def __init__(self, n_inp, n_hid, n_layers, n_heads, activation, device, seq_len, num_topic=50, vocab_size=15000, dropout=0.5, pool='max', use_norm = True, agg='mul'):
@@ -2403,7 +2417,7 @@ class Temp7(nn.Module):
         self.cau_time_attn = ScaledDotProductAttention(n_hid)
         self.cau_w1 = nn.Parameter(torch.Tensor(n_hid,10))
         self.cau_w2 = nn.Parameter(torch.Tensor(10,n_hid))
-        self.cau_linear = nn.Linear(n_hid,n_hid)
+        # self.cau_linear = nn.Linear(n_hid,n_hid)
         if self.pool == 'attn':
             self.attn_pool = GlobalAttentionPooling(n_hid, n_hid)
         # self.rnn = nn.RNNCell(n_hid, n_hid)
@@ -2595,7 +2609,7 @@ class Temp71(nn.Module):
         self.cau_time_attn = ScaledDotProductAttention(n_hid)
         self.cau_w1 = nn.Parameter(torch.Tensor(n_hid,10))
         self.cau_w2 = nn.Parameter(torch.Tensor(10,n_hid))
-        self.cau_linear = nn.Linear(n_hid,n_hid)
+        # self.cau_linear = nn.Linear(n_hid,n_hid)
         if self.pool == 'attn':
             self.attn_pool = GlobalAttentionPooling(n_hid, n_hid)
         # self.rnn = nn.RNNCell(n_hid, n_hid)
@@ -2758,6 +2772,173 @@ class Temp71(nn.Module):
         # print(v,'v')
         loss = self.criterion(y_pred.view(-1), y_data) + emb_dis_pos_neg*0.01
         # print(loss,'loss')
+        y_pred = torch.sigmoid(y_pred)
+        return loss, y_pred
+
+
+class Temp72(nn.Module):
+    def __init__(self, n_inp, n_hid, n_layers, n_heads, activation, device, seq_len, num_topic=50, vocab_size=15000, dropout=0.5, pool='max', use_norm = True, agg='mul',eta=1e-3):
+        super().__init__()
+        self.n_inp = n_inp
+        self.n_hid = n_hid
+        self.n_layers = n_layers
+        self.vocab_size = vocab_size
+        self.num_topic = num_topic
+        self.seq_len = seq_len
+        self.device = device
+        self.pool = pool
+        self.agg = agg
+        self.dropout = nn.Dropout(dropout)
+        self.word_embeds = None
+        self.eta = eta
+        # self.topic_gen_embeds = nn.Parameter(torch.Tensor(10, n_hid))
+        # self.topic_weights = nn.Parameter(torch.Tensor(num_topic, 10))
+        self.topic_embeds = nn.Parameter(torch.Tensor(num_topic, n_hid))
+        self.doc_gen_embeds = nn.Parameter(torch.Tensor(1, n_hid))
+
+        self.cau_embeds_pos = nn.Parameter(torch.Tensor(3,n_hid))
+        self.cau_embeds_neg = nn.Parameter(torch.Tensor(3,n_hid))
+        self.cau_embeds_rdm = nn.Parameter(torch.Tensor(3,n_hid))
+        self.time_w = nn.Parameter(torch.Tensor(seq_len,3))
+        self.cau_w_score = nn.Parameter(torch.Tensor(n_hid,n_hid))
+        self.cau_w_value = nn.Parameter(torch.Tensor(n_hid,n_hid))
+        if self.pool == 'attn':
+            self.attn_pool = GlobalAttentionPooling(n_hid, n_hid)
+        self.temp_skip = nn.ParameterDict({
+                'word': nn.Parameter(torch.ones(1)),
+                'topic': nn.Parameter(torch.ones(1)),
+        }) 
+        self.adapt_ws  = nn.Linear(n_inp,  n_hid)
+        etypes = ['wt','wd','td','tt','ww','tw','dt','dw']
+        ntypes = ['word','topic','doc']
+        self.gcs = nn.ModuleList()
+        for _ in range(n_layers):
+            self.gcs.append(SeqHGTLayer(n_hid, n_hid, ntypes, etypes, n_heads, use_norm = use_norm))
+        self.out_layer = nn.Sequential(
+                # nn.Linear(n_hid*3, n_hid),
+                # nn.BatchNorm1d(n_hid),
+                nn.Linear(n_hid*3, 1) 
+        )
+        self.threshold = 0.5
+        self.out_func = torch.sigmoid
+        self.criterion = F.binary_cross_entropy_with_logits #soft_cross_entropy
+        self.init_weights()
+
+    def init_weights(self):
+        for p in self.parameters():
+            if p.data.ndimension() >= 2:
+                nn.init.xavier_uniform_(p.data, gain=nn.init.calculate_gain('relu'))
+            else:
+                stdv = 1. / math.sqrt(p.size(0))
+                p.data.uniform_(-stdv, stdv)
+
+    def forward(self, g_list, y_data): 
+        bg = dgl.batch(g_list).to(self.device)  
+        word_emb = self.word_embeds[bg.nodes['word'].data['id'].long()].view(-1, self.word_embeds.shape[1])
+        topic_emb = self.topic_embeds[bg.nodes['topic'].data['id'].long()].view(-1, self.topic_embeds.shape[1])
+        doc_emb = self.doc_gen_embeds.repeat(bg.number_of_nodes('doc'),1)
+        word_emb = self.adapt_ws(word_emb)
+        bg.nodes['word'].data['h0'] = word_emb
+        # topic_ids = bg.nodes['topic'].data['id'].long()
+        effect = bg.nodes['topic'].data['effect'].to_dense()
+        # effect = (effect >0)*1. + (effect < 0)*(-1.)
+        pos_effect = (effect >0)*1.
+        neg_effect = (effect <0)*1. 
+        rdm_effect = (effect ==0)*1. 
+        pos_effect = pos_effect.unsqueeze(-1)
+        neg_effect = neg_effect.unsqueeze(-1) 
+        rdm_effect = rdm_effect.unsqueeze(-1) 
+        cau_embeds = pos_effect * self.cau_embeds_pos + neg_effect * self.cau_embeds_neg + rdm_effect * self.cau_embeds_rdm
+        bg.nodes['topic'].data['c'] = cau_embeds 
+        bg.nodes['topic'].data['h0'] = topic_emb
+        bg.nodes['doc'].data['h0'] = doc_emb 
+        # word and topic take info from last time step
+        out_key_dict = {'doc':'ht','topic':'ht-1','word':'ht-1'}
+     
+        for ntype in ['word','topic']: 
+            bg.nodes[ntype].data['ht-1'] = torch.zeros(bg.nodes[ntype].data['h0'].size()).to(self.device)
+        
+        bg.nodes['doc'].data['ht'] = bg.nodes['doc'].data['h0']
+
+        tt_edges_idx = list(range(len(bg.edges(etype='tt'))))
+        for curr_time in range(self.seq_len):
+            
+            ww_edges_idx = (bg.edges['ww'].data['time']==curr_time).nonzero(as_tuple=False).view(-1).cpu().detach().tolist()
+            wt_edges_idx = (bg.edges['wt'].data['time']==curr_time).nonzero(as_tuple=False).view(-1).cpu().detach().tolist()
+            wd_edges_idx = (bg.edges['wd'].data['time']==curr_time).nonzero(as_tuple=False).view(-1).cpu().detach().tolist()
+            td_edges_idx = (bg.edges['td'].data['time']==curr_time).nonzero(as_tuple=False).view(-1).cpu().detach().tolist()
+            if len(ww_edges_idx) <= 0:
+                continue
+            bg_cpu = bg.to('cpu')
+            sub_bg = dgl.edge_subgraph(bg_cpu, 
+                                        {('word', 'ww', 'word'): ww_edges_idx,
+                                        ('topic', 'tt', 'topic'): tt_edges_idx,
+                                        ('word', 'wt', 'topic'): wt_edges_idx,
+                                        ('topic', 'td', 'doc'): td_edges_idx,
+                                        ('word', 'wd', 'doc'):wd_edges_idx,
+                                        ('topic', 'tw', 'word'): wt_edges_idx,
+                                        ('doc', 'dt', 'topic'): td_edges_idx,
+                                        ('doc', 'dw', 'word'):wd_edges_idx
+                                        }, # preserve_nodes=True
+                                        )
+            sub_bg = sub_bg.to(self.device)
+            orig_node_ids = sub_bg.ndata[dgl.NID] # {'word':,'topic':,'doc':}
+
+            causal = sub_bg.nodes['topic'].data['c']
+            causal = causal.permute(0,2,1).contiguous()
+            causal = causal * self.time_w[curr_time]
+            # readout
+            if self.agg == 'sum':
+                causal = causal.sum(-1)
+            elif self.agg == 'max':
+                causal = causal.max(-1)[0]
+            # attention
+            value = sub_bg.nodes['topic'].data['ht-1'] @ self.cau_w_value
+            value = torch.tanh(value * causal) # [b,nhid]
+            score = sub_bg.nodes['topic'].data['ht-1'] @ self.cau_w_score
+            score = torch.sum(score * causal, dim=-1).unsqueeze(-1)
+            score = torch.sigmoid(score) #[b,1]
+            # print(score.shape,'score')
+            sub_bg.nodes['topic'].data['h0'] = score * value + (1-score) * sub_bg.nodes['topic'].data['h0']
+            for i in range(self.n_layers):
+                if i == 0:
+                    self.gcs[i](sub_bg, 'h0', 'ht')
+                else:
+                    self.gcs[i](sub_bg, 'ht', 'ht')
+            for ntype in ['word','topic']:
+                alpha = torch.sigmoid(self.temp_skip[ntype])
+                sub_bg.nodes[ntype].data['ht-1'] = alpha * sub_bg.nodes[ntype].data['ht'] + (1-alpha) * sub_bg.nodes[ntype].data['ht-1']
+            
+            for ntype in out_key_dict:
+                key = out_key_dict[ntype]
+                bg.nodes[ntype].data[key][orig_node_ids[ntype].long()] = sub_bg.nodes[ntype].data[key]
+            
+        if self.pool == 'max':
+            global_info = []
+            for ntype in out_key_dict:
+                key = out_key_dict[ntype]
+                global_info.append( dgl.max_nodes(bg, feat=key,ntype=ntype))
+            global_info = torch.cat(global_info,-1)
+        elif self.pool == 'mean':
+            global_info = []
+            for ntype in out_key_dict:
+                key = out_key_dict[ntype]
+                global_info.append( dgl.mean_nodes(bg, feat=key,ntype=ntype))
+            global_info = torch.cat(global_info,-1)
+        elif self.pool == 'attn':
+            attn_pool_out = self.attn_pool(bg, out_key_dict)
+            global_info = []
+            for ntype in attn_pool_out.keys():
+                global_info.append(attn_pool_out[ntype])
+            global_info = torch.cat(global_info,dim=-1)
+
+        y_pred = self.out_layer(global_info)
+        emb_dis_pos_neg = torch.norm(self.cau_embeds_pos - self.cau_embeds_neg)
+        emb_dis_pos_rdm = torch.norm(self.cau_embeds_pos - self.cau_embeds_rdm)
+        emb_dis_rdm_neg = torch.norm(self.cau_embeds_rdm - self.cau_embeds_neg)
+        # print(emb_dis_pos_neg,emb_dis_pos_rdm,emb_dis_rdm_neg)
+        dis = emb_dis_pos_neg + emb_dis_pos_rdm + emb_dis_rdm_neg
+        loss = self.criterion(y_pred.view(-1), y_data) + self.eta * dis
         y_pred = torch.sigmoid(y_pred)
         return loss, y_pred
 
