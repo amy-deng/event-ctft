@@ -198,7 +198,7 @@ def prepare(args,word_embeds,device):
         token += '_noshuf'
     if args.note != "":
         token += args.note
-    if args.model in ['temp6','temp72']:
+    if args.model in ['temp6']:
         token += args.agg
     if args.model == 'temp72':
         token += 'eta'+str(args.eta)

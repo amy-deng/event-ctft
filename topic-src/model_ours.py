@@ -2799,9 +2799,13 @@ class Temp72(nn.Module):
         self.cau_embeds_pos = nn.Parameter(torch.Tensor(3,n_hid))
         self.cau_embeds_neg = nn.Parameter(torch.Tensor(3,n_hid))
         self.cau_embeds_rdm = nn.Parameter(torch.Tensor(3,n_hid))
-        self.time_w = nn.Parameter(torch.Tensor(seq_len,3))
-        self.cau_w_score = nn.Parameter(torch.Tensor(n_hid,n_hid))
-        self.cau_w_value = nn.Parameter(torch.Tensor(n_hid,n_hid))
+        self.time_emb = TemporalEncoding(n_hid, seq_len)
+        self.cau_time_attn = ScaledDotProductAttention(n_hid)
+        # self.time_w = nn.Parameter(torch.Tensor(seq_len,3))
+        self.cau_w = nn.Parameter(torch.Tensor(n_hid,n_hid))
+        # self.cau_w_value = nn.Parameter(torch.Tensor(n_hid,n_hid))
+
+        # self.W1 = nn.Parameter(torch.Tensor(n_hid,n_hid))
         if self.pool == 'attn':
             self.attn_pool = GlobalAttentionPooling(n_hid, n_hid)
         self.temp_skip = nn.ParameterDict({
@@ -2820,7 +2824,7 @@ class Temp72(nn.Module):
                 nn.Linear(n_hid*3, 1) 
         )
         self.threshold = 0.5
-        self.out_func = torch.sigmoid
+        # self.out_func = torch.sigmoid
         self.criterion = F.binary_cross_entropy_with_logits #soft_cross_entropy
         self.init_weights()
 
@@ -2842,13 +2846,12 @@ class Temp72(nn.Module):
         # topic_ids = bg.nodes['topic'].data['id'].long()
         effect = bg.nodes['topic'].data['effect'].to_dense()
         # effect = (effect >0)*1. + (effect < 0)*(-1.)
-        pos_effect = (effect >0)*1.
-        neg_effect = (effect <0)*1. 
-        rdm_effect = (effect ==0)*1. 
-        pos_effect = pos_effect.unsqueeze(-1)
-        neg_effect = neg_effect.unsqueeze(-1) 
-        rdm_effect = rdm_effect.unsqueeze(-1) 
+        # t1 = time.time()
+        pos_effect = ((effect >0)*1.).unsqueeze(-1)
+        neg_effect = ((effect <0)*1.).unsqueeze(-1)
+        rdm_effect = ((effect == 0)*1.).unsqueeze(-1) 
         cau_embeds = pos_effect * self.cau_embeds_pos + neg_effect * self.cau_embeds_neg + rdm_effect * self.cau_embeds_rdm
+        # print(time.time()-t1,'====t1')
         bg.nodes['topic'].data['c'] = cau_embeds 
         bg.nodes['topic'].data['h0'] = topic_emb
         bg.nodes['doc'].data['h0'] = doc_emb 
@@ -2862,7 +2865,6 @@ class Temp72(nn.Module):
 
         tt_edges_idx = list(range(len(bg.edges(etype='tt'))))
         for curr_time in range(self.seq_len):
-            
             ww_edges_idx = (bg.edges['ww'].data['time']==curr_time).nonzero(as_tuple=False).view(-1).cpu().detach().tolist()
             wt_edges_idx = (bg.edges['wt'].data['time']==curr_time).nonzero(as_tuple=False).view(-1).cpu().detach().tolist()
             wd_edges_idx = (bg.edges['wd'].data['time']==curr_time).nonzero(as_tuple=False).view(-1).cpu().detach().tolist()
@@ -2883,23 +2885,13 @@ class Temp72(nn.Module):
                                         )
             sub_bg = sub_bg.to(self.device)
             orig_node_ids = sub_bg.ndata[dgl.NID] # {'word':,'topic':,'doc':}
-
-            causal = sub_bg.nodes['topic'].data['c']
-            causal = causal.permute(0,2,1).contiguous()
-            causal = causal * self.time_w[curr_time]
-            # readout
-            if self.agg == 'sum':
-                causal = causal.sum(-1)
-            elif self.agg == 'max':
-                causal = causal.max(-1)[0]
-            # attention
-            value = sub_bg.nodes['topic'].data['ht-1'] @ self.cau_w_value
-            value = torch.tanh(value * causal) # [b,nhid]
-            score = sub_bg.nodes['topic'].data['ht-1'] @ self.cau_w_score
-            score = torch.sum(score * causal, dim=-1).unsqueeze(-1)
-            score = torch.sigmoid(score) #[b,1]
+            time_emb = self.time_emb(torch.tensor(curr_time).to(self.device))
+            causal = self.cau_time_attn(time_emb.unsqueeze(1),sub_bg.nodes['topic'].data['c'])
+            # print(causal,'========')
+            tmp = self.dropout(sub_bg.nodes['topic'].data['ht-1']) @ self.cau_w 
+            score = torch.sum(tmp * causal, dim=-1).unsqueeze(-1)
             # print(score.shape,'score')
-            sub_bg.nodes['topic'].data['h0'] = score * value + (1-score) * sub_bg.nodes['topic'].data['h0']
+            sub_bg.nodes['topic'].data['h0'] = score * causal + (1-score) * sub_bg.nodes['topic'].data['h0']
             for i in range(self.n_layers):
                 if i == 0:
                     self.gcs[i](sub_bg, 'h0', 'ht')
