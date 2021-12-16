@@ -2798,7 +2798,7 @@ class Temp72(nn.Module):
 
         self.cau_embeds_pos = nn.Parameter(torch.Tensor(3,n_hid))
         self.cau_embeds_neg = nn.Parameter(torch.Tensor(3,n_hid))
-        self.cau_embeds_rdm = nn.Parameter(torch.Tensor(3,n_hid))
+        # self.cau_embeds_rdm = nn.Parameter(torch.Tensor(3,n_hid))
         self.time_emb = TemporalEncoding(n_hid, seq_len)
         self.cau_time_attn = ScaledDotProductAttention(n_hid)
         # self.time_w = nn.Parameter(torch.Tensor(seq_len,3))
@@ -2849,8 +2849,8 @@ class Temp72(nn.Module):
         # t1 = time.time()
         pos_effect = ((effect >0)*1.).unsqueeze(-1)
         neg_effect = ((effect <0)*1.).unsqueeze(-1)
-        rdm_effect = ((effect == 0)*1.).unsqueeze(-1) 
-        cau_embeds = pos_effect * self.cau_embeds_pos + neg_effect * self.cau_embeds_neg + rdm_effect * self.cau_embeds_rdm
+        # rdm_effect = ((effect == 0)*1.).unsqueeze(-1) 
+        cau_embeds = pos_effect * self.cau_embeds_pos + neg_effect * self.cau_embeds_neg #+ rdm_effect * self.cau_embeds_rdm
         # print(time.time()-t1,'====t1')
         bg.nodes['topic'].data['c'] = cau_embeds 
         bg.nodes['topic'].data['h0'] = topic_emb
@@ -2890,7 +2890,7 @@ class Temp72(nn.Module):
             # print(causal,'========')
             tmp = self.dropout(sub_bg.nodes['topic'].data['ht-1']) @ self.cau_w 
             score = torch.sum(tmp * causal, dim=-1).unsqueeze(-1)
-            # print(score.shape,'score')
+            # print(score,'score')
             sub_bg.nodes['topic'].data['h0'] = score * causal + (1-score) * sub_bg.nodes['topic'].data['h0']
             for i in range(self.n_layers):
                 if i == 0:
@@ -2926,10 +2926,10 @@ class Temp72(nn.Module):
 
         y_pred = self.out_layer(global_info)
         emb_dis_pos_neg = torch.norm(self.cau_embeds_pos - self.cau_embeds_neg)
-        emb_dis_pos_rdm = torch.norm(self.cau_embeds_pos - self.cau_embeds_rdm)
-        emb_dis_rdm_neg = torch.norm(self.cau_embeds_rdm - self.cau_embeds_neg)
+        # emb_dis_pos_rdm = torch.norm(self.cau_embeds_pos - self.cau_embeds_rdm)
+        # emb_dis_rdm_neg = torch.norm(self.cau_embeds_rdm - self.cau_embeds_neg)
         # print(emb_dis_pos_neg,emb_dis_pos_rdm,emb_dis_rdm_neg)
-        dis = emb_dis_pos_neg + emb_dis_pos_rdm + emb_dis_rdm_neg
+        dis = emb_dis_pos_neg #+ emb_dis_pos_rdm + emb_dis_rdm_neg
         loss = self.criterion(y_pred.view(-1), y_data) + self.eta * dis
         y_pred = torch.sigmoid(y_pred)
         return loss, y_pred
