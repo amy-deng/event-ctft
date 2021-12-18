@@ -44,6 +44,8 @@ parser.add_argument("--n-heads", type=int, default=4, help='number of attention 
 parser.add_argument("--agg", type=str, default="sum", help="")
 parser.add_argument("--eta", type=float, default=1e-3, help="")
 
+parser.add_argument('--with_rdm', action="store_true")
+
 args = parser.parse_args()
 print(args)
 
@@ -182,6 +184,9 @@ def prepare(args,word_embeds,device):
     elif args.model == 'temp72':
         model = Temp72(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
         num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True,agg=args.agg,eta=args.eta)
+    elif args.model == 'temp8':
+        model = Temp8(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
+        num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True,with_rdm=args.with_rdm)
     
     # elif args.model == 'cau6':
     #     model = tempMP6cau(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
@@ -202,6 +207,8 @@ def prepare(args,word_embeds,device):
         token += args.agg
     if args.model == 'temp72':
         token += 'eta'+str(args.eta)
+    if args.with_rdm:
+        token += '+rdme'
     # if args.model in ['cus3','cus4']:
     #     token += args.cau_setup
     os.makedirs('models', exist_ok=True)
