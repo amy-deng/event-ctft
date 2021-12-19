@@ -1,7 +1,7 @@
 import pandas as pd
 import pickle
 import sys
-
+import dgl
 
 try:
     dataset = sys.argv[1]
@@ -22,7 +22,7 @@ for file in filenames:
         data = pickle.load(f)
     print('len',len(data))
     for g in data:
-        sub_g = g.edge_type_subgraph(edges)
+        sub_g = dgl.edge_type_subgraph(g,edges)
         new_data.append(sub_g)
     print(len(data),len(new_data))
     with open('../data/' + dataset + '/' + 'didyn'+file[3:],'wb') as f:
