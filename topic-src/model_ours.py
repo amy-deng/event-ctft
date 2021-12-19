@@ -1163,8 +1163,8 @@ class SeqCauHGTLayer2(nn.Module):
         self.time_emb = G.time_emb
         edge_dict = []
         for srctype, etype, dsttype in G.canonical_etypes:
-            # if etype == 'ww':
-            #     continue
+            # if etype not in self.etypes:
+            #     continue 
             edge_dict.append(etype)
             # print(srctype, etype, dsttype)
             k_linear = self.k_linears[srctype]
@@ -3825,6 +3825,8 @@ class Temp81(nn.Module):
         }) 
         self.adapt_ws  = nn.Linear(n_inp,  n_hid)
         etypes = ['wt','wd','td','tt','ww','tw','dt','dw']
+        # etypes = ['wd','td','tt','ww','tw','dw']
+
         ntypes = ['word','topic','doc']
         self.gcs = nn.ModuleList()
         for _ in range(n_layers):
