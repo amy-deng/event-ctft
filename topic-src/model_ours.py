@@ -736,6 +736,156 @@ class SeqCauHGTLayer_w_rdm(nn.Module):
             else:
                 G.nodes[ntype].data[out_key] = self.drop(trans_out)
 
+# with time
+class SeqCauHGTLayer_w_rdm2(nn.Module):
+    def __init__(self, in_dim, out_dim, ntypes, etypes, n_heads, dropout = 0.5, use_norm = False, device=torch.device("cpu")):
+        super().__init__()
+        self.in_dim        = in_dim
+        self.out_dim       = out_dim
+        self.etypes        = etypes
+        self.ntypes        = ntypes
+        self.n_heads       = n_heads
+        self.d_k           = out_dim // n_heads
+        self.sqrt_dk       = math.sqrt(self.d_k)
+        self.device        = device
+        self.use_norm    = use_norm
+        self.time_emb    = None
+        self.k_linears   = nn.ModuleDict()
+        self.q_linears   = nn.ModuleDict()
+        self.v_linears   = nn.ModuleDict()
+        # self.a_linears   = nn.ModuleDict()
+        self.norms       = nn.ModuleDict()
+        # self.skip = nn.ParameterDict() 
+        for t in ntypes:
+            self.k_linears[t] = nn.Linear(in_dim,   out_dim)
+            self.q_linears[t] = nn.Linear(in_dim,   out_dim)
+            self.v_linears[t] = nn.Linear(in_dim,   out_dim)
+            # self.a_linears[t] = nn.Linear(out_dim,  out_dim)
+            # self.skip[t] = nn.Parameter(torch.ones(1))
+            if use_norm:
+                self.norms[t] = nn.LayerNorm(out_dim)
+        self.relation_pri = nn.ParameterDict()
+        self.relation_att = nn.ParameterDict()
+        self.relation_msg = nn.ParameterDict()
+        for etype in etypes:
+            self.relation_pri[etype] = nn.Parameter(torch.ones(self.n_heads))
+            self.relation_att[etype] = nn.Parameter(torch.Tensor(n_heads, self.d_k, self.d_k))
+            self.relation_msg[etype] = nn.Parameter(torch.Tensor(n_heads, self.d_k, self.d_k))
+
+        self.relation_pri_cau = nn.ParameterDict()
+        self.relation_att_cau = nn.ParameterDict()
+        self.relation_msg_cau = nn.ParameterDict()
+        for etype in ['tw','tt','td']:
+            self.relation_pri_cau[etype] = nn.Parameter(torch.ones(self.n_heads))
+            self.relation_att_cau[etype] = nn.Parameter(torch.Tensor(n_heads, self.d_k, self.d_k))
+            self.relation_msg_cau[etype] = nn.Parameter(torch.Tensor(n_heads, self.d_k, self.d_k))
+        '''    
+        self.cau_filter = nn.ParameterDict()
+        for cau_type in ['pos','neg','rdm']:
+            self.cau_filter[cau_type] = nn.Parameter(torch.Tensor(n_heads, self.d_k, self.d_k))
+        '''
+        self.cau_filter = nn.Parameter(torch.Tensor(3, n_heads, self.d_k, self.d_k))
+        self.drop           = nn.Dropout(dropout)
+        # self.rnn = nn.RNNCell(out_dim, out_dim)
+        self.sparsemax = Sparsemax(dim=1)
+        self.init_weights()
+
+    def init_weights(self):
+        for p in self.parameters():
+            if p.data.ndimension() >= 2:
+                nn.init.xavier_uniform_(p.data, gain=nn.init.calculate_gain('relu'))
+            else:
+                stdv = 1. / math.sqrt(p.size(0))
+                p.data.uniform_(-stdv, stdv)
+
+    def edge_attention(self, etype):
+        def msg_func(edges):
+            relation_att = self.relation_att[etype]
+            relation_pri = self.relation_pri[etype]
+            relation_msg = self.relation_msg[etype] 
+            key   = torch.bmm(edges.src['k'].transpose(1,0), relation_att).transpose(1,0)
+            att   = (edges.dst['q'] * key).sum(dim=-1) * relation_pri / self.sqrt_dk
+            val   = torch.bmm(edges.src['v'].transpose(1,0), relation_msg).transpose(1,0)
+            cau_att = None
+            cau_val = None
+            if etype in ['tw','tt','td']:
+                # if src is causal node
+                # causal edges
+                # src node 
+                cau_types = edges.src['cau_type'] # 0,1,2,3  learn and mask out 0 type
+                relation_att_cau = self.relation_att_cau[etype]
+                relation_pri_cau = self.relation_pri_cau[etype]
+                relation_msg_cau = self.relation_msg_cau[etype] 
+                cau_key = torch.bmm(edges.src['k'].transpose(1,0), relation_att_cau).transpose(1,0)
+                effect = self.cau_filter
+                effect_mask = effect[cau_types]
+                n, n_head, d_k, _ = effect_mask.size()
+                mul1 = cau_key.reshape(-1,1,d_k)
+                mul2 = effect_mask.reshape(-1,d_k,d_k)
+                # print(mul1.shape,mul2.shape,'========')
+                masked_effect = torch.bmm(mul1,mul2)
+                masked_effect = masked_effect.reshape(n,n_head,-1) 
+                cau_att   = (edges.dst['q'] * masked_effect).sum(dim=-1) * relation_pri_cau / self.sqrt_dk
+                cau_val   = torch.bmm(edges.src['v'].transpose(1,0) + self.time_emb, relation_msg_cau).transpose(1,0)
+                # print(cau_key.shape,'cau_key',cau_att.shape,'cau_att',cau_val.shape,'cau_val')
+                return {'a': att, 'v': val, 'ca':cau_att,'cv':cau_val}
+            return {'a': att, 'v': val}
+        return msg_func
+    
+    def message_func(self, edges):
+        # if 'timeh' in edges.data:
+        #     # print(edges.data['v'].shape,edges.data['timeh'].shape,'==')
+        #     edges.data['v'] += edges.data['timeh'].unsqueeze(1)
+        if 'ca' in edges.data:
+            # print('=======')
+            # print(edges.data['ca'])
+            return {'v': edges.data['v'], 'a': edges.data['a'], 'ca':edges.data.pop('ca'),'cv':edges.data.pop('cv')}
+        return {'v': edges.data['v'], 'a': edges.data['a']}
+    
+    def reduce_func(self, nodes):
+
+        att = F.softmax(nodes.mailbox['a'], dim=1)
+        h   = torch.sum(att.unsqueeze(dim = -1) * nodes.mailbox['v'], dim=1)
+        if 'ca' in nodes.mailbox:
+            cau_att = F.softmax(nodes.mailbox['ca'], dim=1) # spasemax TODO
+            cau_h   = torch.sum(cau_att.unsqueeze(dim = -1) * nodes.mailbox['cv'], dim=1)
+            h += cau_h
+
+        return {'t': h.view(-1, self.out_dim)}
+
+    def forward(self, G, inp_key, out_key):
+        # node_dict, edge_dict = G.node_dict, G.edge_dict
+        self.time_emb = G.time_emb
+        edge_dict = []
+        for srctype, etype, dsttype in G.canonical_etypes:
+            # if etype == 'ww':
+            #     continue
+            edge_dict.append(etype)
+            # print(srctype, etype, dsttype)
+            k_linear = self.k_linears[srctype]
+            v_linear = self.v_linears[srctype] 
+            q_linear = self.q_linears[dsttype]
+            
+            G.nodes[srctype].data['k'] = k_linear(G.nodes[srctype].data[inp_key]).view(-1, self.n_heads, self.d_k)
+            G.nodes[srctype].data['v'] = v_linear(G.nodes[srctype].data[inp_key]).view(-1, self.n_heads, self.d_k)
+            G.nodes[dsttype].data['q'] = q_linear(G.nodes[dsttype].data[inp_key]).view(-1, self.n_heads, self.d_k)
+            
+            G.apply_edges(func=self.edge_attention(etype), etype=etype)
+           
+        G.multi_update_all({etype : (self.message_func, self.reduce_func) \
+                            for etype in edge_dict}, cross_reducer = 'mean')
+        
+        for ntype in G.ntypes:
+            # alpha = torch.sigmoid(self.skip[ntype])
+            # trans_out = self.a_linears[ntype](G.nodes[ntype].data.pop('t') + G.time_emb) # TODO h? or ht
+            # trans_out = trans_out * alpha + G.nodes[ntype].data[inp_key] * (1-alpha)
+            trans_out = G.nodes[ntype].data.pop('t') #+ G.time_emb
+            trans_out = F.relu(trans_out)
+            if self.use_norm:
+                G.nodes[ntype].data[out_key] = self.drop(self.norms[ntype](trans_out))
+            else:
+                G.nodes[ntype].data[out_key] = self.drop(trans_out)
+
  
 class SeqCauHGTLayer(nn.Module):
     def __init__(self, in_dim, out_dim, ntypes, etypes, n_heads, dropout = 0.5, use_norm = False, device=torch.device("cpu")):
@@ -900,6 +1050,148 @@ class SeqCauHGTLayer(nn.Module):
                 G.nodes[ntype].data[out_key] = self.drop(trans_out)
 
  
+class SeqCauHGTLayer2(nn.Module):
+    def __init__(self, in_dim, out_dim, ntypes, etypes, n_heads, dropout = 0.5, use_norm = False, device=torch.device("cpu")):
+        super().__init__()
+        self.in_dim        = in_dim
+        self.out_dim       = out_dim
+        self.etypes        = etypes
+        self.ntypes        = ntypes
+        self.n_heads       = n_heads
+        self.d_k           = out_dim // n_heads
+        self.sqrt_dk       = math.sqrt(self.d_k)
+        self.device        = device
+        self.use_norm    = use_norm
+        self.k_linears   = nn.ModuleDict()
+        self.q_linears   = nn.ModuleDict()
+        self.v_linears   = nn.ModuleDict()
+        # self.a_linears   = nn.ModuleDict()
+        self.norms       = nn.ModuleDict()
+        # self.skip = nn.ParameterDict() 
+        for t in ntypes:
+            self.k_linears[t] = nn.Linear(in_dim,   out_dim)
+            self.q_linears[t] = nn.Linear(in_dim,   out_dim)
+            self.v_linears[t] = nn.Linear(in_dim,   out_dim)
+            # self.a_linears[t] = nn.Linear(out_dim,  out_dim)
+            # self.skip[t] = nn.Parameter(torch.ones(1))
+            if use_norm:
+                self.norms[t] = nn.LayerNorm(out_dim)
+        self.relation_pri = nn.ParameterDict()
+        self.relation_att = nn.ParameterDict()
+        self.relation_msg = nn.ParameterDict()
+        for etype in etypes:
+            self.relation_pri[etype] = nn.Parameter(torch.ones(self.n_heads))
+            self.relation_att[etype] = nn.Parameter(torch.Tensor(n_heads, self.d_k, self.d_k))
+            self.relation_msg[etype] = nn.Parameter(torch.Tensor(n_heads, self.d_k, self.d_k))
+
+        self.relation_pri_cau = nn.ParameterDict()
+        self.relation_att_cau = nn.ParameterDict()
+        self.relation_msg_cau = nn.ParameterDict()
+        for etype in ['tw','tt','td']:
+            self.relation_pri_cau[etype] = nn.Parameter(torch.ones(self.n_heads))
+            self.relation_att_cau[etype] = nn.Parameter(torch.Tensor(n_heads, self.d_k, self.d_k))
+            self.relation_msg_cau[etype] = nn.Parameter(torch.Tensor(n_heads, self.d_k, self.d_k))
+        self.cau_filter = nn.ParameterDict()
+        for cau_type in ['pos','neg']:
+            self.cau_filter[cau_type] = nn.Parameter(torch.Tensor(n_heads, self.d_k, self.d_k))
+        self.drop           = nn.Dropout(dropout)
+        self.sparsemax = Sparsemax(dim=1)
+        self.init_weights()
+
+    def init_weights(self):
+        for p in self.parameters():
+            if p.data.ndimension() >= 2:
+                nn.init.xavier_uniform_(p.data, gain=nn.init.calculate_gain('relu'))
+            else:
+                stdv = 1. / math.sqrt(p.size(0))
+                p.data.uniform_(-stdv, stdv)
+
+    def edge_attention(self, etype):
+        def msg_func(edges):
+            # print(etype,'etype')
+            relation_att = self.relation_att[etype]
+            relation_pri = self.relation_pri[etype]
+            relation_msg = self.relation_msg[etype] 
+            # print(relation_msg.shape,'relation_msg')
+            key   = torch.bmm(edges.src['k'].transpose(1,0), relation_att).transpose(1,0)
+            att   = (edges.dst['q'] * key).sum(dim=-1) * relation_pri / self.sqrt_dk
+            val   = torch.bmm(edges.src['v'].transpose(1,0), relation_msg).transpose(1,0)
+            cau_att = None
+            cau_val = None
+            if etype in ['tw','tt','td']:
+                cau_types = edges.src['cau_type'] # 0,1,2,3  learn and mask out 0 type
+                relation_att_cau = self.relation_att_cau[etype]
+                relation_pri_cau = self.relation_pri_cau[etype]
+                relation_msg_cau = self.relation_msg_cau[etype]
+                cau_key = torch.bmm(edges.src['k'].transpose(1,0), relation_att_cau).transpose(1,0)
+                
+                pos_effect = self.cau_filter['pos']
+                neg_effect = self.cau_filter['neg']
+                rdm_effect = torch.zeros(neg_effect.size()).to(self.device) # TODO
+                effect = torch.stack((rdm_effect,pos_effect,neg_effect),dim=0)
+                effect_mask = effect[cau_types]
+                n, n_head, d_k, _ = effect_mask.size()
+                mul1 = cau_key.reshape(-1,1,d_k)
+                mul2 = effect_mask.reshape(-1,d_k,d_k)
+                masked_effect = torch.bmm(mul1,mul2)
+                masked_effect = masked_effect.reshape(n,n_head,-1)
+                cau_att   = (edges.dst['q'] * masked_effect).sum(dim=-1) * relation_pri_cau / self.sqrt_dk
+                cau_val   = torch.bmm(edges.src['v'].transpose(1,0) + self.time_emb, relation_msg_cau).transpose(1,0)
+                return {'a': att, 'v': val, 'ca':cau_att,'cv':cau_val}
+            return {'a': att, 'v': val}
+        return msg_func
+    
+    def message_func(self, edges):
+        if 'ca' in edges.data:
+            # print('=======')
+            # print(edges.data['ca'])
+            return {'v': edges.data['v'], 'a': edges.data['a'], 'ca':edges.data.pop('ca'),'cv':edges.data.pop('cv')}
+        return {'v': edges.data['v'], 'a': edges.data['a']}
+    
+    def reduce_func(self, nodes):
+
+        att = F.softmax(nodes.mailbox['a'], dim=1)
+        h   = torch.sum(att.unsqueeze(dim = -1) * nodes.mailbox['v'], dim=1)
+        if 'ca' in nodes.mailbox:
+            cau_att = softmax_custom(nodes.mailbox['ca'], dim=1)
+            cau_h   = torch.sum(cau_att.unsqueeze(dim = -1) * nodes.mailbox['cv'], dim=1)
+            h += cau_h
+
+        return {'t': h.view(-1, self.out_dim)}
+
+    def forward(self, G, inp_key, out_key):
+        self.time_emb = G.time_emb
+        edge_dict = []
+        for srctype, etype, dsttype in G.canonical_etypes:
+            # if etype == 'ww':
+            #     continue
+            edge_dict.append(etype)
+            # print(srctype, etype, dsttype)
+            k_linear = self.k_linears[srctype]
+            v_linear = self.v_linears[srctype] 
+            q_linear = self.q_linears[dsttype]
+            
+            G.nodes[srctype].data['k'] = k_linear(G.nodes[srctype].data[inp_key]).view(-1, self.n_heads, self.d_k)
+            G.nodes[srctype].data['v'] = v_linear(G.nodes[srctype].data[inp_key]).view(-1, self.n_heads, self.d_k)
+            G.nodes[dsttype].data['q'] = q_linear(G.nodes[dsttype].data[inp_key]).view(-1, self.n_heads, self.d_k)
+            
+            G.apply_edges(func=self.edge_attention(etype), etype=etype)
+           
+        G.multi_update_all({etype : (self.message_func, self.reduce_func) \
+                            for etype in edge_dict}, cross_reducer = 'mean')
+        
+        for ntype in G.ntypes:
+            # alpha = torch.sigmoid(self.skip[ntype])
+            # trans_out = self.a_linears[ntype](G.nodes[ntype].data.pop('t') + G.time_emb) # TODO h? or ht
+            # trans_out = trans_out * alpha + G.nodes[ntype].data[inp_key] * (1-alpha)
+            trans_out = G.nodes[ntype].data.pop('t') #+ G.time_emb
+            trans_out = F.relu(trans_out)
+            if self.use_norm:
+                G.nodes[ntype].data[out_key] = self.drop(self.norms[ntype](trans_out))
+            else:
+                G.nodes[ntype].data[out_key] = self.drop(trans_out)
+
+
 
 def softmax(x):
     return torch.exp(x) / torch.exp(x).sum(axis=0)
@@ -1115,6 +1407,36 @@ class GlobalAttentionPooling(nn.Module):
                 # print('pool - ',feat.shape)
                 gate = self.gate_nns[ntype](feat) # feat[ntype] 
                 feat = self.feat_nns[ntype](feat)
+                # print('gate - ',gate.shape,feat.shape)
+                graph.nodes[ntype].data['gate'] = gate
+                gate = dgl.softmax_nodes(graph, 'gate',ntype=ntype)
+                graph.nodes[ntype].data['r'] = feat * gate
+                readout[ntype] = dgl.sum_nodes(graph, 'r', ntype=ntype)
+                # h
+            # graph.ndata['gate'] = gate
+            # gate = dgl.softmax_nodes(graph, 'gate')
+            # graph.ndata['r'] = feat * gate
+            # readout = dgl.sum_nodes(graph, 'r')
+            return readout
+
+
+class GlobalAttentionPooling2(nn.Module):
+    def __init__(self, h_inp, h_hid):
+        super().__init__()
+        self.gate_nns = nn.ModuleDict({
+            'word':nn.Linear(h_inp, 1),
+            'topic':nn.Linear(h_inp, 1),
+            'doc':nn.Linear(h_inp, 1),
+        })
+
+    def forward(self, graph, inp_key_dict):
+        with graph.local_scope():
+            readout = {}
+
+            for ntype in inp_key_dict:
+                inp_key = inp_key_dict[ntype]
+                feat = graph.nodes[ntype].data[inp_key]
+                gate = self.gate_nns[ntype](feat) # feat[ntype] 
                 # print('gate - ',gate.shape,feat.shape)
                 graph.nodes[ntype].data['gate'] = gate
                 gate = dgl.softmax_nodes(graph, 'gate',ntype=ntype)
@@ -3474,6 +3796,163 @@ class Temp8(nn.Module):
         y_pred = torch.sigmoid(y_pred)
         return loss, y_pred
 
+
+
+class Temp81(nn.Module):
+    def __init__(self, n_inp, n_hid, n_layers, n_heads, activation, device, seq_len, num_topic=50, vocab_size=15000, dropout=0.5, pool='max', use_norm = True, with_rdm=False):
+        super().__init__()
+        self.n_inp = n_inp
+        self.n_hid = n_hid
+        self.n_layers = n_layers
+        self.vocab_size = vocab_size
+        self.num_topic = num_topic
+        self.seq_len = seq_len
+        self.device = device
+        self.pool = pool
+        self.with_rdm = with_rdm
+        self.dropout = nn.Dropout(dropout)
+        self.word_embeds = None
+        # self.topic_gen_embeds = nn.Parameter(torch.Tensor(10, n_hid))
+        # self.topic_weights = nn.Parameter(torch.Tensor(num_topic, 10))
+        self.topic_embeds = nn.Parameter(torch.Tensor(num_topic, n_hid))
+        self.doc_gen_embeds = nn.Parameter(torch.Tensor(1, n_hid))
+        self.time_emb = TemporalEncoding(n_hid // n_heads, seq_len) 
+        if self.pool == 'attn':
+            self.attn_pool = GlobalAttentionPooling2(n_hid, n_hid)
+        self.temp_skip = nn.ParameterDict({
+                'word': nn.Parameter(torch.ones(1)),
+                'topic': nn.Parameter(torch.ones(1)),
+        }) 
+        self.adapt_ws  = nn.Linear(n_inp,  n_hid)
+        etypes = ['wt','wd','td','tt','ww','tw','dt','dw']
+        ntypes = ['word','topic','doc']
+        self.gcs = nn.ModuleList()
+        for _ in range(n_layers):
+            if self.with_rdm:
+                self.gcs.append(SeqCauHGTLayer_w_rdm2(n_hid, n_hid, ntypes, etypes, n_heads, use_norm = use_norm, device=self.device))
+            else:
+                self.gcs.append(SeqCauHGTLayer2(n_hid, n_hid, ntypes, etypes, n_heads, use_norm = use_norm, device=self.device))
+        self.out_layer = nn.Sequential(
+                # nn.Linear(n_hid*3, n_hid),
+                # nn.BatchNorm1d(n_hid),
+                nn.Linear(n_hid*3, 1) 
+        )
+        self.threshold = 0.5
+        # self.out_func = torch.sigmoid
+        self.criterion = F.binary_cross_entropy_with_logits #soft_cross_entropy
+        self.init_weights()
+
+    def init_weights(self):
+        for p in self.parameters():
+            if p.data.ndimension() >= 2:
+                nn.init.xavier_uniform_(p.data, gain=nn.init.calculate_gain('relu'))
+            else:
+                stdv = 1. / math.sqrt(p.size(0))
+                p.data.uniform_(-stdv, stdv)
+
+    def forward(self, g_list, y_data): 
+        bg = dgl.batch(g_list).to(self.device)  
+        word_emb = self.word_embeds[bg.nodes['word'].data['id'].long()].view(-1, self.word_embeds.shape[1])
+        topic_emb = self.topic_embeds[bg.nodes['topic'].data['id'].long()].view(-1, self.topic_embeds.shape[1])
+        doc_emb = self.doc_gen_embeds.repeat(bg.number_of_nodes('doc'),1)
+        word_emb = self.adapt_ws(word_emb)
+        bg.nodes['word'].data['h0'] = word_emb
+        # topic_ids = bg.nodes['topic'].data['id'].long()
+        effect = bg.nodes['topic'].data['effect'].to_dense()
+        effect = (effect >0)*1. + (effect < 0)*(-1.)
+        effect = effect.sum(-1)
+        effect = ((effect > 0)*1.) + ((effect < 0)*2.)
+
+        # print(effect,'2')
+
+        # exit()
+        # t1 = time.time()
+        # pos_effect = ((effect >0)*1.).unsqueeze(-1)
+        # neg_effect = ((effect <0)*1.).unsqueeze(-1)
+        # # rdm_effect = ((effect == 0)*1.).unsqueeze(-1) 
+        # cau_embeds = pos_effect * self.cau_embeds_pos + neg_effect * self.cau_embeds_neg #+ rdm_effect * self.cau_embeds_rdm
+        # print(time.time()-t1,'====t1')
+        bg.nodes['topic'].data['cau_type'] = effect.long() 
+        bg.nodes['topic'].data['h0'] = topic_emb
+        bg.nodes['doc'].data['h0'] = doc_emb 
+        # word and topic take info from last time step
+        out_key_dict = {'doc':'ht','topic':'ht-1','word':'ht-1'}
+     
+        for ntype in ['word','topic']: 
+            bg.nodes[ntype].data['ht-1'] = torch.zeros(bg.nodes[ntype].data['h0'].size()).to(self.device)
+        
+        bg.nodes['doc'].data['ht'] = bg.nodes['doc'].data['h0']
+
+        tt_edges_idx = list(range(len(bg.edges(etype='tt'))))
+        for curr_time in range(self.seq_len):
+            ww_edges_idx = (bg.edges['ww'].data['time']==curr_time).nonzero(as_tuple=False).view(-1).cpu().detach().tolist()
+            wt_edges_idx = (bg.edges['wt'].data['time']==curr_time).nonzero(as_tuple=False).view(-1).cpu().detach().tolist()
+            wd_edges_idx = (bg.edges['wd'].data['time']==curr_time).nonzero(as_tuple=False).view(-1).cpu().detach().tolist()
+            td_edges_idx = (bg.edges['td'].data['time']==curr_time).nonzero(as_tuple=False).view(-1).cpu().detach().tolist()
+            if len(ww_edges_idx) <= 0:
+                continue
+            bg_cpu = bg.to('cpu')
+            sub_bg = dgl.edge_subgraph(bg_cpu, 
+                                        {('word', 'ww', 'word'): ww_edges_idx,
+                                        ('topic', 'tt', 'topic'): tt_edges_idx,
+                                        ('word', 'wt', 'topic'): wt_edges_idx,
+                                        ('topic', 'td', 'doc'): td_edges_idx,
+                                        ('word', 'wd', 'doc'):wd_edges_idx,
+                                        ('topic', 'tw', 'word'): wt_edges_idx,
+                                        ('doc', 'dt', 'topic'): td_edges_idx,
+                                        ('doc', 'dw', 'word'):wd_edges_idx
+                                        }, # preserve_nodes=True
+                                        )
+            sub_bg = sub_bg.to(self.device)
+            orig_node_ids = sub_bg.ndata[dgl.NID] # {'word':,'topic':,'doc':}
+            time_emb = self.time_emb(torch.tensor(curr_time).to(self.device))
+            sub_bg.time_emb = time_emb
+            # print(time_emb)
+            """
+            time_emb = self.time_emb(torch.tensor(curr_time).to(self.device))
+            causal = self.cau_time_attn(time_emb.unsqueeze(1),sub_bg.nodes['topic'].data['c'])
+            # print(causal,'========')
+            tmp = self.dropout(sub_bg.nodes['topic'].data['ht-1']) @ self.cau_w 
+            score = torch.sum(tmp * causal, dim=-1).unsqueeze(-1)
+            # print(score,'score')
+            sub_bg.nodes['topic'].data['h0'] = score * causal + (1-score) * sub_bg.nodes['topic'].data['h0']
+            """
+            for i in range(self.n_layers):
+                if i == 0:
+                    self.gcs[i](sub_bg, 'h0', 'ht')
+                else:
+                    self.gcs[i](sub_bg, 'ht', 'ht')
+            for ntype in ['word','topic']:
+                alpha = torch.sigmoid(self.temp_skip[ntype])
+                sub_bg.nodes[ntype].data['ht-1'] = alpha * sub_bg.nodes[ntype].data['ht'] + (1-alpha) * sub_bg.nodes[ntype].data['ht-1']
+            
+            for ntype in out_key_dict:
+                key = out_key_dict[ntype]
+                bg.nodes[ntype].data[key][orig_node_ids[ntype].long()] = sub_bg.nodes[ntype].data[key]
+            
+        if self.pool == 'max':
+            global_info = []
+            for ntype in out_key_dict:
+                key = out_key_dict[ntype]
+                global_info.append( dgl.max_nodes(bg, feat=key,ntype=ntype))
+            global_info = torch.cat(global_info,-1)
+        elif self.pool == 'mean':
+            global_info = []
+            for ntype in out_key_dict:
+                key = out_key_dict[ntype]
+                global_info.append( dgl.mean_nodes(bg, feat=key,ntype=ntype))
+            global_info = torch.cat(global_info,-1)
+        elif self.pool == 'attn':
+            attn_pool_out = self.attn_pool(bg, out_key_dict)
+            global_info = []
+            for ntype in attn_pool_out.keys():
+                global_info.append(attn_pool_out[ntype])
+            global_info = torch.cat(global_info,dim=-1)
+
+        y_pred = self.out_layer(global_info)
+        loss = self.criterion(y_pred.view(-1), y_data) 
+        y_pred = torch.sigmoid(y_pred)
+        return loss, y_pred
 
 
 
