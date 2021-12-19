@@ -13,7 +13,8 @@ except:
 filenames = ['dyn_tf_2014-2015_600.pkl','dyn_tf_2015-2016_600.pkl','dyn_tf_2016-2017_600.pkl', \
             'dyn_tf_2014-2015_900.pkl','dyn_tf_2015-2016_900.pkl','dyn_tf_2016-2017_900.pkl']
 
-edges = ['wd','td','tt','ww','tw','dw']
+# edges = ['wd','dw','td','tt','ww','tw']
+edges = [('word', 'wd', 'doc'), ('topic', 'td', 'doc'), ('topic', 'tt', 'topic'), ('word', 'ww', 'word'), ('topic', 'tw', 'word'), ('doc', 'dw', 'word')]
 for file in filenames:
     new_data = []
     print(file)
