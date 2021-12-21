@@ -236,9 +236,9 @@ class StaticGraphDataNew(data.Dataset):
             causal_weight_tensor = torch.from_numpy(causal_weight)#.to_sparse()
             if isinstance(g, list):
                   for i in range(len(g)):
-                        g[i].nodes['topic'].data['effect'] = causal_weight_tensor[g[i].nodes('topic').numpy()].to_sparse()
+                        g[i].nodes['topic'].data['effect'] = causal_weight_tensor[g[i].nodes('topic').numpy()]#.to_sparse()
             else:
-                  g.nodes['topic'].data['effect'] = causal_weight_tensor[g.nodes('topic').numpy()].to_sparse()
+                  g.nodes['topic'].data['effect'] = causal_weight_tensor[g.nodes('topic').numpy()]#.to_sparse()
             return g, self.y_data[index]
 
 
