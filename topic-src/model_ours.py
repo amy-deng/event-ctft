@@ -824,7 +824,8 @@ class SeqCauHGTLayer_w_rdm2(nn.Module):
                 mul2 = effect_mask.reshape(-1,d_k,d_k)
                 # print(mul1.shape,mul2.shape,'========')
                 masked_effect = torch.bmm(mul1,mul2)
-                masked_effect = masked_effect.reshape(n,n_head,-1) 
+                # print(masked_effect.shape,'masked_effect')
+                masked_effect = masked_effect.reshape(n,n_head,d_k) 
                 cau_att   = (edges.dst['q'] * masked_effect).sum(dim=-1) * relation_pri_cau / self.sqrt_dk
                 cau_val   = torch.bmm(edges.src['v'].transpose(1,0) + self.time_emb, relation_msg_cau).transpose(1,0)
                 # print(cau_key.shape,'cau_key',cau_att.shape,'cau_att',cau_val.shape,'cau_val')

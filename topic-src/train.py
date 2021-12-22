@@ -62,6 +62,7 @@ from torch.utils.data.sampler import SubsetRandomSampler
 from models import *
 from model_baselines import *
 from model_ours import *
+from model_ours2 import *
 # from model_gcn import *
 # from model_gat import *
 # from model_hgt import *
@@ -158,6 +159,10 @@ def prepare(args,word_embeds,device):
     elif args.model == 'temp11':
         model = Temp11(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
         num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True)
+    elif args.model == 'temp':
+        model = ours_temp(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
+        num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True)
+    
     elif args.model == 'temp2':
         model = Temp2(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
         num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True)
@@ -190,6 +195,9 @@ def prepare(args,word_embeds,device):
         num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True,with_rdm=args.with_rdm)
     elif args.model == 'temp81':
         model = Temp81(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
+        num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True,with_rdm=args.with_rdm)
+    elif args.model == 'causal':
+        model = ours_causal(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
         num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True,with_rdm=args.with_rdm)
     elif args.model == 'temp82':
         model = Temp82(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
