@@ -174,10 +174,12 @@ class causal_message_passing_rdm(nn.Module):
         self.relation_pri_cau = nn.ParameterDict()
         # self.relation_att_cau = nn.ParameterDict()
         self.relation_msg_cau = nn.ParameterDict()
+        self.comb_pri = nn.ParameterDict()
         for etype in ['tw','tt','td']:
             self.relation_pri_cau[etype] = nn.Parameter(torch.ones(self.n_heads))
             # self.relation_att_cau[etype] = nn.Parameter(torch.Tensor(n_heads, self.d_k, self.d_k))
             self.relation_msg_cau[etype] = nn.Parameter(torch.Tensor(n_heads, self.d_k, self.d_k))
+            self.comb_pri[etype] = nn.Parameter(torch.ones(1))
         '''    
         self.cau_filter = nn.ParameterDict()
         for cau_type in ['pos','neg','rdm']:
@@ -244,16 +246,25 @@ class causal_message_passing_rdm(nn.Module):
             return {'v': edges.data['v'], 'a': edges.data['a'], 'ca':edges.data.pop('ca'),'cv':edges.data.pop('cv')}
         return {'v': edges.data['v'], 'a': edges.data['a']}
     
-    def reduce_func(self, nodes):
-
-        att = F.softmax(nodes.mailbox['a'], dim=1)
-        h   = torch.sum(att.unsqueeze(dim = -1) * nodes.mailbox['v'], dim=1)
-        if 'ca' in nodes.mailbox:
-            cau_att = F.softmax(nodes.mailbox['ca'], dim=1) # spasemax TODO
-            cau_h   = torch.sum(cau_att.unsqueeze(dim = -1) * nodes.mailbox['cv'], dim=1)
-            h += cau_h
-
-        return {'t': h.view(-1, self.out_dim)}
+    # def reduce_func(self, nodes):
+    #     att = F.softmax(nodes.mailbox['a'], dim=1)
+    #     h   = torch.sum(att.unsqueeze(dim = -1) * nodes.mailbox['v'], dim=1)
+    #     if 'ca' in nodes.mailbox:
+    #         cau_att = F.softmax(nodes.mailbox['ca'], dim=1) # spasemax TODO
+    #         cau_h   = torch.sum(cau_att.unsqueeze(dim = -1) * nodes.mailbox['cv'], dim=1)
+    #         h = h + cau_h
+    #     return {'t': h.view(-1, self.out_dim)}
+    
+    def reduce_func(self, etype):
+        def reduce(nodes):
+            att = F.softmax(nodes.mailbox['a'], dim=1)
+            h   = torch.sum(att.unsqueeze(dim = -1) * nodes.mailbox['v'], dim=1)
+            if 'ca' in nodes.mailbox:
+                cau_att = F.softmax(nodes.mailbox['ca'], dim=1) # spasemax TODO
+                cau_h   = torch.sum(cau_att.unsqueeze(dim = -1) * nodes.mailbox['cv'], dim=1)
+                h = h + cau_h * self.comb_pri[etype]
+            return {'t': h.view(-1, self.out_dim)}
+        return reduce
 
     def forward(self, G, inp_key, out_key):
         # node_dict, edge_dict = G.node_dict, G.edge_dict
@@ -274,7 +285,7 @@ class causal_message_passing_rdm(nn.Module):
             
             G.apply_edges(func=self.edge_attention(etype), etype=etype)
            
-        G.multi_update_all({etype : (self.message_func, self.reduce_func) \
+        G.multi_update_all({etype : (self.message_func, self.reduce_func(etype)) \
                             for etype in edge_dict}, cross_reducer = 'mean')
         
         for ntype in G.ntypes:
