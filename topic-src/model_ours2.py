@@ -164,20 +164,20 @@ class causal_message_passing_rdm(nn.Module):
             if use_norm:
                 self.norms[t] = nn.LayerNorm(out_dim)
         self.relation_pri = nn.ParameterDict()
-        # self.relation_att = nn.ParameterDict()
+        self.relation_att = nn.ParameterDict()
         self.relation_msg = nn.ParameterDict()
         for etype in etypes:
             self.relation_pri[etype] = nn.Parameter(torch.ones(self.n_heads))
-            # self.relation_att[etype] = nn.Parameter(torch.Tensor(n_heads, self.d_k, self.d_k))
+            self.relation_att[etype] = nn.Parameter(torch.Tensor(n_heads, self.d_k, self.d_k))
             self.relation_msg[etype] = nn.Parameter(torch.Tensor(n_heads, self.d_k, self.d_k))
 
         self.relation_pri_cau = nn.ParameterDict()
-        # self.relation_att_cau = nn.ParameterDict()
+        self.relation_att_cau = nn.ParameterDict()
         self.relation_msg_cau = nn.ParameterDict()
         self.comb_pri = nn.ParameterDict()
         for etype in ['tw','tt','td']:
             self.relation_pri_cau[etype] = nn.Parameter(torch.ones(self.n_heads))
-            # self.relation_att_cau[etype] = nn.Parameter(torch.Tensor(n_heads, self.d_k, self.d_k))
+            self.relation_att_cau[etype] = nn.Parameter(torch.Tensor(n_heads, self.d_k, self.d_k))
             self.relation_msg_cau[etype] = nn.Parameter(torch.Tensor(n_heads, self.d_k, self.d_k))
             self.comb_pri[etype] = nn.Parameter(torch.ones(n_heads, self.d_k))
         '''    
@@ -215,11 +215,11 @@ class causal_message_passing_rdm(nn.Module):
                 # causal edges
                 # src node 
                 cau_types = edges.src['cau_type'] # 0,1,2,3  learn and mask out 0 type
-                # relation_att_cau = self.relation_att_cau[etype]
+                relation_att_cau = self.relation_att_cau[etype]
                 relation_pri_cau = self.relation_pri_cau[etype]
                 relation_msg_cau = self.relation_msg_cau[etype] 
-                # cau_key = torch.bmm(edges.src['k'].transpose(1,0), relation_att_cau).transpose(1,0)
-                cau_key = edges.src['k']
+                cau_key = torch.bmm(edges.src['k'].transpose(1,0), relation_att_cau).transpose(1,0)
+                # cau_key = edges.src['k']
                 effect = self.cau_filter
                 effect_mask = effect[cau_types]
                 n, n_head, d_k, _ = effect_mask.size()
