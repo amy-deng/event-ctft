@@ -1,0 +1,113 @@
+
+
+python train.py --dataset AFG_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --gpu 4 -m causal --n-hidden 64 --n-layers 1 --note 900sig1 --train 0.4 --n-topics 60 --causalfiles causal_topics_0.01 --with_rdm --patience 20
+
+python train.py --dataset AFG_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --gpu 4 -m causal --n-hidden 64 --n-layers 1 --note 900sig5 --train 0.4 --n-topics 60 --causalfiles causal_topics_0.05 --with_rdm --patience 20
+
+
+python train.py --dataset AFG_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --gpu 4 -m causal --n-hidden 64 --n-layers 1 --note 900sig1 --train 0.2 --n-topics 60 --causalfiles causal_topics_0.01 --with_rdm --patience 20
+
+python train.py --dataset AFG_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --gpu 4 -m causal --n-hidden 64 --n-layers 1 --note 900sig5 --train 0.2 --n-topics 60 --causalfiles causal_topics_0.05 --with_rdm --patience 20
+
+
+
+python train.py --dataset AFG_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 3 --gpu 4 -m causal --n-hidden 64 --n-layers 1 --note 900sig1 --train 0.4 --n-topics 60 --causalfiles causal_topics_0.01 --with_rdm --patience 20
+
+python train.py --dataset AFG_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 3 --gpu 4 -m causal --n-hidden 64 --n-layers 1 --note 900sig5 --train 0.4 --n-topics 60 --causalfiles causal_topics_0.05 --with_rdm --patience 20
+
+
+python train.py --dataset AFG_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 3 --gpu 4 -m causal --n-hidden 64 --n-layers 1 --note 900sig1 --train 0.2 --n-topics 60 --causalfiles causal_topics_0.01 --with_rdm --patience 20
+
+python train.py --dataset AFG_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 3 --gpu 4 -m causal --n-hidden 64 --n-layers 1 --note 900sig5 --train 0.2 --n-topics 60 --causalfiles causal_topics_0.05 --with_rdm --patience 20
+
+-----
+
+python train.py --dataset THA_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --gpu 3 -m causal --n-hidden 64 --n-layers 1 --note 900sig1 --train 0.4 --n-topics 50 --causalfiles causal_topics_0.01 --with_rdm --patience 20
+
+python train.py --dataset THA_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --gpu 3 -m causal --n-hidden 64 --n-layers 1 --note 900sig5 --train 0.4 --n-topics 50 --causalfiles causal_topics_0.05 --with_rdm --patience 20
+
+
+python train.py --dataset THA_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --gpu 3 -m causal --n-hidden 64 --n-layers 1 --note 900sig1 --train 0.2 --n-topics 50 --causalfiles causal_topics_0.01 --with_rdm --patience 20
+
+python train.py --dataset THA_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --gpu 3 -m causal --n-hidden 64 --n-layers 1 --note 900sig5 --train 0.2 --n-topics 50 --causalfiles causal_topics_0.05 --with_rdm --patience 20
+
+
+
+python train.py --dataset THA_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 3 --gpu 3 -m causal --n-hidden 64 --n-layers 1 --note 900sig1 --train 0.4 --n-topics 50 --causalfiles causal_topics_0.01 --with_rdm --patience 20
+
+python train.py --dataset THA_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 3 --gpu 3 -m causal --n-hidden 64 --n-layers 1 --note 900sig5 --train 0.4 --n-topics 50 --causalfiles causal_topics_0.05 --with_rdm --patience 20
+
+
+python train.py --dataset THA_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 3 --gpu 3 -m causal --n-hidden 64 --n-layers 1 --note 900sig1 --train 0.2 --n-topics 50 --causalfiles causal_topics_0.01 --with_rdm --patience 20
+
+python train.py --dataset THA_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 3 --gpu 3 -m causal --n-hidden 64 --n-layers 1 --note 900sig5 --train 0.2 --n-topics 50 --causalfiles causal_topics_0.05 --with_rdm --patience 20
+
+-----
+
+
+
+python train.py --dataset EGY_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --gpu 2 -m causal --n-hidden 64 --n-layers 1 --note 900sig1 --train 0.4 --n-topics 60 --causalfiles causal_topics_0.01 --with_rdm --patience 20
+
+
+python train.py --dataset EGY_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --gpu 2 -m causal --n-hidden 64 --n-layers 1 --note 900sig5 --train 0.4 --n-topics 60 --causalfiles causal_topics_0.05 --with_rdm --patience 20
+
+python train.py --dataset EGY_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --gpu 2 -m causal --n-hidden 64 --n-layers 1 --note 900sig1 --train 0.2 --n-topics 60 --causalfiles causal_topics_0.01 --with_rdm --patience 20
+
+
+python train.py --dataset EGY_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --gpu 2 -m causal --n-hidden 64 --n-layers 1 --note 900sig5 --train 0.2 --n-topics 60 --causalfiles causal_topics_0.05 --with_rdm --patience 20
+
+
+python train.py --dataset EGY_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 3 --gpu 2 -m causal --n-hidden 64 --n-layers 1 --note 900sig1 --train 0.4 --n-topics 60 --causalfiles causal_topics_0.01 --with_rdm --patience 20
+
+
+python train.py --dataset EGY_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 3 --gpu 2 -m causal --n-hidden 64 --n-layers 1 --note 900sig5 --train 0.4 --n-topics 60 --causalfiles causal_topics_0.05 --with_rdm --patience 20
+
+python train.py --dataset EGY_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 3 --gpu 2 -m causal --n-hidden 64 --n-layers 1 --note 900sig1 --train 0.2 --n-topics 60 --causalfiles causal_topics_0.01 --with_rdm --patience 20
+
+
+python train.py --dataset EGY_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 3 --gpu 2 -m causal --n-hidden 64 --n-layers 1 --note 900sig5 --train 0.2 --n-topics 60 --causalfiles causal_topics_0.05 --with_rdm --patience 20
+
+
+------
+
+
+python train.py --dataset RUS_w7h7_mind3n10df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --gpu 0 -m causal --n-hidden 64 --n-layers 1 --note 900sig1 --train 0.4 --n-topics 60 --causalfiles causal_topics_0.01 --with_rdm --patience 20
+python train.py --dataset RUS_w7h7_mind3n10df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --gpu 0 -m causal --n-hidden 64 --n-layers 1 --note 900sig5 --train 0.4 --n-topics 60 --causalfiles causal_topics_0.05 --with_rdm --patience 20
+
+python train.py --dataset RUS_w7h7_mind3n10df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --gpu 0 -m causal --n-hidden 64 --n-layers 1 --note 900sig1 --train 0.2 --n-topics 60 --causalfiles causal_topics_0.01 --with_rdm --patience 20
+python train.py --dataset RUS_w7h7_mind3n10df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --gpu 0 -m causal --n-hidden 64 --n-layers 1 --note 900sig5 --train 0.2 --n-topics 60 --causalfiles causal_topics_0.05 --with_rdm --patience 20
+
+python train.py --dataset RUS_w7h7_mind3n10df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 3 --gpu 0 -m causal --n-hidden 64 --n-layers 1 --note 900sig1 --train 0.4 --n-topics 60 --causalfiles causal_topics_0.01 --with_rdm --patience 20
+python train.py --dataset RUS_w7h7_mind3n10df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 3 --gpu 0 -m causal --n-hidden 64 --n-layers 1 --note 900sig5 --train 0.4 --n-topics 60 --causalfiles causal_topics_0.05 --with_rdm --patience 20
+
+python train.py --dataset RUS_w7h7_mind3n10df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 3 --gpu 0 -m causal --n-hidden 64 --n-layers 1 --note 900sig1 --train 0.2 --n-topics 60 --causalfiles causal_topics_0.01 --with_rdm --patience 20
+python train.py --dataset RUS_w7h7_mind3n10df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 3 --gpu 0 -m causal --n-hidden 64 --n-layers 1 --note 900sig5 --train 0.2 --n-topics 60 --causalfiles causal_topics_0.05 --with_rdm --patience 20
+
+
+-----
+
+
+
+python train.py --dataset EGY_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --gpu 6 -m causal --n-hidden 64 --n-layers 1 --note 900sig1 --train 0.6 --n-topics 60 --causalfiles causal_topics_0.01 --with_rdm --patience 20
+python train.py --dataset EGY_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --gpu 6 -m causal --n-hidden 64 --n-layers 1 --note 900sig5 --train 0.6 --n-topics 60 --causalfiles causal_topics_0.05 --with_rdm --patience 20
+python train.py --dataset EGY_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 3 --gpu 6 -m causal --n-hidden 64 --n-layers 1 --note 900sig1 --train 0.6 --n-topics 60 --causalfiles causal_topics_0.01 --with_rdm --patience 20
+python train.py --dataset EGY_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 3 --gpu 6 -m causal --n-hidden 64 --n-layers 1 --note 900sig5 --train 0.6 --n-topics 60 --causalfiles causal_topics_0.05 --with_rdm --patience 20
+
+python train.py --dataset THA_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --gpu 7 -m causal --n-hidden 64 --n-layers 1 --note 900sig1 --train 0.6 --n-topics 50 --causalfiles causal_topics_0.01 --with_rdm --patience 20
+python train.py --dataset THA_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --gpu 7 -m causal --n-hidden 64 --n-layers 1 --note 900sig5 --train 0.6 --n-topics 50 --causalfiles causal_topics_0.05 --with_rdm --patience 20
+python train.py --dataset THA_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 3 --gpu 7 -m causal --n-hidden 64 --n-layers 1 --note 900sig1 --train 0.6 --n-topics 50 --causalfiles causal_topics_0.01 --with_rdm --patience 20
+python train.py --dataset THA_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 3 --gpu 7 -m causal --n-hidden 64 --n-layers 1 --note 900sig5 --train 0.6 --n-topics 50 --causalfiles causal_topics_0.05 --with_rdm --patience 20
+
+
+python train.py --dataset AFG_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --gpu 8 -m causal --n-hidden 64 --n-layers 1 --note 900sig1 --train 0.6 --n-topics 60 --causalfiles causal_topics_0.01 --with_rdm --patience 20
+python train.py --dataset AFG_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --gpu 8 -m causal --n-hidden 64 --n-layers 1 --note 900sig5 --train 0.6 --n-topics 60 --causalfiles causal_topics_0.05 --with_rdm --patience 20
+python train.py --dataset AFG_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 3 --gpu 8 -m causal --n-hidden 64 --n-layers 1 --note 900sig1 --train 0.6 --n-topics 60 --causalfiles causal_topics_0.01 --with_rdm --patience 20
+python train.py --dataset AFG_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 3 --gpu 8 -m causal --n-hidden 64 --n-layers 1 --note 900sig5 --train 0.6 --n-topics 60 --causalfiles causal_topics_0.05 --with_rdm --patience 20
+
+
+python train.py --dataset RUS_w7h7_mind3n10df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --gpu 9 -m causal --n-hidden 64 --n-layers 1 --note 900sig1 --train 0.6 --n-topics 60 --causalfiles causal_topics_0.01 --with_rdm --patience 20
+python train.py --dataset RUS_w7h7_mind3n10df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --gpu 9 -m causal --n-hidden 64 --n-layers 1 --note 900sig5 --train 0.6 --n-topics 60 --causalfiles causal_topics_0.05 --with_rdm --patience 20
+python train.py --dataset RUS_w7h7_mind3n10df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 3 --gpu 9 -m causal --n-hidden 64 --n-layers 1 --note 900sig1 --train 0.6 --n-topics 60 --causalfiles causal_topics_0.01 --with_rdm --patience 20
+python train.py --dataset RUS_w7h7_mind3n10df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 3 --gpu 9 -m causal --n-hidden 64 --n-layers 1 --note 900sig5 --train 0.6 --n-topics 60 --causalfiles causal_topics_0.05 --with_rdm --patience 20
+
+

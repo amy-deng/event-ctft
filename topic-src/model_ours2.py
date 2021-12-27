@@ -179,7 +179,9 @@ class causal_message_passing_rdm(nn.Module):
             self.relation_pri_cau[etype] = nn.Parameter(torch.ones(self.n_heads))
             self.relation_att_cau[etype] = nn.Parameter(torch.Tensor(n_heads, self.d_k, self.d_k))
             self.relation_msg_cau[etype] = nn.Parameter(torch.Tensor(n_heads, self.d_k, self.d_k))
-            self.comb_pri[etype] = nn.Parameter(torch.ones(n_heads, self.d_k))
+            self.comb_pri[etype] = nn.Parameter(torch.ones(1))
+            # self.comb_pri[etype] = nn.Parameter(torch.ones(n_heads, self.d_k))
+
         '''    
         self.cau_filter = nn.ParameterDict()
         for cau_type in ['pos','neg','rdm']:
@@ -263,7 +265,8 @@ class causal_message_passing_rdm(nn.Module):
                 cau_att = F.softmax(nodes.mailbox['ca'], dim=1) # spasemax TODO
                 cau_h   = torch.sum(cau_att.unsqueeze(dim = -1) * nodes.mailbox['cv'], dim=1)
                 # print(self.comb_pri[etype].shape,'self.comb_pri[etype]',cau_h.shape,'cau_h')
-                h = h + cau_h * self.comb_pri[etype]
+                beta = torch.sigmoid(self.comb_pri[etype])
+                h = beta * h + (1-beta) * cau_h
             return {'t': h.view(-1, self.out_dim)}
         return reduce
 
