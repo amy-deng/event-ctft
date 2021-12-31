@@ -164,22 +164,22 @@ class causal_message_passing_rdm(nn.Module):
             if use_norm:
                 self.norms[t] = nn.LayerNorm(out_dim)
         self.relation_pri = nn.ParameterDict()
-        self.relation_att = nn.ParameterDict()
+        # self.relation_att = nn.ParameterDict()
         self.relation_msg = nn.ParameterDict()
         for etype in etypes:
             self.relation_pri[etype] = nn.Parameter(torch.ones(self.n_heads))
-            self.relation_att[etype] = nn.Parameter(torch.Tensor(n_heads, self.d_k, self.d_k))
+            # self.relation_att[etype] = nn.Parameter(torch.Tensor(n_heads, self.d_k, self.d_k))
             self.relation_msg[etype] = nn.Parameter(torch.Tensor(n_heads, self.d_k, self.d_k))
 
         self.relation_pri_cau = nn.ParameterDict()
-        self.relation_att_cau = nn.ParameterDict()
+        # self.relation_att_cau = nn.ParameterDict()
         self.relation_msg_cau = nn.ParameterDict()
         self.comb_pri = nn.ParameterDict()
         for etype in ['tw','tt','td']:
             self.relation_pri_cau[etype] = nn.Parameter(torch.ones(self.n_heads))
-            self.relation_att_cau[etype] = nn.Parameter(torch.Tensor(n_heads, self.d_k, self.d_k))
+            # self.relation_att_cau[etype] = nn.Parameter(torch.Tensor(n_heads, self.d_k, self.d_k))
             self.relation_msg_cau[etype] = nn.Parameter(torch.Tensor(n_heads, self.d_k, self.d_k))
-            self.comb_pri[etype] = nn.Parameter(torch.ones(1))
+            # self.comb_pri[etype] = nn.Parameter(torch.ones(1))
             # self.comb_pri[etype] = nn.Parameter(torch.ones(n_heads, self.d_k))
 
         '''    
@@ -217,11 +217,11 @@ class causal_message_passing_rdm(nn.Module):
                 # causal edges
                 # src node 
                 cau_types = edges.src['cau_type'] # 0,1,2,3  learn and mask out 0 type
-                relation_att_cau = self.relation_att_cau[etype]
-                relation_pri_cau = self.relation_pri_cau[etype]
+                # relation_att_cau = self.relation_att_cau[etype]
+                # relation_pri_cau = self.relation_pri_cau[etype]
                 relation_msg_cau = self.relation_msg_cau[etype] 
-                cau_key = torch.bmm(edges.src['k'].transpose(1,0), relation_att_cau).transpose(1,0)
-                # cau_key = edges.src['k']
+                # cau_key = torch.bmm(edges.src['k'].transpose(1,0), relation_att_cau).transpose(1,0)
+                cau_key = edges.src['k']
                 effect = self.cau_filter
                 effect_mask = effect[cau_types]
                 n, n_head, d_k, _ = effect_mask.size()
@@ -231,7 +231,8 @@ class causal_message_passing_rdm(nn.Module):
                 masked_effect = torch.bmm(mul1,mul2)
                 # print(masked_effect.shape,'masked_effect')
                 masked_effect = masked_effect.reshape(n,n_head,d_k) 
-                cau_att   = (edges.dst['q'] * masked_effect).sum(dim=-1) * relation_pri_cau / self.sqrt_dk
+                # cau_att   = (edges.dst['q'] * masked_effect).sum(dim=-1) * relation_pri_cau / self.sqrt_dk
+                cau_att   = (edges.dst['q'] * masked_effect).sum(dim=-1) / self.sqrt_dk
                 cau_val   = torch.bmm(edges.src['v'].transpose(1,0) + self.time_emb, relation_msg_cau).transpose(1,0)
                 # print(cau_key.shape,'cau_key',cau_att.shape,'cau_att',cau_val.shape,'cau_val')
                 return {'a': att, 'v': val, 'ca':cau_att,'cv':cau_val}
@@ -265,8 +266,9 @@ class causal_message_passing_rdm(nn.Module):
                 cau_att = F.softmax(nodes.mailbox['ca'], dim=1) # spasemax TODO
                 cau_h   = torch.sum(cau_att.unsqueeze(dim = -1) * nodes.mailbox['cv'], dim=1)
                 # print(self.comb_pri[etype].shape,'self.comb_pri[etype]',cau_h.shape,'cau_h')
-                beta = torch.sigmoid(self.comb_pri[etype])
-                h = beta * h + (1-beta) * cau_h
+                # beta = torch.sigmoid(self.comb_pri[etype])
+                # h = beta * h + (1-beta) * cau_h
+                h += cau_h
             return {'t': h.view(-1, self.out_dim)}
         return reduce
 
