@@ -26,7 +26,7 @@ except:
  
  
  
-# very similar to 3
+
 class message_passing(nn.Module):
     def __init__(self, in_dim, out_dim, ntypes, etypes, n_heads, dropout = 0.5, use_norm = False):
         super().__init__()
@@ -53,11 +53,11 @@ class message_passing(nn.Module):
             # self.skip[t] = nn.Parameter(torch.ones(1))
             if use_norm:
                 self.norms[t] = nn.LayerNorm(out_dim)
-        self.relation_pri = nn.ParameterDict()
+        # self.relation_pri = nn.ParameterDict()
         # self.relation_att = nn.ParameterDict()
         self.relation_msg = nn.ParameterDict()
         for etype in etypes:
-            self.relation_pri[etype] = nn.Parameter(torch.ones(self.n_heads))
+            # self.relation_pri[etype] = nn.Parameter(torch.ones(self.n_heads))
             # self.relation_att[etype] = nn.Parameter(torch.Tensor(n_heads, self.d_k, self.d_k))
             self.relation_msg[etype] = nn.Parameter(torch.Tensor(n_heads, self.d_k, self.d_k))
         self.drop           = nn.Dropout(dropout)
@@ -76,11 +76,12 @@ class message_passing(nn.Module):
         def msg_func(edges):
             # print(etype,'etype')
             # relation_att = self.relation_att[etype]
-            relation_pri = self.relation_pri[etype]
+            # relation_pri = self.relation_pri[etype]
             relation_msg = self.relation_msg[etype] 
             # key   = torch.bmm(edges.src['k'].transpose(1,0), relation_att).transpose(1,0)
             key   = edges.src['k']
-            att   = (edges.dst['q'] * key).sum(dim=-1) * relation_pri / self.sqrt_dk
+            # att   = (edges.dst['q'] * key).sum(dim=-1) * relation_pri / self.sqrt_dk
+            att   = (edges.dst['q'] * key).sum(dim=-1) / self.sqrt_dk
             val   = torch.bmm(edges.src['v'].transpose(1,0), relation_msg).transpose(1,0)
             return {'a': att, 'v': val}
         return msg_func
@@ -210,6 +211,7 @@ class causal_message_passing_rdm(nn.Module):
             # key   = torch.bmm(edges.src['k'].transpose(1,0), relation_att).transpose(1,0)
             # att   = (edges.dst['q'] * key).sum(dim=-1) * relation_pri / self.sqrt_dk
             att   = (edges.dst['q'] * key).sum(dim=-1) / self.sqrt_dk
+            print(att,'att')
             val   = torch.bmm(edges.src['v'].transpose(1,0), relation_msg).transpose(1,0)
             cau_att = None
             cau_val = None
