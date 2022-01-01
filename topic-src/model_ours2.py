@@ -211,7 +211,7 @@ class causal_message_passing_rdm(nn.Module):
             # key   = torch.bmm(edges.src['k'].transpose(1,0), relation_att).transpose(1,0)
             # att   = (edges.dst['q'] * key).sum(dim=-1) * relation_pri / self.sqrt_dk
             att   = (edges.dst['q'] * key).sum(dim=-1) / self.sqrt_dk
-            print(att,'att')
+            # print(att,'att')
             val   = torch.bmm(edges.src['v'].transpose(1,0), relation_msg).transpose(1,0)
             cau_att = None
             cau_val = None
