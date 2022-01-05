@@ -685,48 +685,26 @@ class causal_message_passing_rdm4(nn.Module):
         self.k_linears   = nn.ModuleDict()
         self.q_linears   = nn.ModuleDict()
         self.v_linears   = nn.ModuleDict()
-        # self.a_linears   = nn.ModuleDict()
         self.norms       = nn.ModuleDict()
-        # self.skip = nn.ParameterDict() 
         for t in ntypes:
             self.k_linears[t] = nn.Linear(in_dim,   out_dim)
             self.q_linears[t] = nn.Linear(in_dim,   out_dim)
             self.v_linears[t] = nn.Linear(in_dim,   out_dim)
-            
-            # self.a_linears[t] = nn.Linear(out_dim,  out_dim)
-            # self.skip[t] = nn.Parameter(torch.ones(1))
             if use_norm:
                 self.norms[t] = nn.LayerNorm(out_dim)
 
-        # self.relation_pri = nn.ParameterDict()
-        # self.relation_att = nn.ParameterDict()
         self.relation_msg = nn.ParameterDict()
         self.relation_att = nn.ParameterDict()
         for etype in etypes:
-            # self.relation_pri[etype] = nn.Parameter(torch.ones(self.n_heads))
-            # self.relation_att[etype] = nn.Parameter(torch.Tensor(n_heads, self.d_k, self.d_k))
             self.relation_msg[etype] = nn.Parameter(torch.Tensor(n_heads, self.d_k, self.d_k))
             self.relation_att[etype] = nn.Parameter(torch.Tensor(n_heads, self.d_k, self.d_k))
 
-        # self.relation_pri_cau = nn.ParameterDict()
-        # self.relation_att_cau = nn.ParameterDict()
         self.relation_msg_cau = nn.ParameterDict()
-        # self.comb_pri = nn.ParameterDict()
         for etype in ['tw','tt','td']:
-            # self.relation_pri_cau[etype] = nn.Parameter(torch.ones(self.n_heads))
-            # self.relation_att_cau[etype] = nn.Parameter(torch.Tensor(n_heads, self.d_k, self.d_k))
             self.relation_msg_cau[etype] = nn.Parameter(torch.Tensor(n_heads, self.d_k, self.d_k))
-            # self.comb_pri[etype] = nn.Parameter(torch.ones(1))
-            # self.comb_pri[etype] = nn.Parameter(torch.ones(n_heads, self.d_k))
-        '''    
-        self.cau_filter = nn.ParameterDict()
-        for cau_type in ['pos','neg','rdm']:
-            self.cau_filter[cau_type] = nn.Parameter(torch.Tensor(n_heads, self.d_k, self.d_k))
-        '''
         self.cau_filter = nn.Parameter(torch.Tensor(3, n_heads, self.d_k, self.d_k))
         self.drop           = nn.Dropout(dropout)
-        # self.rnn = nn.RNNCell(out_dim, out_dim)
-        self.sparsemax = Sparsemax(dim=1)
+        # self.sparsemax = Sparsemax(dim=1)
         self.init_weights()
 
     def init_weights(self):
@@ -739,36 +717,26 @@ class causal_message_passing_rdm4(nn.Module):
 
     def edge_attention(self, etype, inp_key):
         def msg_func(edges):
-            
             relation_att = self.relation_att[etype]
-            # relation_pri = self.relation_pri[etype]
             key0 = torch.bmm(edges.src[inp_key].view(-1, self.n_heads, self.d_k).transpose(1,0), relation_att).transpose(1,0)
             att0 = (edges.dst[inp_key].view(-1, self.n_heads, self.d_k) * key0).sum(dim=-1) * edges.data['weight'].unsqueeze(-1)
 
             relation_msg = self.relation_msg[etype] 
-            key   = edges.src['k']
-            # key   = torch.bmm(edges.src['k'].transpose(1,0), relation_att).transpose(1,0)
-            # att   = (edges.dst['q'] * key).sum(dim=-1) * relation_pri / self.sqrt_dk
-            # print(att0,'att0')
-            # att1 = (edges.dst['q'] * key).sum(dim=-1)
-            # print(att1,'att1')
-            # print(att1+att0,'att1 + 0')
-            # print((att1+att0)/self.sqrt_dk,'sqrt')
-            att   = ((edges.dst['q'] * key).sum(dim=-1) + att0) / self.sqrt_dk
+            key   = edges.src['k'] 
+            att   = ((edges.dst['q'] * key).sum(dim=-1) + att0)# / self.sqrt_dk
             val   = torch.bmm(edges.src['v'].transpose(1,0), relation_msg).transpose(1,0)
             cau_att = None
             cau_val = None 
             if etype in ['tw','tt','td']:
                 cau_types = edges.src['cau_type'] # 0,1,2,3  learn and mask out 0 type
                 relation_msg_cau = self.relation_msg_cau[etype] 
-                # cau_key = key # edges.src['k']
                 effect_mask = self.cau_filter[cau_types]
                 n, n_head, d_k, _ = effect_mask.size()
                 mul1 = key.reshape(-1,1,d_k)
                 mul2 = effect_mask.reshape(-1,d_k,d_k)
                 masked_effect = torch.bmm(mul1,mul2)
                 masked_effect = masked_effect.reshape(n,n_head,d_k) 
-                cau_att   = (edges.dst['q'] * masked_effect).sum(dim=-1) / self.sqrt_dk
+                cau_att   = (edges.dst['q'] * masked_effect).sum(dim=-1)# / self.sqrt_dk
                 cau_val   = torch.bmm(edges.src['v'].transpose(1,0) + self.time_emb, relation_msg_cau).transpose(1,0)
                 return {'a': att, 'v': val, 'ca':cau_att,'cv':cau_val}
             return {'a': att, 'v': val}
@@ -780,7 +748,7 @@ class causal_message_passing_rdm4(nn.Module):
         return {'v': edges.data['v'], 'a': edges.data['a']}
      
     
-    def reduce_func(self, etype):
+    def reduce_func(self,etype):
         def reduce(nodes):
             att = F.softmax(nodes.mailbox['a'], dim=1)
             h   = torch.sum(att.unsqueeze(dim = -1) * nodes.mailbox['v'], dim=1)
@@ -792,7 +760,6 @@ class causal_message_passing_rdm4(nn.Module):
         return reduce
 
     def forward(self, G, inp_key, out_key):
-        # node_dict, edge_dict = G.node_dict, G.edge_dict
         self.time_emb = G.time_emb
         edge_dict = []
         for srctype, etype, dsttype in G.canonical_etypes:
@@ -811,17 +778,14 @@ class causal_message_passing_rdm4(nn.Module):
         G.multi_update_all({etype : (self.message_func, self.reduce_func(etype)) \
                             for etype in edge_dict}, cross_reducer = 'mean')
         
-        for ntype in G.ntypes:
-            # alpha = torch.sigmoid(self.skip[ntype])
-            # trans_out = self.a_linears[ntype](G.nodes[ntype].data.pop('t') + G.time_emb) # TODO h? or ht
-            # trans_out = trans_out * alpha + G.nodes[ntype].data[inp_key] * (1-alpha)
-            trans_out = G.nodes[ntype].data.pop('t') #+ G.time_emb
+        for ntype in G.ntypes: 
+            trans_out = G.nodes[ntype].data.pop('t') 
             trans_out = F.relu(trans_out)
             if self.use_norm:
                 G.nodes[ntype].data[out_key] = self.drop(self.norms[ntype](trans_out))
             else:
                 G.nodes[ntype].data[out_key] = self.drop(trans_out)
-
+ 
 
 class causal_message_passing(nn.Module):
     def __init__(self, in_dim, out_dim, ntypes, etypes, n_heads, dropout = 0.5, use_norm = False, device=torch.device("cpu")):
@@ -1846,15 +1810,6 @@ class ours_causal41(nn.Module):
             time_emb = self.time_emb(torch.tensor(curr_time).to(self.device))
             sub_bg.time_emb = time_emb
             # print(time_emb)
-            """
-            time_emb = self.time_emb(torch.tensor(curr_time).to(self.device))
-            causal = self.cau_time_attn(time_emb.unsqueeze(1),sub_bg.nodes['topic'].data['c'])
-            # print(causal,'========')
-            tmp = self.dropout(sub_bg.nodes['topic'].data['ht-1']) @ self.cau_w 
-            score = torch.sum(tmp * causal, dim=-1).unsqueeze(-1)
-            # print(score,'score')
-            sub_bg.nodes['topic'].data['h0'] = score * causal + (1-score) * sub_bg.nodes['topic'].data['h0']
-            """
             for i in range(self.n_layers):
                 if i == 0:
                     self.gcs[i](sub_bg, 'h0', 'ht')
