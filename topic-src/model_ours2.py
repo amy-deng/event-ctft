@@ -853,7 +853,7 @@ class causal_message_passing_rdm5(nn.Module):
             att0 = (edges.dst[inp_key].view(-1, self.n_heads, self.d_k) * key0).sum(dim=-1) * edges.data['weight'].unsqueeze(-1)
 
             relation_msg = self.relation_msg[etype] 
-            att   = ((edges.dst['q'] * edges.src['k'] ).sum(dim=-1) + att0)# / self.sqrt_dk
+            att   = ((edges.dst['q'] * edges.src['k'] ).sum(dim=-1) + att0) / self.sqrt_dk
             val   = torch.bmm(edges.src['v'].transpose(1,0), relation_msg).transpose(1,0)
             if etype in ['tw','tt','td']:
                 cau_types = edges.src['cau_type'] # 0,1,2,3  learn and mask out 0 type
@@ -864,7 +864,7 @@ class causal_message_passing_rdm5(nn.Module):
                 mul2 = effect_mask.reshape(-1,d_k,d_k)
                 masked_effect = torch.bmm(mul1,mul2)
                 masked_effect = masked_effect.reshape(n,n_head,d_k) 
-                cau_att   = (edges.dst['cq'] * masked_effect).sum(dim=-1)# / self.sqrt_dk
+                cau_att   = (edges.dst['cq'] * masked_effect).sum(dim=-1)/ self.sqrt_dk
                 cau_val   = torch.bmm(edges.src['cv'].transpose(1,0) + self.time_emb, relation_msg_cau).transpose(1,0)
                 return {'a': att, 'v': val, 'ca':cau_att,'cv':cau_val}
             return {'a': att, 'v': val}
