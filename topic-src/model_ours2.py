@@ -669,6 +669,7 @@ class causal_message_passing_rdm3(nn.Module):
             else:
                 G.nodes[ntype].data[out_key] = self.drop(trans_out)
 
+# add prior-based
 class causal_message_passing_rdm4(nn.Module):
     def __init__(self, in_dim, out_dim, ntypes, etypes, n_heads, dropout = 0.5, use_norm = False, device=torch.device("cpu")):
         super().__init__()
@@ -695,9 +696,11 @@ class causal_message_passing_rdm4(nn.Module):
 
         self.relation_msg = nn.ParameterDict()
         self.relation_att = nn.ParameterDict()
+        self.comb_pri = nn.ParameterDict()
         for etype in etypes:
             self.relation_msg[etype] = nn.Parameter(torch.Tensor(n_heads, self.d_k, self.d_k))
             self.relation_att[etype] = nn.Parameter(torch.Tensor(n_heads, self.d_k, self.d_k))
+            self.comb_pri[etype] = nn.Parameter(torch.ones(1))
 
         self.relation_msg_cau = nn.ParameterDict()
         for etype in ['tw','tt','td']:
@@ -755,7 +758,9 @@ class causal_message_passing_rdm4(nn.Module):
             if 'ca' in nodes.mailbox:
                 cau_att = F.softmax(nodes.mailbox['ca'], dim=1) 
                 cau_h   = torch.sum(cau_att.unsqueeze(dim = -1) * nodes.mailbox['cv'], dim=1)
-                h += cau_h
+                beta = torch.sigmoid(self.comb_pri[etype])
+                h = beta * h + (1-beta) * cau_h
+                # h += cau_h
             return {'t': h.view(-1, self.out_dim)}
         return reduce
 
@@ -786,7 +791,7 @@ class causal_message_passing_rdm4(nn.Module):
             else:
                 G.nodes[ntype].data[out_key] = self.drop(trans_out)
  
-
+ 
 class causal_message_passing(nn.Module):
     def __init__(self, in_dim, out_dim, ntypes, etypes, n_heads, dropout = 0.5, use_norm = False, device=torch.device("cpu")):
         super().__init__()
