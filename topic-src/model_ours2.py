@@ -827,7 +827,7 @@ class causal_message_passing_rdm5(nn.Module):
         self.comb_pri = nn.ParameterDict()
         for etype in etypes:
             self.relation_msg[etype] = nn.Parameter(torch.Tensor(n_heads, self.d_k, self.d_k))
-            self.relation_att[etype] = nn.Parameter(torch.Tensor(n_heads, self.d_k, self.d_k))
+            self.relation_att[etype] = nn.Parameter(torch.Tensor(n_heads, self.d_k, 1))
             self.comb_pri[etype] = nn.Parameter(torch.ones(1))
 
         self.relation_msg_cau = nn.ParameterDict()
@@ -850,8 +850,10 @@ class causal_message_passing_rdm5(nn.Module):
         def msg_func(edges):
             relation_att = self.relation_att[etype]
             key0 = torch.bmm(edges.src[inp_key].view(-1, self.n_heads, self.d_k).transpose(1,0), relation_att).transpose(1,0)
-            att0 = (edges.dst[inp_key].view(-1, self.n_heads, self.d_k) * key0).sum(dim=-1) * edges.data['weight'].unsqueeze(-1)
-
+            # att0 = key0
+            # att0 = (edges.dst[inp_key].view(-1, self.n_heads, self.d_k) * key0).sum(dim=-1) * edges.data['weight'].unsqueeze(-1)
+            # print(key0.shape)
+            att0 = key0.sum(dim=-1) * edges.data['weight'].unsqueeze(-1)
             relation_msg = self.relation_msg[etype] 
             att   = ((edges.dst['q'] * edges.src['k'] ).sum(dim=-1) + att0) / self.sqrt_dk
             val   = torch.bmm(edges.src['v'].transpose(1,0), relation_msg).transpose(1,0)
