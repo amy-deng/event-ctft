@@ -147,52 +147,12 @@ def prepare(args,word_embeds,device):
     elif args.model == 'temphgt':
         model = TempHGT(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, seq_len=args.seq_len,device=device, 
         num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True)
-    # elif args.model == 'ours':
-    #     model = tempMP(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
-    #     num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True)
-    # elif args.model == 'ours3':
-    #     model = tempMP3(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
-    #     num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True)
-    # elif args.model == 'ours4':
-    #     model = tempMP4(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
-    #     num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True)
     elif args.model == 'temp11':
         model = Temp11(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
         num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True)
     elif args.model == 'temp':
         model = ours_temp(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
         num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True)
-    
-    elif args.model == 'temp2':
-        model = Temp2(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
-        num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True)
-    elif args.model == 'temp3':
-        model = Temp3(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
-        num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True)
-    elif args.model == 'temp4':
-        model = Temp4(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
-        num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True)
-    elif args.model == 'temp41':
-        model = Temp41(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
-        num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True)
-    elif args.model == 'temp5':
-        model = Temp5(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
-        num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True)
-    elif args.model == 'temp6':
-        model = Temp6(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
-        num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True,agg=args.agg)
-    elif args.model == 'temp7':
-        model = Temp7(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
-        num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True,agg=args.agg)
-    elif args.model == 'temp71':
-        model = Temp71(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
-        num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True,agg=args.agg)
-    elif args.model == 'temp72':
-        model = Temp72(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
-        num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True,agg=args.agg,eta=args.eta)
-    elif args.model == 'temp8':
-        model = Temp8(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
-        num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True,with_rdm=args.with_rdm)
     elif args.model == 'temp81':
         model = Temp81(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
         num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True,with_rdm=args.with_rdm)
@@ -202,32 +162,13 @@ def prepare(args,word_embeds,device):
     elif args.model == 'causal2':
         model = ours_causal2(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
         num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True,with_rdm=args.with_rdm)
-    elif args.model == 'causal4':
-        model = ours_causal4(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
+    elif args.model == 'causal7':
+        model = ours_causal7(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
         num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True,with_rdm=args.with_rdm)
-    elif args.model == 'causal41':
-        model = ours_causal41(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
+    elif args.model == 'causal71':
+        model = ours_causal71(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
         num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True,with_rdm=args.with_rdm)
-    elif args.model == 'causal5':
-        model = ours_causal5(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
-        num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True,with_rdm=args.with_rdm)
-    elif args.model == 'causal6':
-        model = ours_causal6(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
-        num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True,with_rdm=args.with_rdm)
-    elif args.model == 'causal61':
-        model = ours_causal61(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
-        num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True,with_rdm=args.with_rdm)
-    elif args.model == 'temp82':
-        model = Temp82(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
-        num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True,with_rdm=args.with_rdm,causal=args.causal)
-    elif args.model == 'ditemp81':
-        model = DiTemp81(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
-        num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True,with_rdm=args.with_rdm)
-    
-    # elif args.model == 'cau6':
-    #     model = tempMP6cau(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
-    #     num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True)
- 
+  
     model_name = model.__class__.__name__
     # print(model)
     optimizer = torch.optim.Adam(

@@ -603,16 +603,7 @@ class causal_message_passing_rdm3(nn.Module):
             # print(edges.data['ca'])
             return {'v': edges.data['v'], 'a': edges.data['a'], 'ca':edges.data.pop('ca'),'cv':edges.data.pop('cv'), 'tm':edges.data['tm']}
         return {'v': edges.data['v'], 'a': edges.data['a'], 'tm':edges.data['tm']}
-    
-    # def reduce_func(self, nodes):
-    #     att = F.softmax(nodes.mailbox['a'], dim=1)
-    #     h   = torch.sum(att.unsqueeze(dim = -1) * nodes.mailbox['v'], dim=1)
-    #     if 'ca' in nodes.mailbox:
-    #         cau_att = F.softmax(nodes.mailbox['ca'], dim=1) # spasemax TODO
-    #         cau_h   = torch.sum(cau_att.unsqueeze(dim = -1) * nodes.mailbox['cv'], dim=1)
-    #         h = h + cau_h
-    #     return {'t': h.view(-1, self.out_dim)}
-    
+     
     def reduce_func(self, etype):
         def reduce(nodes):
             # TODO use weight
@@ -1096,18 +1087,17 @@ class causal_message_passing_rdm_content_prior(nn.Module):
 
         self.relation_msg = nn.ParameterDict()
         self.relation_att = nn.ParameterDict()
-        self.comb_pri = nn.ParameterDict()
+        # self.comb_pri = nn.ParameterDict()
         for etype in etypes:
             self.relation_msg[etype] = nn.Parameter(torch.Tensor(n_heads, self.d_k, self.d_k))
             self.relation_att[etype] = nn.Parameter(torch.Tensor(n_heads, self.d_k, 1))
-            self.comb_pri[etype] = nn.Parameter(torch.ones(1))
+            # self.comb_pri[etype] = nn.Parameter(torch.ones(1))
 
         self.relation_msg_cau = nn.ParameterDict()
         for etype in ['tw','tt','td']:
             self.relation_msg_cau[etype] = nn.Parameter(torch.Tensor(n_heads, self.d_k, self.d_k))
         self.cau_filter = nn.Parameter(torch.Tensor(3, n_heads, self.d_k, self.d_k))
         self.drop           = nn.Dropout(dropout)
-        # self.sparsemax = Sparsemax(dim=1)
         self.init_weights()
 
     def init_weights(self):
@@ -1129,6 +1119,8 @@ class causal_message_passing_rdm_content_prior(nn.Module):
             relation_msg = self.relation_msg[etype] 
             att   = ((edges.dst['q'] * edges.src['k'] ).sum(dim=-1) / self.sqrt_dk )+ att0
             val   = torch.bmm(edges.src['v'].transpose(1,0), relation_msg).transpose(1,0)
+            # if etype == 'wd':
+            #     print(edges.dst['q'])
             if etype in ['tw','tt','td']:
                 cau_types = edges.src['cau_type'] # 0,1,2,3  learn and mask out 0 type
                 relation_msg_cau = self.relation_msg_cau[etype] 
@@ -1157,9 +1149,10 @@ class causal_message_passing_rdm_content_prior(nn.Module):
             if 'ca' in nodes.mailbox:
                 cau_att = F.softmax(nodes.mailbox['ca'], dim=1) 
                 cau_h   = torch.sum(cau_att.unsqueeze(dim = -1) * nodes.mailbox['cv'], dim=1)
-                beta = torch.sigmoid(self.comb_pri[etype])
+                # beta = torch.sigmoid(self.comb_pri[etype])
                 # print(beta,'beta',self.comb_pri[etype])
-                h = beta * h + (1-beta) * cau_h
+                # h = beta * h + (1-beta) * cau_h
+                h += cau_h
             return {'t': h.view(-1, self.out_dim)}
         return reduce
 
@@ -1196,7 +1189,7 @@ class causal_message_passing_rdm_content_prior(nn.Module):
                 G.nodes[ntype].data[out_key] = self.drop(self.norms[ntype](trans_out))
             else:
                 G.nodes[ntype].data[out_key] = self.drop(trans_out)
- 
+
 # shared key and value
 class causal_message_passing_rdm_content_prior_shared(nn.Module):
     def __init__(self, in_dim, out_dim, ntypes, etypes, n_heads, dropout = 0.5, use_norm = False, device=torch.device("cpu")):
@@ -1230,11 +1223,11 @@ class causal_message_passing_rdm_content_prior_shared(nn.Module):
 
         self.relation_msg = nn.ParameterDict()
         self.relation_att = nn.ParameterDict()
-        self.comb_pri = nn.ParameterDict()
+        # self.comb_pri = nn.ParameterDict()
         for etype in etypes:
             self.relation_msg[etype] = nn.Parameter(torch.Tensor(n_heads, self.d_k, self.d_k))
             self.relation_att[etype] = nn.Parameter(torch.Tensor(n_heads, self.d_k, 1))
-            self.comb_pri[etype] = nn.Parameter(torch.ones(1))
+            # self.comb_pri[etype] = nn.Parameter(torch.ones(1))
 
         self.relation_msg_cau = nn.ParameterDict()
         for etype in ['tw','tt','td']:
@@ -1260,6 +1253,7 @@ class causal_message_passing_rdm_content_prior_shared(nn.Module):
             # att0 = (edges.dst[inp_key].view(-1, self.n_heads, self.d_k) * key0).sum(dim=-1) * edges.data['weight'].unsqueeze(-1)
             # print(key0.shape)
             att0 = key0.sum(dim=-1) * edges.data['weight'].unsqueeze(-1)
+            # print(edges.data['weight'],"edges.data['weight']")
             relation_msg = self.relation_msg[etype] 
             att   = ((edges.dst['q'] * edges.src['k'] ).sum(dim=-1)/ self.sqrt_dk )+ att0 
             val   = torch.bmm(edges.src['v'].transpose(1,0), relation_msg).transpose(1,0)
@@ -1291,9 +1285,269 @@ class causal_message_passing_rdm_content_prior_shared(nn.Module):
             if 'ca' in nodes.mailbox:
                 cau_att = F.softmax(nodes.mailbox['ca'], dim=1) 
                 cau_h   = torch.sum(cau_att.unsqueeze(dim = -1) * nodes.mailbox['cv'], dim=1)
-                beta = torch.sigmoid(self.comb_pri[etype])
-                h = beta * h + (1-beta) * cau_h
-                # h += cau_h
+                # beta = torch.sigmoid(self.comb_pri[etype])
+                # h = beta * h + (1-beta) * cau_h
+                h += cau_h
+            return {'t': h.view(-1, self.out_dim)}
+        return reduce
+
+    def forward(self, G, inp_key, out_key):
+        self.time_emb = G.time_emb
+        edge_dict = []
+        for srctype, etype, dsttype in G.canonical_etypes:
+            if etype not in self.etypes:
+                continue 
+            edge_dict.append(etype)
+            # print(srctype, etype, dsttype)
+            k_linear = self.k_linears[srctype]
+            v_linear = self.v_linears[srctype] 
+            q_linear = self.q_linears[dsttype]
+            G.nodes[srctype].data['k'] = k_linear(G.nodes[srctype].data[inp_key]).view(-1, self.n_heads, self.d_k)
+            G.nodes[srctype].data['v'] = v_linear(G.nodes[srctype].data[inp_key]).view(-1, self.n_heads, self.d_k)
+            G.nodes[dsttype].data['q'] = q_linear(G.nodes[dsttype].data[inp_key]).view(-1, self.n_heads, self.d_k)
+            # if etype in ['tw','tt','td']:
+            #     cau_k_linear = self.cau_k_linears[srctype]
+            #     cau_v_linear = self.cau_v_linears[srctype] 
+            #     cau_q_linear = self.cau_q_linears[dsttype]
+            #     G.nodes[srctype].data['ck'] = cau_k_linear(G.nodes[srctype].data[inp_key]).view(-1, self.n_heads, self.d_k)
+            #     G.nodes[srctype].data['cv'] = cau_v_linear(G.nodes[srctype].data[inp_key]).view(-1, self.n_heads, self.d_k)
+            #     G.nodes[dsttype].data['cq'] = cau_q_linear(G.nodes[dsttype].data[inp_key]).view(-1, self.n_heads, self.d_k)
+            G.apply_edges(func=self.edge_attention(etype, inp_key), etype=etype)
+           
+        G.multi_update_all({etype : (self.message_func, self.reduce_func(etype)) \
+                            for etype in edge_dict}, cross_reducer = 'mean')
+        
+        for ntype in G.ntypes: 
+            trans_out = G.nodes[ntype].data.pop('t') 
+            trans_out = F.relu(trans_out)
+            if self.use_norm:
+                G.nodes[ntype].data[out_key] = self.drop(self.norms[ntype](trans_out))
+            else:
+                G.nodes[ntype].data[out_key] = self.drop(trans_out)
+ 
+# no shared key and value
+class causal_message_passing_rdm_content_prior2(nn.Module):
+    def __init__(self, in_dim, out_dim, ntypes, etypes, n_heads, dropout = 0.5, use_norm = False, device=torch.device("cpu")):
+        super().__init__()
+        self.in_dim        = in_dim
+        self.out_dim       = out_dim
+        self.etypes        = etypes
+        self.ntypes        = ntypes
+        self.n_heads       = n_heads
+        self.d_k           = out_dim // n_heads
+        self.sqrt_dk       = math.sqrt(self.d_k)
+        self.device        = device
+        self.use_norm    = use_norm
+        self.time_emb    = None
+        self.k_linears   = nn.ModuleDict()
+        self.q_linears   = nn.ModuleDict()
+        self.v_linears   = nn.ModuleDict()
+        self.cau_k_linears   = nn.ModuleDict()
+        self.cau_q_linears   = nn.ModuleDict()
+        self.cau_v_linears   = nn.ModuleDict()
+        self.norms       = nn.ModuleDict()
+        for t in ntypes:
+            self.k_linears[t] = nn.Linear(in_dim,   out_dim)
+            self.q_linears[t] = nn.Linear(in_dim,   out_dim)
+            self.v_linears[t] = nn.Linear(in_dim,   out_dim)
+            self.cau_k_linears[t] = nn.Linear(in_dim,   out_dim)
+            self.cau_q_linears[t] = nn.Linear(in_dim,   out_dim)
+            self.cau_v_linears[t] = nn.Linear(in_dim,   out_dim)
+            if use_norm:
+                self.norms[t] = nn.LayerNorm(out_dim)
+
+        self.relation_msg = nn.ParameterDict()
+        self.relation_att = nn.ParameterDict()
+        # self.comb_pri = nn.ParameterDict()
+        for etype in etypes:
+            self.relation_msg[etype] = nn.Parameter(torch.Tensor(n_heads, self.d_k, self.d_k))
+            self.relation_att[etype] = nn.Parameter(torch.Tensor(n_heads, self.d_k, 1))
+            # self.comb_pri[etype] = nn.Parameter(torch.ones(1))
+
+        self.relation_msg_cau = nn.ParameterDict()
+        for etype in ['tw','tt','td']:
+            self.relation_msg_cau[etype] = nn.Parameter(torch.Tensor(n_heads, self.d_k, self.d_k))
+        self.cau_filter = nn.Parameter(torch.Tensor(3, n_heads, self.d_k, self.d_k))
+        self.drop           = nn.Dropout(dropout)
+        self.init_weights()
+
+    def init_weights(self):
+        for p in self.parameters():
+            if p.data.ndimension() >= 2:
+                nn.init.xavier_uniform_(p.data, gain=nn.init.calculate_gain('relu'))
+            else:
+                stdv = 1. / math.sqrt(p.size(0))
+                p.data.uniform_(-stdv, stdv)
+
+    def edge_attention(self, etype, inp_key):
+        def msg_func(edges):
+            relation_att = self.relation_att[etype] 
+            query_prior =  (edges.data['weight'] * relation_att).permute(2,0,1).contiguous()
+            relation_msg = self.relation_msg[etype] 
+            att   = (((edges.dst['q']+query_prior) * edges.src['k'] ).sum(dim=-1) / self.sqrt_dk )#+ att0
+            val   = torch.bmm(edges.src['v'].transpose(1,0), relation_msg).transpose(1,0)
+            if etype in ['tw','tt','td']:
+                cau_types = edges.src['cau_type'] # 0,1,2,3  learn and mask out 0 type
+                relation_msg_cau = self.relation_msg_cau[etype] 
+                effect_mask = self.cau_filter[cau_types]
+                n, n_head, d_k, _ = effect_mask.size()
+                mul1 = edges.src['ck'].reshape(-1,1,d_k)
+                mul2 = effect_mask.reshape(-1,d_k,d_k)
+                masked_effect = torch.bmm(mul1,mul2)
+                masked_effect = masked_effect.reshape(n,n_head,d_k) 
+                cau_att   = (edges.dst['cq'] * masked_effect).sum(dim=-1)/ self.sqrt_dk
+                cau_val   = torch.bmm(edges.src['cv'].transpose(1,0) + self.time_emb, relation_msg_cau).transpose(1,0)
+                return {'a': att, 'v': val, 'ca':cau_att,'cv':cau_val}
+            return {'a': att, 'v': val}
+        return msg_func
+    
+    def message_func(self, edges):
+        if 'ca' in edges.data:
+            return {'v': edges.data['v'], 'a': edges.data['a'], 'ca':edges.data.pop('ca'),'cv':edges.data.pop('cv')}
+        return {'v': edges.data['v'], 'a': edges.data['a']}
+     
+    
+    def reduce_func(self,etype):
+        def reduce(nodes):
+            att = F.softmax(nodes.mailbox['a'], dim=1)
+            h   = torch.sum(att.unsqueeze(dim = -1) * nodes.mailbox['v'], dim=1)
+            if 'ca' in nodes.mailbox:
+                cau_att = F.softmax(nodes.mailbox['ca'], dim=1) 
+                cau_h   = torch.sum(cau_att.unsqueeze(dim = -1) * nodes.mailbox['cv'], dim=1)
+                # beta = torch.sigmoid(self.comb_pri[etype])
+                # print(beta,'beta',self.comb_pri[etype])
+                # h = beta * h + (1-beta) * cau_h
+                h += cau_h
+            return {'t': h.view(-1, self.out_dim)}
+        return reduce
+
+    def forward(self, G, inp_key, out_key):
+        self.time_emb = G.time_emb
+        edge_dict = []
+        for srctype, etype, dsttype in G.canonical_etypes:
+            if etype not in self.etypes:
+                continue 
+            edge_dict.append(etype)
+            # print(srctype, etype, dsttype)
+            k_linear = self.k_linears[srctype]
+            v_linear = self.v_linears[srctype] 
+            q_linear = self.q_linears[dsttype]
+            G.nodes[srctype].data['k'] = k_linear(G.nodes[srctype].data[inp_key]).view(-1, self.n_heads, self.d_k)
+            G.nodes[srctype].data['v'] = v_linear(G.nodes[srctype].data[inp_key]).view(-1, self.n_heads, self.d_k)
+            G.nodes[dsttype].data['q'] = q_linear(G.nodes[dsttype].data[inp_key]).view(-1, self.n_heads, self.d_k)
+            if etype in ['tw','tt','td']:
+                cau_k_linear = self.cau_k_linears[srctype]
+                cau_v_linear = self.cau_v_linears[srctype] 
+                cau_q_linear = self.cau_q_linears[dsttype]
+                G.nodes[srctype].data['ck'] = cau_k_linear(G.nodes[srctype].data[inp_key]).view(-1, self.n_heads, self.d_k)
+                G.nodes[srctype].data['cv'] = cau_v_linear(G.nodes[srctype].data[inp_key]).view(-1, self.n_heads, self.d_k)
+                G.nodes[dsttype].data['cq'] = cau_q_linear(G.nodes[dsttype].data[inp_key]).view(-1, self.n_heads, self.d_k)
+            G.apply_edges(func=self.edge_attention(etype, inp_key), etype=etype)
+           
+        G.multi_update_all({etype : (self.message_func, self.reduce_func(etype)) \
+                            for etype in edge_dict}, cross_reducer = 'mean')
+        
+        for ntype in G.ntypes: 
+            trans_out = G.nodes[ntype].data.pop('t') 
+            trans_out = F.relu(trans_out)
+            if self.use_norm:
+                G.nodes[ntype].data[out_key] = self.drop(self.norms[ntype](trans_out))
+            else:
+                G.nodes[ntype].data[out_key] = self.drop(trans_out)
+
+# shared key and value
+class causal_message_passing_rdm_content_prior_shared2(nn.Module):
+    def __init__(self, in_dim, out_dim, ntypes, etypes, n_heads, dropout = 0.5, use_norm = False, device=torch.device("cpu")):
+        super().__init__()
+        self.in_dim        = in_dim
+        self.out_dim       = out_dim
+        self.etypes        = etypes
+        self.ntypes        = ntypes
+        self.n_heads       = n_heads
+        self.d_k           = out_dim // n_heads
+        self.sqrt_dk       = math.sqrt(self.d_k)
+        self.device        = device
+        self.use_norm    = use_norm
+        self.time_emb    = None
+        self.k_linears   = nn.ModuleDict()
+        self.q_linears   = nn.ModuleDict()
+        self.v_linears   = nn.ModuleDict()
+        # self.cau_k_linears   = nn.ModuleDict()
+        # self.cau_q_linears   = nn.ModuleDict()
+        # self.cau_v_linears   = nn.ModuleDict()
+        self.norms       = nn.ModuleDict()
+        for t in ntypes:
+            self.k_linears[t] = nn.Linear(in_dim,   out_dim)
+            self.q_linears[t] = nn.Linear(in_dim,   out_dim)
+            self.v_linears[t] = nn.Linear(in_dim,   out_dim)
+            # self.cau_k_linears[t] = nn.Linear(in_dim,   out_dim)
+            # self.cau_q_linears[t] = nn.Linear(in_dim,   out_dim)
+            # self.cau_v_linears[t] = nn.Linear(in_dim,   out_dim)
+            if use_norm:
+                self.norms[t] = nn.LayerNorm(out_dim)
+
+        self.relation_msg = nn.ParameterDict()
+        self.relation_att = nn.ParameterDict()
+        # self.comb_pri = nn.ParameterDict()
+        for etype in etypes:
+            self.relation_msg[etype] = nn.Parameter(torch.Tensor(n_heads, self.d_k, self.d_k))
+            self.relation_att[etype] = nn.Parameter(torch.Tensor(n_heads, self.d_k, 1))
+            # self.comb_pri[etype] = nn.Parameter(torch.ones(1))
+
+        self.relation_msg_cau = nn.ParameterDict()
+        for etype in ['tw','tt','td']:
+            self.relation_msg_cau[etype] = nn.Parameter(torch.Tensor(n_heads, self.d_k, self.d_k))
+        self.cau_filter = nn.Parameter(torch.Tensor(3, n_heads, self.d_k, self.d_k))
+        self.drop           = nn.Dropout(dropout)
+        # self.sparsemax = Sparsemax(dim=1)
+        self.init_weights()
+
+    def init_weights(self):
+        for p in self.parameters():
+            if p.data.ndimension() >= 2:
+                nn.init.xavier_uniform_(p.data, gain=nn.init.calculate_gain('relu'))
+            else:
+                stdv = 1. / math.sqrt(p.size(0))
+                p.data.uniform_(-stdv, stdv)
+
+    def edge_attention(self, etype, inp_key):
+        def msg_func(edges):
+            relation_att = self.relation_att[etype] 
+            query_prior =  (edges.data['weight'] * relation_att).permute(2,0,1).contiguous()
+            relation_msg = self.relation_msg[etype] 
+            att   = (((edges.dst['q']+query_prior) * edges.src['k'] ).sum(dim=-1) / self.sqrt_dk )#+ att0
+            val   = torch.bmm(edges.src['v'].transpose(1,0), relation_msg).transpose(1,0)
+            if etype in ['tw','tt','td']:
+                cau_types = edges.src['cau_type'] # 0,1,2,3  learn and mask out 0 type
+                relation_msg_cau = self.relation_msg_cau[etype] 
+                effect_mask = self.cau_filter[cau_types]
+                n, n_head, d_k, _ = effect_mask.size()
+                mul1 = edges.src['k'].reshape(-1,1,d_k)
+                mul2 = effect_mask.reshape(-1,d_k,d_k)
+                masked_effect = torch.bmm(mul1,mul2)
+                masked_effect = masked_effect.reshape(n,n_head,d_k) 
+                cau_att   = (edges.dst['q'] * masked_effect).sum(dim=-1)/ self.sqrt_dk
+                cau_val   = torch.bmm(edges.src['v'].transpose(1,0) + self.time_emb, relation_msg_cau).transpose(1,0)
+                return {'a': att, 'v': val, 'ca':cau_att,'cv':cau_val}
+            return {'a': att, 'v': val}
+        return msg_func
+    
+    def message_func(self, edges):
+        if 'ca' in edges.data:
+            return {'v': edges.data['v'], 'a': edges.data['a'], 'ca':edges.data.pop('ca'),'cv':edges.data.pop('cv')}
+        return {'v': edges.data['v'], 'a': edges.data['a']}
+     
+    
+    def reduce_func(self,etype):
+        def reduce(nodes):
+            att = F.softmax(nodes.mailbox['a'], dim=1)
+            h   = torch.sum(att.unsqueeze(dim = -1) * nodes.mailbox['v'], dim=1)
+            if 'ca' in nodes.mailbox:
+                cau_att = F.softmax(nodes.mailbox['ca'], dim=1) 
+                cau_h   = torch.sum(cau_att.unsqueeze(dim = -1) * nodes.mailbox['cv'], dim=1)
+                # beta = torch.sigmoid(self.comb_pri[etype])
+                # h = beta * h + (1-beta) * cau_h
+                h += cau_h
             return {'t': h.view(-1, self.out_dim)}
         return reduce
 
@@ -2534,7 +2788,7 @@ class ours_causal5(nn.Module):
         return loss, y_pred
 
 # no dw,dt
-class ours_causal6(nn.Module):
+class ours_causal7(nn.Module):
     def __init__(self, n_inp, n_hid, n_layers, n_heads, activation, device, seq_len, num_topic=50, vocab_size=15000, dropout=0.5, pool='max', use_norm = True, with_rdm=False):
         super().__init__()
         self.n_inp = n_inp
@@ -2565,7 +2819,7 @@ class ours_causal6(nn.Module):
         self.gcs = nn.ModuleList()
         for _ in range(n_layers):
             if self.with_rdm:
-                self.gcs.append(causal_message_passing_rdm_content_prior(n_hid, n_hid, ntypes, etypes, n_heads, use_norm = use_norm, device=self.device))
+                self.gcs.append(causal_message_passing_rdm_content_prior2(n_hid, n_hid, ntypes, etypes, n_heads, use_norm = use_norm, device=self.device))
             else:
                 print('error')
                 exit()
@@ -2675,7 +2929,7 @@ class ours_causal6(nn.Module):
         y_pred = torch.sigmoid(y_pred)
         return loss, y_pred
 
-class ours_causal61(nn.Module):
+class ours_causal71(nn.Module):
     def __init__(self, n_inp, n_hid, n_layers, n_heads, activation, device, seq_len, num_topic=50, vocab_size=15000, dropout=0.5, pool='max', use_norm = True, with_rdm=False):
         super().__init__()
         self.n_inp = n_inp
@@ -2791,7 +3045,7 @@ class ours_causal61(nn.Module):
             for ntype in out_key_dict:
                 key = out_key_dict[ntype]
                 bg.nodes[ntype].data[key][orig_node_ids[ntype].long()] = sub_bg.nodes[ntype].data[key]
-            
+        # print(bg.nodes['doc'].data['ht'])
         if self.pool == 'max':
             global_info = []
             for ntype in out_key_dict:
