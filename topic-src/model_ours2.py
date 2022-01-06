@@ -886,7 +886,7 @@ class causal_message_passing_rdm5(nn.Module):
                 cau_att = F.softmax(nodes.mailbox['ca'], dim=1) 
                 cau_h   = torch.sum(cau_att.unsqueeze(dim = -1) * nodes.mailbox['cv'], dim=1)
                 beta = torch.sigmoid(self.comb_pri[etype])
-                print(beta,'beta',self.comb_pri[etype])
+                # print(beta,'beta',self.comb_pri[etype])
                 h = beta * h + (1-beta) * cau_h
                 # h += cau_h
             return {'t': h.view(-1, self.out_dim)}
