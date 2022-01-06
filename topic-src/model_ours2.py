@@ -2960,7 +2960,7 @@ class ours_causal71(nn.Module):
         self.gcs = nn.ModuleList()
         for _ in range(n_layers):
             if self.with_rdm:
-                self.gcs.append(causal_message_passing_rdm_content_prior_shared(n_hid, n_hid, ntypes, etypes, n_heads, use_norm = use_norm, device=self.device))
+                self.gcs.append(causal_message_passing_rdm_content_prior_shared2(n_hid, n_hid, ntypes, etypes, n_heads, use_norm = use_norm, device=self.device))
             else:
                 print('error')
                 exit()
