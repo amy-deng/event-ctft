@@ -1472,17 +1472,17 @@ class message_passing_content_prior2(nn.Module):
         self.k_linears   = nn.ModuleDict()
         self.q_linears   = nn.ModuleDict()
         self.v_linears   = nn.ModuleDict()
-        self.cau_k_linears   = nn.ModuleDict()
-        self.cau_q_linears   = nn.ModuleDict()
-        self.cau_v_linears   = nn.ModuleDict()
+        # self.cau_k_linears   = nn.ModuleDict()
+        # self.cau_q_linears   = nn.ModuleDict()
+        # self.cau_v_linears   = nn.ModuleDict()
         self.norms       = nn.ModuleDict()
         for t in ntypes:
             self.k_linears[t] = nn.Linear(in_dim,   out_dim)
             self.q_linears[t] = nn.Linear(in_dim,   out_dim)
             self.v_linears[t] = nn.Linear(in_dim,   out_dim)
-            self.cau_k_linears[t] = nn.Linear(in_dim,   out_dim)
-            self.cau_q_linears[t] = nn.Linear(in_dim,   out_dim)
-            self.cau_v_linears[t] = nn.Linear(in_dim,   out_dim)
+            # self.cau_k_linears[t] = nn.Linear(in_dim,   out_dim)
+            # self.cau_q_linears[t] = nn.Linear(in_dim,   out_dim)
+            # self.cau_v_linears[t] = nn.Linear(in_dim,   out_dim)
             if use_norm:
                 self.norms[t] = nn.LayerNorm(out_dim)
 
