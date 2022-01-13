@@ -3354,7 +3354,7 @@ class ours_causal7_rdm(nn.Module):
         # print(effect,effect.shape)
         # randomly get causal nodes, 0 1 2
         weights = torch.tensor([132, 9, 9], dtype=torch.float)
-        random_effect = torch.multinomial(weights, len(bg.nodes['topic'].data['id']),replacement=True)
+        random_effect = torch.multinomial(weights, len(bg.nodes['topic'].data['id']),replacement=True).to(self.device)
         # v = torch.randint(0, 3, bg.nodes['topic'].data['id'].shape)*1.0
         # print(v,v.shape,'vvv')
         bg.nodes['topic'].data['cau_type'] = random_effect.long() 
