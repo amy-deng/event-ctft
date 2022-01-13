@@ -3,7 +3,11 @@ import os
 import numpy as np
 from subprocess import call
 
+'''
+python main.py gcn,gat,rgcn EGY_w7h7_mind3n7df0.01 sta_tf_2014-2015_900,sta_tf_2015-2016_900,sta_tf_2016-2017_900 3 64 2 . 4 " --train 0.3"
+python main.py temphgt EGY_w7h7_mind3n7df0.01 dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 3 64 1 . 4 " --train 0.3  --n-topics 60 "
 
+'''
 
 try:
     models = sys.argv[1]

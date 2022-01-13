@@ -165,6 +165,9 @@ def prepare(args,word_embeds,device):
     elif args.model == 'causal7':
         model = ours_causal7(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
         num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True,with_rdm=args.with_rdm)
+    elif args.model == 'temp72':
+        model = ours_temp72(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
+        num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True,with_rdm=args.with_rdm)
     elif args.model == 'causal71':
         model = ours_causal71(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
         num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True,with_rdm=args.with_rdm)
