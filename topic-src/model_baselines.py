@@ -714,12 +714,12 @@ class dyngcn(nn.Module):
         self.temp_encoding = nn.Linear(n_hid*2,  n_hid)
         # input layer
         self.layers = nn.ModuleList()
-        for i in range(seq_len):
-            self.layers.append(GCNLayerM(n_hid, n_hid, activation, dropout))
-        # self.layers.append(GCNLayerM(n_hid, n_hid, activation, dropout))
-        # # hidden layers
-        # for i in range(n_layers - 1):
+        # for i in range(seq_len):
         #     self.layers.append(GCNLayerM(n_hid, n_hid, activation, dropout))
+        self.layers.append(GCNLayerM(n_hid, n_hid, activation, dropout))
+        # hidden layers
+        for i in range(n_layers - 1):
+            self.layers.append(GCNLayerM(n_hid, n_hid, activation, dropout))
         
         self.out_layer = nn.Linear(n_hid, 1) 
         self.threshold = 0.5
@@ -775,9 +775,9 @@ class dyngcn(nn.Module):
                 cat_h = torch.cat((h,h0),dim=-1)
                 h = torch.tanh(self.temp_encoding(cat_h))
              
-            h = self.layers[curr_time](sub_bg, h, ntype='word',etype='ww') 
-            # for layer in self.layers:
-            #     h = layer(sub_bg, h, ntype='word',etype='ww') 
+            # h = self.layers[curr_time](sub_bg, h, ntype='word',etype='ww') 
+            for layer in self.layers:
+                h = layer(sub_bg, h, ntype='word',etype='ww') 
             bg.nodes['word'].data['h'][orig_node_ids['word'].long()] = h
             
         if self.pool == 'max':
