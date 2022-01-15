@@ -760,7 +760,7 @@ class dyngcn(nn.Module):
                                         # ('topic', 'tw', 'word'): wt_edges_idx,
                                         # ('doc', 'dt', 'topic'): td_edges_idx,
                                         # ('doc', 'dw', 'word'):wd_edges_idx
-                                        }#,preserve_nodes=True
+                                        },preserve_nodes=True
                                         )
             sub_bg = sub_bg.to(self.device)
             orig_node_ids = sub_bg.ndata[dgl.NID] # {'word':,'topic':,'doc':}
@@ -772,10 +772,9 @@ class dyngcn(nn.Module):
             else:
                 h = sub_bg.nodes['word'].data['h']
                 h0 = sub_bg.nodes['word'].data['h0']
-                h = h + h0
-                # cat_h = torch.cat((h,h0),dim=-1)
-                # cat_h = self.dropout(cat_h)
-                # h = torch.tanh(self.temp_encoding(cat_h))
+                cat_h = torch.cat((h,h0),dim=-1)
+                cat_h = self.dropout(cat_h)
+                h = torch.tanh(self.temp_encoding(cat_h))
             # h = self.layers[curr_time](sub_bg, h, ntype='word',etype='ww') 
             for layer in self.layers:
                 h = layer(sub_bg, h, ntype='word',etype='ww') 
