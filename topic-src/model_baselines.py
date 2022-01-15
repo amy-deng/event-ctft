@@ -773,8 +773,8 @@ class dyngcn(nn.Module):
                 h = sub_bg.nodes['word'].data['h']
                 h0 = sub_bg.nodes['word'].data['h0']
                 cat_h = torch.cat((h,h0),dim=-1)
+                cat_h = self.dropout(cat_h)
                 h = torch.tanh(self.temp_encoding(cat_h))
-             
             # h = self.layers[curr_time](sub_bg, h, ntype='word',etype='ww') 
             for layer in self.layers:
                 h = layer(sub_bg, h, ntype='word',etype='ww') 
