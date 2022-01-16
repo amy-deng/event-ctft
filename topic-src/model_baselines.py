@@ -760,7 +760,7 @@ class dyngcn(nn.Module):
                                         # ('topic', 'tw', 'word'): wt_edges_idx,
                                         # ('doc', 'dt', 'topic'): td_edges_idx,
                                         # ('doc', 'dw', 'word'):wd_edges_idx
-                                        },preserve_nodes=True
+                                        }#,preserve_nodes=True
                                         )
             sub_bg = sub_bg.to(self.device)
             orig_node_ids = sub_bg.ndata[dgl.NID] # {'word':,'topic':,'doc':}
