@@ -712,6 +712,7 @@ class dyngcn(nn.Module):
          
         self.adapt_ws  = nn.Linear(n_inp,  n_hid) 
         self.temp_encoding = nn.Linear(n_hid*2,  n_hid)
+        self.bn = nn.BatchNorm1d(2*n_hid)
         # input layer
         self.layers = nn.ModuleList()
         # for i in range(seq_len):
@@ -773,7 +774,8 @@ class dyngcn(nn.Module):
                 h = sub_bg.nodes['word'].data['h']
                 h0 = sub_bg.nodes['word'].data['h0']
                 cat_h = torch.cat((h,h0),dim=-1)
-                cat_h = self.dropout(cat_h)
+                
+                cat_h = self.dropout(self.bn(cat_h))
                 h = torch.tanh(self.temp_encoding(cat_h))
             # h = self.layers[curr_time](sub_bg, h, ntype='word',etype='ww') 
             for layer in self.layers:
