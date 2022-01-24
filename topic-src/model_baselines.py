@@ -711,16 +711,20 @@ class dyngcn(nn.Module):
         self.word_embeds = None
          
         self.adapt_ws  = nn.Linear(n_inp,  n_hid) 
-        self.temp_encoding = nn.Linear(n_hid*2,  n_hid)
-        self.bn = nn.BatchNorm1d(2*n_hid)
+        # self.temp_encoding = nn.Linear(n_hid*2,  n_hid)
+        # self.bn = nn.BatchNorm1d(2*n_hid)
         # input layer
         self.layers = nn.ModuleList()
-        # for i in range(seq_len):
-        #     self.layers.append(GCNLayerM(n_hid, n_hid, activation, dropout))
-        self.layers.append(GCNLayerM(n_hid, n_hid, activation, dropout))
-        # hidden layers
-        for i in range(n_layers - 1):
+        self.temp_encoding = nn.ModuleList()
+        self.bn = nn.ModuleList()
+        for i in range(seq_len):
             self.layers.append(GCNLayerM(n_hid, n_hid, activation, dropout))
+            self.temp_encoding.append(nn.Linear(n_hid*2,  n_hid))
+            self.bn.append(nn.BatchNorm1d(2*n_hid))
+        # self.layers.append(GCNLayerM(n_hid, n_hid, activation, dropout))
+        # hidden layers
+        # for i in range(n_layers - 1):
+        #     self.layers.append(GCNLayerM(n_hid, n_hid, activation, dropout))
         
         self.out_layer = nn.Linear(n_hid, 1) 
         self.threshold = 0.5
@@ -775,11 +779,11 @@ class dyngcn(nn.Module):
                 h0 = sub_bg.nodes['word'].data['h0']
                 cat_h = torch.cat((h,h0),dim=-1)
                 
-                cat_h = self.dropout(self.bn(cat_h))
-                h = torch.tanh(self.temp_encoding(cat_h))
+                cat_h = self.dropout(self.bn[curr_time](cat_h))
+                h = torch.tanh(self.temp_encoding[curr_time](cat_h))
             # h = self.layers[curr_time](sub_bg, h, ntype='word',etype='ww') 
-            for layer in self.layers:
-                h = layer(sub_bg, h, ntype='word',etype='ww') 
+            # for layer in self.layers:
+            h = self.layers[curr_time](sub_bg, h, ntype='word',etype='ww') 
             bg.nodes['word'].data['h'][orig_node_ids['word'].long()] = h
             
         if self.pool == 'max':

@@ -245,3 +245,41 @@ barerrorplotall.function <- function(y,errors,ylab,min,max) {
     segments(barCenters, y-errors, barCenters, y+errors, lwd=0.5)
     abline(h=y[1],lty = '2947', lwd=0.5)
 }
+
+
+
+
+library(plotly)
+x <- c(32, 32, 32, 48, 48, 48, 64, 64, 64, 80, 80, 80)
+y <- c(1,  2,   3, 1,  2,   3, 1,  2,   3, 1,  2,   3)
+z <- c(0.796, 0.809, 0.808,  0.839, 0.812, 0.798, 0.828, 0.841, 0.827, 0.828, 0.807, 0.802) # THA
+# z <- c(0.7, 0.688, 0.698,  0.685, 0.664, 0.68, 0.675, 0.674, 0.672, 0.669, 0.657, 0.611) # THA
+
+
+
+axx <- list(
+  title = "Hidden state"
+)
+
+axx <- list(
+title = "Hidden state",
+  ticktext = c("32", "48", "64", "80"),
+  tickvals = c(32,48,64,80),
+  range = c(32,80)
+)
+
+
+axy <- list(
+  title = "Layer",
+  ticktext = c("1", "2", "3"),
+  tickvals = c(1,2,3),
+  range = c(1,3)
+)
+
+axz <- list(
+  title = "F1"
+)
+
+
+fig <- plot_ly(x = ~x, y = ~y, z = ~z, intensity = ~z, type = 'mesh3d', colors = colorRamp(c("blue", "lightblue", "chartreuse3", "yellow", "red")))
+fig <- fig %>% layout(scene = list(xaxis=axx,yaxis=axy,zaxis=axz))
