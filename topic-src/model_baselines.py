@@ -781,7 +781,7 @@ class dyngcn(nn.Module):
             cat_h = torch.cat((h,h0),dim=-1)
             
             cat_h = self.dropout(self.bn[curr_time](cat_h))
-            h = torch.tanh(self.temp_encoding[curr_time](cat_h)) + h
+            h = torch.relu(self.temp_encoding[curr_time](cat_h))
             # h = self.layers[curr_time](sub_bg, h, ntype='word',etype='ww') 
             # for layer in self.layers:
             h = self.layers[curr_time](sub_bg, h, ntype='word',etype='ww') 
