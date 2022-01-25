@@ -112,6 +112,7 @@ class GCNLayerM(nn.Module):
             h = self.activation(h)
         if self.dropout:
             h = self.dropout(h)
+        # print(h)
         return h
 
     def __repr__(self):
@@ -765,22 +766,22 @@ class dyngcn(nn.Module):
                                         # ('topic', 'tw', 'word'): wt_edges_idx,
                                         # ('doc', 'dt', 'topic'): td_edges_idx,
                                         # ('doc', 'dw', 'word'):wd_edges_idx
-                                        }#,preserve_nodes=True
+                                        },preserve_nodes=True
                                         )
             sub_bg = sub_bg.to(self.device)
             orig_node_ids = sub_bg.ndata[dgl.NID] # {'word':,'topic':,'doc':}
             # time_emb = self.time_emb(torch.tensor(curr_time).to(self.device))
             # sub_bg.time_emb = time_emb
             # print('curr_time=',curr_time,sub_bg.nodes['word'].data['h0'].shape)
-            if curr_time == 0:
-                h = sub_bg.nodes['word'].data['h0']
-            else:
-                h = sub_bg.nodes['word'].data['h']
-                h0 = sub_bg.nodes['word'].data['h0']
-                cat_h = torch.cat((h,h0),dim=-1)
-                
-                cat_h = self.dropout(self.bn[curr_time](cat_h))
-                h = torch.tanh(self.temp_encoding[curr_time](cat_h))
+            # if curr_time == 0:
+            #     h = sub_bg.nodes['word'].data['h0']
+            # else:
+            h = sub_bg.nodes['word'].data['h']
+            h0 = sub_bg.nodes['word'].data['h0']
+            cat_h = torch.cat((h,h0),dim=-1)
+            
+            cat_h = self.dropout(self.bn[curr_time](cat_h))
+            h = torch.tanh(self.temp_encoding[curr_time](cat_h))
             # h = self.layers[curr_time](sub_bg, h, ntype='word',etype='ww') 
             # for layer in self.layers:
             h = self.layers[curr_time](sub_bg, h, ntype='word',etype='ww') 
