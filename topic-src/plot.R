@@ -46,6 +46,7 @@ lineplot.function <- function(x,y1,y2,ylab,legpos) {
 }
 
 
+
 lineplot2.function <- function(x,y1,y2,ylab,legpos) {
    # par(c("mar", "mai"))
     dev.new(width=4, height=4.8, unit="in")
@@ -62,6 +63,24 @@ lineplot2.function <- function(x,y1,y2,ylab,legpos) {
     legend(legpos, legend=c("Ours","Ours w/o causal"),
         col=c("blue", "red"), lty = 1:2, cex=1.3, box.lty=0)
 }
+
+lineplot3.function <- function(x,y1,y2,y3,ylab,legpos) {
+   # par(c("mar", "mai"))
+    dev.new(width=4.8, height=4.2, unit="in")
+    par(mar=c(4.2,4.2,1,1))
+    # par(mai=rep(0.4, 4))
+    # par(mar = c(3, 5, 3, 5))
+    plot(x, y1, type = "b", frame = FALSE, pch = 19,  panel.first=grid(),
+        col = "blue", xlab = "Lead time window (Day)", ylab = ylab,cex.lab=1.3, cex.axis=1.3, cex.main=1.3, cex.sub=1.3,
+        # ylim=c(0.6,0.9)
+        )
+    # Add a second line
+    lines(x, y2, pch = 15, col = "red", type = "b", lty = 2)
+    lines(x, y3, pch = 21, col = "orange", type = "b", lty = 2)
+    # Add a legend to the plot
+    legend(legpos, legend=c("Ours","Ours w/o causal", "HGT"),
+        col=c("blue", "red",'orange'), lty = 1:2, cex=1.3, box.lty=0)
+}
 # http://www.sthda.com/english/wiki/add-legends-to-plots-in-r-software-the-easiest-way
 x <- 1:7
 ylab <- "F1"
@@ -75,15 +94,29 @@ y1 <- c(0.706 ,0.764,0.821 ,0.839 ,0.858 ,0.885)
 y2 <- c(0.728,0.755,0.796,0.816,0.851,0.875)
 lineplot.function(x,y1,y2,ylab,legpos)
 
+legpos <- "bottomright"
+
+y1 <- c(0.706 ,0.764,0.821 ,0.839 ,0.858 ,0.885)
+y2 <- c(0.728,0.755,0.796,0.816,0.851,0.875)
+y3 <- c(0.673, 0.74, 0.759, 0.803, 0.839, 0.88)
+lineplot3.function(x,y1,y2,y3,ylab,legpos)
+
 
 # AFG
 y1 <- c(0.122,0.388 ,0.614 ,0.648 ,0.7   ,0.744 ,0.799)
 y2 <- c(0.0 ,0.38  ,0.569 ,0.639 ,0.678,0.742 ,0.795)
 lineplot.function(x,y1,y2,ylab,legpos)
 
+
+
 y1 <- c(0.388 ,0.614 ,0.648 ,0.7   ,0.744 ,0.799)
 y2 <- c(0.38  ,0.569 ,0.639 ,0.678,0.742 ,0.795)
 lineplot.function(x,y1,y2,ylab,legpos)
+
+y3 <- c(0.378, 0.552, 0.615, 0.65, 0.72, 0.757)
+lineplot3.function(x,y1,y2,y3,ylab,legpos)
+
+
 
 # RUS
 y1 <- c(0.166,0.646,0.769,0.819,0.86 ,0.884,0.911)
@@ -95,6 +128,9 @@ y1 <- c(0.646,0.769,0.819,0.86 ,0.884,0.911)
 y2 <- c(0.63,  0.754, 0.806, 0.854, 0.882, 0.911)
 legpos <- "bottomright"
 lineplot.function(x,y1,y2,ylab,legpos)
+
+y3 <- c(0.614, 0.729, 0.787, 0.842, 0.874, 0.902)
+lineplot3.function(x,y1,y2,y3,ylab,legpos)
 
 # RUS BACC
 y1 <- c(0.54  ,0.769 ,0.827 ,0.859 ,0.883 ,0.893 ,0.914)
@@ -113,6 +149,11 @@ x <- 2:7
 y1 <- c(0.761,0.838,0.878,0.897,0.913,0.927)
 y2 <- c(0.748,0.837,0.864,0.895,0.909,0.924)
 lineplot.function(x,y1,y2,ylab,legpos)
+
+y3 <- c(0.745, 0.831, 0.866, 0.882, 0.907, 0.925)
+lineplot3.function(x,y1,y2,y3,ylab,legpos)
+
+
 
 barplot.function <- function(y,ylab,min,max) { 
     dev.new(width=4.8, height=4.2, unit="in")
