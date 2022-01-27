@@ -41,7 +41,7 @@ class GCNLayer(nn.Module):
     def forward(self, g, h, ntype, etype):
         h = torch.mm(h, self.weight)
         # normalization by square root of src degree
-        h = h * g.nodes[ntype].data['norm'].unsqueeze(1)
+        # h = h * g.nodes[ntype].data['norm'].unsqueeze(1)
         g.nodes[ntype].data['h'] = h
         g.update_all(
             # fn.copy_src(src='h', out='m'),
@@ -49,7 +49,7 @@ class GCNLayer(nn.Module):
                         fn.sum(msg='m', out='h'),etype=etype)
         h = g.nodes[ntype].data.pop('h')
         # normalization by square root of dst degree
-        h = h * g.nodes[ntype].data['norm'].unsqueeze(1)
+        # h = h * g.nodes[ntype].data['norm'].unsqueeze(1)
         # bias
         if self.bias is not None:
             h = h + self.bias
