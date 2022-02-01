@@ -171,7 +171,9 @@ def prepare(args,word_embeds,device):
     elif args.model == 'causal7_one':
         model = ours_causal7_one(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
         num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True,with_rdm=args.with_rdm, one_causal=args.one_causal)
-    
+    elif args.model == 'causal7_nop':
+        model = ours_causal7_nop(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
+        num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True,with_rdm=args.with_rdm)
     elif args.model == 'temp72':
         model = ours_temp72(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, n_heads=args.n_heads, activation=F.relu, seq_len=args.seq_len,device=device, 
         num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool, use_norm = True,with_rdm=args.with_rdm)
