@@ -69,7 +69,7 @@ if lda_dict_name[:3] == 'THA':
 elif lda_dict_name[:3] == 'AFG':
     topic_indices = [27,33,44,37] # AFG
 elif lda_dict_name[:3] == 'EGY':
-    topic_indices = [17,39,31,52] #
+    topic_indices = [17,39,31,54] #
 elif lda_dict_name[:3] == 'RUS':
     topic_indices = [18,42,12,43] #  
 
