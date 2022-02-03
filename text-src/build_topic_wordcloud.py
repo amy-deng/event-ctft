@@ -99,7 +99,7 @@ for i, ax in enumerate(axes.flatten()):
 plt.axis('off')
 plt.margins(x=0, y=0)
 plt.tight_layout()
-path = "/home/sdeng/data/icews/topic_models/{}/wordcloud-causal-blk.pdf".format(lda_name)
+path = "/home/sdeng/data/icews/topic_models/{}/wordcloud-causal3.pdf".format(lda_name)
 print(path)
 fig.savefig(path, bbox_inches='tight', dpi=300, transparent=True)
 # plt.show()
