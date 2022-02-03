@@ -61,7 +61,14 @@ topics = loaded_lda.show_topics(num_topics=num_topic,num_words=25,formatted=Fals
 print(len(topics),topics[0])
 # exit()
 # topic_indices = [27,33,44,37,10,6,9]
-topic_indices = [39,6,46,27] # THA
+if lda_dict_name[:3] == 'THA':
+    topic_indices = [39,6,46,27] # THA
+elif lda_dict_name[:3] == 'AFG':
+    topic_indices = [27,33,44,37] # AFG
+elif lda_dict_name[:3] == 'EGY':
+    topic_indices = [17,39,31,52] #
+elif lda_dict_name[:3] == 'RUS':
+    topic_indices = [18,42,12,42] #  
 
 fig, axes = plt.subplots(2, 2, figsize=(6,6), sharex=True, sharey=True)
 
