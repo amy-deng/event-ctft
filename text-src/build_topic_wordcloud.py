@@ -46,14 +46,14 @@ import matplotlib.colors as mcolors
 cols = [color for name, color in mcolors.TABLEAU_COLORS.items()]  # more colors: 'mcolors.XKCD_COLORS'
 cloud = WordCloud(stopwords=STOPWORDS,
                   background_color='white',
-                  width=2500,
-                  height=1800,
+                  width=2000,
+                  height=2000,
                   max_words=30,
                   colormap='tab10',
                 #   color_func=lambda *args, **kwargs: cols[i],
                 #   color_func=lambda **kwargs: "black",
                   color_func=lambda *args, **kwargs: "black",
-                  prefer_horizontal=.9)
+                  prefer_horizontal=1.0)
 
 topics = loaded_lda.show_topics(num_topics=num_topic,num_words=30,formatted=False)
 # 1-19
@@ -75,12 +75,12 @@ for i, ax in enumerate(axes.flatten()):
     for k in topic_words:
         topic_words_term[loaded_dict[int(k)]] = topic_words[k]
 #     print(topic_words_term)
-    cloud.generate_from_frequencies(topic_words_term, max_font_size=280)
+    cloud.generate_from_frequencies(topic_words_term, max_font_size=300)
     plt.gca().imshow(cloud)
     # plt.gca().set_title('Topic ' + str(i), fontdict=dict(size=10))
     plt.gca().axis('off')
 
-    plt.subplots_adjust(wspace=1.0, hspace=0)
+    plt.subplots_adjust(wspace=0.0, hspace=0)
 plt.axis('off')
 plt.margins(x=0, y=0)
 plt.tight_layout()
