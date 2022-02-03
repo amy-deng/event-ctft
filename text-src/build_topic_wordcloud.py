@@ -85,7 +85,7 @@ for i, ax in enumerate(axes.flatten()):
     for k in topic_words:
         topic_words_term[loaded_dict[int(k)]] = topic_words[k]
 #     print(topic_words_term)
-    cloud.generate_from_frequencies(topic_words_term, max_font_size=280)
+    cloud.generate_from_frequencies(topic_words_term, max_font_size=350)
     plt.gca().imshow(cloud)
     # plt.gca().set_title('Topic ' + str(i), fontdict=dict(size=10))
     plt.gca().axis('off')
@@ -94,7 +94,7 @@ for i, ax in enumerate(axes.flatten()):
 plt.axis('off')
 plt.margins(x=0, y=0)
 plt.tight_layout()
-path = "/home/sdeng/data/icews/topic_models/{}/wordcloud-causal.pdf".format(lda_name)
+path = "/home/sdeng/data/icews/topic_models/{}/wordcloud-causal2.pdf".format(lda_name)
 print(path)
 fig.savefig(path, bbox_inches='tight', dpi=300, transparent=True)
 # plt.show()
