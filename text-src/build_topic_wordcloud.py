@@ -71,7 +71,7 @@ elif lda_dict_name[:3] == 'AFG':
 elif lda_dict_name[:3] == 'EGY':
     topic_indices = [17,39,31,52] #
 elif lda_dict_name[:3] == 'RUS':
-    topic_indices = [18,42,12,42] #  
+    topic_indices = [18,42,12,43] #  
 
 fig, axes = plt.subplots(2, 2, figsize=(6,6), sharex=True, sharey=True)
 
