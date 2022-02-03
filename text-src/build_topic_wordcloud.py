@@ -51,7 +51,7 @@ cloud = WordCloud(stopwords=STOPWORDS,
                   max_words=25,
                   colormap='tab10',
                   color_func=lambda *args, **kwargs: cols[i],
-                  color_func=lambda **kwargs: "black",
+                #   color_func=lambda **kwargs: "black",
                 #   color_func=lambda *args, **kwargs: "black",
                   prefer_horizontal=1.0)
 
