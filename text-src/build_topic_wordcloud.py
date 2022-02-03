@@ -9,6 +9,9 @@ from gensim.corpora.dictionary import Dictionary
 
 '''
 python build_topic_wordcloud.py THA_2012 THA_2012_50 50
+python build_topic_wordcloud.py AFG_2012 AFG_2012_60 60
+python build_topic_wordcloud.py EGY_2012 EGY_2012_60 60
+python build_topic_wordcloud.py RUS_2012 RUS_2012_60 60
 
 '''
 
@@ -91,7 +94,9 @@ for i, ax in enumerate(axes.flatten()):
 plt.axis('off')
 plt.margins(x=0, y=0)
 plt.tight_layout()
-fig.savefig("/home/sdeng/data/icews/topic_models/{}/wordcloud-causal.pdf".format(lda_name), bbox_inches='tight', dpi=300, transparent=True)
+path = "/home/sdeng/data/icews/topic_models/{}/wordcloud-causal.pdf".format(lda_name)
+print(path)
+fig.savefig(path, bbox_inches='tight', dpi=300, transparent=True)
 # plt.show()
 print('wordcloud of causal topics saved')
 
