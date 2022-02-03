@@ -44,14 +44,13 @@ from matplotlib import pyplot as plt
 import matplotlib.colors as mcolors
 
 cols = [color for name, color in mcolors.TABLEAU_COLORS.items()]  # more colors: 'mcolors.XKCD_COLORS'
-cols = cols + cols + cols + cols + cols
 cloud = WordCloud(stopwords=STOPWORDS,
                   background_color='white',
                   width=2500,
                   height=1800,
                   max_words=30,
-                  colormap='tab10',
-                  color_func=lambda *args, **kwargs: cols[i],
+                #   colormap='tab10',
+                #   color_func=lambda *args, **kwargs: cols[i],
                   prefer_horizontal=1.0)
 
 topics = loaded_lda.show_topics(num_topics=num_topic,num_words=30,formatted=False)
@@ -59,12 +58,14 @@ topics = loaded_lda.show_topics(num_topics=num_topic,num_words=30,formatted=Fals
 
 print(len(topics),topics[0])
 # exit()
-topic_indices = [27,33,44,37,10,6,9]
-fig, axes = plt.subplots(3, 3, figsize=(8,8), sharex=True, sharey=True)
+# topic_indices = [27,33,44,37,10,6,9]
+topic_indices = [39,6,49,27] # THA
+
+fig, axes = plt.subplots(2, 2, figsize=(8,8), sharex=True, sharey=True)
 
 for i, ax in enumerate(axes.flatten()):
-    if i >= len(topic_indices):
-        break
+    # if i >= len(topic_indices):
+    #     break
     fig.add_subplot(ax)
     topic_words = dict(topics[topic_indices[i]][1])
 #     print((topic_words))
@@ -74,7 +75,7 @@ for i, ax in enumerate(axes.flatten()):
 #     print(topic_words_term)
     cloud.generate_from_frequencies(topic_words_term, max_font_size=300)
     plt.gca().imshow(cloud)
-    plt.gca().set_title('Topic ' + str(i), fontdict=dict(size=10))
+    # plt.gca().set_title('Topic ' + str(i), fontdict=dict(size=10))
     plt.gca().axis('off')
 
     plt.subplots_adjust(wspace=0, hspace=0)
@@ -83,33 +84,33 @@ plt.margins(x=0, y=0)
 plt.tight_layout()
 fig.savefig("/home/sdeng/data/icews/topic_models/{}/wordcloud-causal.pdf".format(lda_name), bbox_inches='tight', dpi=300, transparent=True)
 # plt.show()
-print('wordcloud of topics from 0 to 19 saved')
+print('wordcloud of causal topics saved')
 
 
 
 
 
-fig, axes = plt.subplots(7, 3, figsize=(10,16), sharex=True, sharey=True)
+# fig, axes = plt.subplots(7, 3, figsize=(10,16), sharex=True, sharey=True)
 
-for i, ax in enumerate(axes.flatten()):
-    if i >= 20:
-        break
-    fig.add_subplot(ax)
-    topic_words = dict(topics[i][1])
-#     print((topic_words))
-    topic_words_term = {}
-    for k in topic_words:
-        topic_words_term[loaded_dict[int(k)]] = topic_words[k]
-#     print(topic_words_term)
-    cloud.generate_from_frequencies(topic_words_term, max_font_size=300)
-    plt.gca().imshow(cloud)
-    plt.gca().set_title('Topic ' + str(i), fontdict=dict(size=10))
-    plt.gca().axis('off')
+# for i, ax in enumerate(axes.flatten()):
+#     if i >= 20:
+#         break
+#     fig.add_subplot(ax)
+#     topic_words = dict(topics[i][1])
+# #     print((topic_words))
+#     topic_words_term = {}
+#     for k in topic_words:
+#         topic_words_term[loaded_dict[int(k)]] = topic_words[k]
+# #     print(topic_words_term)
+#     cloud.generate_from_frequencies(topic_words_term, max_font_size=300)
+#     plt.gca().imshow(cloud)
+#     plt.gca().set_title('Topic ' + str(i), fontdict=dict(size=10))
+#     plt.gca().axis('off')
 
-    plt.subplots_adjust(wspace=0, hspace=0)
-plt.axis('off')
-plt.margins(x=0, y=0)
-plt.tight_layout()
-fig.savefig("/home/sdeng/data/icews/topic_models/{}/wordcloud-0-19.pdf".format(lda_name), bbox_inches='tight', dpi=300, transparent=True)
-# plt.show()
-print('wordcloud of topics from 0 to 19 saved')
+#     plt.subplots_adjust(wspace=0, hspace=0)
+# plt.axis('off')
+# plt.margins(x=0, y=0)
+# plt.tight_layout()
+# fig.savefig("/home/sdeng/data/icews/topic_models/{}/wordcloud-0-19.pdf".format(lda_name), bbox_inches='tight', dpi=300, transparent=True)
+# # plt.show()
+# print('wordcloud of topics from 0 to 19 saved')
