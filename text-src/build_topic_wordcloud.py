@@ -8,7 +8,7 @@ from gensim.test.utils import common_texts, common_corpus, common_dictionary
 from gensim.corpora.dictionary import Dictionary
 
 '''
-python build_topic_wordcloud.py THA_2012 THA_2012_50
+python build_topic_wordcloud.py THA_2012 THA_2012_50 50
 
 '''
 
@@ -58,15 +58,15 @@ topics = loaded_lda.show_topics(num_topics=num_topic,num_words=30,formatted=Fals
 # 1-19
 
 print(len(topics),topics[0])
-exit()
-
-fig, axes = plt.subplots(2, 2, figsize=(8,8), sharex=True, sharey=True)
+# exit()
+topic_indices = [27,33,44,37,10,6,9]
+fig, axes = plt.subplots(3, 3, figsize=(8,8), sharex=True, sharey=True)
 
 for i, ax in enumerate(axes.flatten()):
-    if i >= 20:
+    if i >= len(topic_indices):
         break
     fig.add_subplot(ax)
-    topic_words = dict(topics[i][1])
+    topic_words = dict(topics[topic_indices[i]][1])
 #     print((topic_words))
     topic_words_term = {}
     for k in topic_words:
@@ -81,7 +81,7 @@ for i, ax in enumerate(axes.flatten()):
 plt.axis('off')
 plt.margins(x=0, y=0)
 plt.tight_layout()
-fig.savefig("/home/sdeng/data/icews/topic_models/{}/wordcloud-0-19.pdf".format(lda_name), bbox_inches='tight', dpi=300, transparent=True)
+fig.savefig("/home/sdeng/data/icews/topic_models/{}/wordcloud-causal.pdf".format(lda_name), bbox_inches='tight', dpi=300, transparent=True)
 # plt.show()
 print('wordcloud of topics from 0 to 19 saved')
 
