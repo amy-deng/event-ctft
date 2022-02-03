@@ -62,7 +62,7 @@ print(len(topics),topics[0])
 # topic_indices = [27,33,44,37,10,6,9]
 topic_indices = [39,6,46,27] # THA
 
-fig, axes = plt.subplots(2, 2, figsize=(7,7), sharex=True, sharey=True)
+fig, axes = plt.subplots(2, 2, figsize=(8,8), sharex=True, sharey=True)
 
 for i, ax in enumerate(axes.flatten()):
     # if i >= len(topic_indices):
