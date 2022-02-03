@@ -52,10 +52,9 @@ cloud = WordCloud(stopwords=STOPWORDS,
                   width=2200,
                   height=1800,
                   max_words=25,
-                  colormap='tab10',
-                  color_func=lambda *args, **kwargs: cols[i],
-                #   color_func=lambda **kwargs: "black",
-                #   color_func=lambda *args, **kwargs: "black",
+                #   colormap='tab10',
+                #   color_func=lambda *args, **kwargs: cols[i],
+                  color_func=lambda *args, **kwargs: "black",
                   prefer_horizontal=0.8)
 
 topics = loaded_lda.show_topics(num_topics=num_topic,num_words=25,formatted=False)
@@ -94,7 +93,7 @@ for i, ax in enumerate(axes.flatten()):
 plt.axis('off')
 plt.margins(x=0, y=0)
 plt.tight_layout()
-path = "/home/sdeng/data/icews/topic_models/{}/wordcloud-causal2.pdf".format(lda_name)
+path = "/home/sdeng/data/icews/topic_models/{}/wordcloud-causal-blk.pdf".format(lda_name)
 print(path)
 fig.savefig(path, bbox_inches='tight', dpi=300, transparent=True)
 # plt.show()
