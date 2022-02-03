@@ -47,14 +47,27 @@ from matplotlib import pyplot as plt
 import matplotlib.colors as mcolors
 
 cols = [color for name, color in mcolors.TABLEAU_COLORS.items()]  # more colors: 'mcolors.XKCD_COLORS'
+if lda_dict_name[:3] == 'THA':
+    topic_indices = [39,6,46,27] # THA
+    sel_color = cols[0]
+elif lda_dict_name[:3] == 'AFG':
+    topic_indices = [27,33,44,37] # AFG
+    sel_color = cols[1]
+elif lda_dict_name[:3] == 'EGY':
+    topic_indices = [17,39,31,54] #
+    sel_color = cols[2]
+elif lda_dict_name[:3] == 'RUS':
+    topic_indices = [18,42,12,43] # 
+    sel_color = cols[3] 
+
 cloud = WordCloud(stopwords=STOPWORDS,
                   background_color='white',
                   width=2200,
                   height=1800,
                   max_words=25,
                 #   colormap='tab10',
-                #   color_func=lambda *args, **kwargs: cols[i],
-                  color_func=lambda *args, **kwargs: "black",
+                  color_func=lambda *args, **kwargs: sel_color,
+                #   color_func=lambda *args, **kwargs: "black",
                   prefer_horizontal=0.8)
 
 topics = loaded_lda.show_topics(num_topics=num_topic,num_words=25,formatted=False)
@@ -63,14 +76,7 @@ topics = loaded_lda.show_topics(num_topics=num_topic,num_words=25,formatted=Fals
 print(len(topics),topics[0])
 # exit()
 # topic_indices = [27,33,44,37,10,6,9]
-if lda_dict_name[:3] == 'THA':
-    topic_indices = [39,6,46,27] # THA
-elif lda_dict_name[:3] == 'AFG':
-    topic_indices = [27,33,44,37] # AFG
-elif lda_dict_name[:3] == 'EGY':
-    topic_indices = [17,39,31,54] #
-elif lda_dict_name[:3] == 'RUS':
-    topic_indices = [18,42,12,43] #  
+
 
 fig, axes = plt.subplots(2, 2, figsize=(6,6), sharex=True, sharey=True)
 
