@@ -53,7 +53,7 @@ cloud = WordCloud(stopwords=STOPWORDS,
                   color_func=lambda *args, **kwargs: cols[i],
                 #   color_func=lambda **kwargs: "black",
                 #   color_func=lambda *args, **kwargs: "black",
-                  prefer_horizontal=1.0)
+                  prefer_horizontal=0.9)
 
 topics = loaded_lda.show_topics(num_topics=num_topic,num_words=25,formatted=False)
 # 1-19
