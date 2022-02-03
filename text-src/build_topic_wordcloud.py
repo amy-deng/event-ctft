@@ -46,8 +46,8 @@ import matplotlib.colors as mcolors
 cols = [color for name, color in mcolors.TABLEAU_COLORS.items()]  # more colors: 'mcolors.XKCD_COLORS'
 cloud = WordCloud(stopwords=STOPWORDS,
                   background_color='white',
-                  width=2000,
-                  height=2000,
+                  width=2200,
+                  height=1800,
                   max_words=30,
                   colormap='tab10',
                 #   color_func=lambda *args, **kwargs: cols[i],
@@ -80,7 +80,7 @@ for i, ax in enumerate(axes.flatten()):
     # plt.gca().set_title('Topic ' + str(i), fontdict=dict(size=10))
     plt.gca().axis('off')
 
-    plt.subplots_adjust(wspace=0.0, hspace=0)
+    plt.subplots_adjust(wspace=.5, hspace=0)
 plt.axis('off')
 plt.margins(x=0, y=0)
 plt.tight_layout()
