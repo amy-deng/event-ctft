@@ -53,7 +53,7 @@ cloud = WordCloud(stopwords=STOPWORDS,
                 #   color_func=lambda *args, **kwargs: cols[i],
                 #   color_func=lambda **kwargs: "black",
                   color_func=lambda *args, **kwargs: "black",
-                  prefer_horizontal=1.0)
+                  prefer_horizontal=.8)
 
 topics = loaded_lda.show_topics(num_topics=num_topic,num_words=30,formatted=False)
 # 1-19
@@ -80,7 +80,7 @@ for i, ax in enumerate(axes.flatten()):
     # plt.gca().set_title('Topic ' + str(i), fontdict=dict(size=10))
     plt.gca().axis('off')
 
-    plt.subplots_adjust(wspace=0.5, hspace=0)
+    plt.subplots_adjust(wspace=0.5, hspace=-0.5)
 plt.axis('off')
 plt.margins(x=0, y=0)
 plt.tight_layout()
