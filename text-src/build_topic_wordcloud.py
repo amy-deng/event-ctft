@@ -26,18 +26,18 @@ loaded_lda =  models.LdaModel.load('/home/sdeng/data/icews/topic_models/{}.lda'.
 print('topic model and dictionary loaded')
 os.makedirs("/home/sdeng/data/icews/topic_models/{}".format(lda_name),exist_ok=True)
 
-# save all words and docs in a file
-f = open('/home/sdeng/data/icews/topic_models/{}/top_30_topic_words.csv'.format(lda_name),'a')
-wrt = csv.writer(f)
-wrt.writerow(["topic-id","sorted-words"])#, "event-type", 'rank', "topic-id","effect","z-score","p-value","end-date"])
-for i in range(num_topic):
-    l = [i]
-    for t in loaded_lda.get_topic_terms(i,30):
-        l.append(loaded_dict[int(t[0])])
-    wrt.writerow(l)#, "event-type", 'rank', "topic-id","effect","z-score","p-value","end-date"])
-f.close()
+# # save all words and docs in a file
+# f = open('/home/sdeng/data/icews/topic_models/{}/top_30_topic_words.csv'.format(lda_name),'a')
+# wrt = csv.writer(f)
+# wrt.writerow(["topic-id","sorted-words"])#, "event-type", 'rank', "topic-id","effect","z-score","p-value","end-date"])
+# for i in range(num_topic):
+#     l = [i]
+#     for t in loaded_lda.get_topic_terms(i,30):
+#         l.append(loaded_dict[int(t[0])])
+#     wrt.writerow(l)#, "event-type", 'rank', "topic-id","effect","z-score","p-value","end-date"])
+# f.close()
 
-print('csv file is saved')
+# print('csv file is saved')
 
 from wordcloud import WordCloud, STOPWORDS
 from matplotlib import pyplot as plt
@@ -80,7 +80,7 @@ for i, ax in enumerate(axes.flatten()):
     # plt.gca().set_title('Topic ' + str(i), fontdict=dict(size=10))
     plt.gca().axis('off')
 
-    plt.subplots_adjust(wspace=0, hspace=0)
+    plt.subplots_adjust(wspace=0.5, hspace=0)
 plt.axis('off')
 plt.margins(x=0, y=0)
 plt.tight_layout()
