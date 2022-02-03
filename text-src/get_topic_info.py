@@ -8,7 +8,7 @@ from gensim.test.utils import common_texts, common_corpus, common_dictionary
 from gensim.corpora.dictionary import Dictionary
 
 '''
-python get_topic_info.py THA THA_50
+python get_topic_info.py THA_2012 THA_2012_50
 '''
 
 try:
