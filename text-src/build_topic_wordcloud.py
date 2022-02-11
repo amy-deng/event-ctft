@@ -86,11 +86,12 @@ for i, ax in enumerate(axes.flatten()):
     fig.add_subplot(ax)
     topic_words = dict(topics[topic_indices[i]][1])
     print((topic_words))
-    exit()
+    
     topic_words_term = {}
     for k in topic_words:
         topic_words_term[loaded_dict[int(k)]] = topic_words[k]
-#     print(topic_words_term)
+    print(topic_words_term)
+    # exit()
     cloud.generate_from_frequencies(topic_words_term, max_font_size=350)
     plt.gca().imshow(cloud)
     # plt.gca().set_title('Topic ' + str(i), fontdict=dict(size=10))
