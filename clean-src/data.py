@@ -13,7 +13,6 @@ class GraphData(data.Dataset):
             t_data = []
             for datafile in datafile_list:
                   with open('{}/{}/{}.pkl'.format(path, dataset,datafile),'rb') as f:
-                        # with open('{}/{}/data_static_2012-01-01_2013-01-01_tt85_ww10.pkl'.format(path, dataset),'rb') as f:
                         graph_list = pickle.load(f)
                   g_data += graph_list
                   
@@ -21,7 +20,6 @@ class GraphData(data.Dataset):
                   tmp[0] = 'attr'
                   attr_file = '_'.join(tmp)
                   with open('{}/{}/{}.pkl'.format(path, dataset, attr_file),'rb') as f:
-                        # with open('{}/{}/data_static_2012-01-01_2013-01-01_tt85_ww10.pkl'.format(path, dataset),'rb') as f:
                         attr_dict = pickle.load(f)
                   y_data.append(attr_dict['y'])
                   t_data +=  attr_dict['date']

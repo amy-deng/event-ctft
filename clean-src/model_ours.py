@@ -18,7 +18,6 @@ except:
  
  
  
-# no shared key and value MAIN causality_enhanced_message_passing
 class causality_enhanced_message_passing(nn.Module):
     def __init__(self, in_dim, out_dim, ntypes, etypes, n_heads, dropout = 0.5, use_norm = False, device=torch.device("cpu")):
         super().__init__()
@@ -105,9 +104,6 @@ class causality_enhanced_message_passing(nn.Module):
             if 'ca' in nodes.mailbox:
                 cau_att = F.softmax(nodes.mailbox['ca'], dim=1) 
                 cau_h   = torch.sum(cau_att.unsqueeze(dim = -1) * nodes.mailbox['cv'], dim=1)
-                # beta = torch.sigmoid(self.comb_pri[etype])
-                # print(beta,'beta',self.comb_pri[etype])
-                # h = beta * h + (1-beta) * cau_h
                 h += cau_h
             return {'t': h.view(-1, self.out_dim)}
         return reduce

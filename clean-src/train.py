@@ -155,10 +155,7 @@ def train(train_loader):
     t0 = time.time()
     for i, batch in enumerate(train_loader):
         g_data, y_data = batch
-        # g_data = torch.stack(g_data, dim=0)
         y_data = torch.stack(y_data, dim=0).to(device)
-        # print(i,y_data.shape,'y_data',y_data)
-        # print(len(g_data),'g_data')
         loss, y_pred = model(g_data, y_data) 
         loss.backward()
         torch.nn.utils.clip_grad_norm_(
@@ -186,13 +183,10 @@ def eval(data_loader, set_name='valid'):
         y_pred_l.append(y_pred)
         total_loss += loss.item()
 
-    # print('{} results'.format(set_name)) 
     y_true_l = torch.cat(y_true_l,0).cpu().detach().numpy() 
-    # print(y_true_l.shape,'y_true_l')
     y_pred_l = torch.cat(y_pred_l,0).cpu().detach().numpy() 
     eval_dict = eval_bi_classifier(y_true_l, y_pred_l)
     reduced_loss = total_loss / (data_loader.len / args.batch_size)
-    # print("{} Loss: {:.6f}".format(set_name, reduced_loss))
     return reduced_loss, eval_dict
 
  
@@ -239,7 +233,6 @@ for i in range(args.runs):
     print("Test using best epoch: {}".format(checkpoint['epoch']))
     val_loss, eval_dict = eval(valid_loader, 'val')
     print('Val','|'.join(['{}:{:.4f}'.format(k, eval_dict[k]) for k in eval_dict]))
-    # val_res = [eval_dict[k] for k in eval_dict]
 
     _, eval_dict = eval(test_loader, 'test')
     print('Test','|'.join(['{}:{:.4f}'.format(k, eval_dict[k]) for k in eval_dict]))
@@ -254,8 +247,6 @@ with open(result_file, 'r') as csv_file:
     for row in csv_reader:
         arr.append(list(map(float, row)))
 arr = np.array(arr)
-# print('arr',arr,arr.shape)
-# arr = np.nan_to_num(arr)
 line_count = arr.shape[0]
 mean = [round(float(v),3) for v in arr.mean(0)]
 std = [round(float(v),3) for v in arr.std(0)]

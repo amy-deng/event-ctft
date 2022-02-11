@@ -41,7 +41,7 @@ lineplot.function <- function(x,y1,y2,ylab,legpos) {
     # Add a second line
     lines(x, y2, pch = 15, col = "red", type = "b", lty = 2)
     # Add a legend to the plot
-    legend(legpos, legend=c("Ours","Ours w/o causal"),
+    legend(legpos, legend=c("HGT","HGT w/o causal"),
         col=c("blue", "red"), lty = 1:2, cex=1.3, box.lty=0)
 }
 
@@ -78,7 +78,7 @@ lineplot3.function <- function(x,y1,y2,y3,ylab,legpos) {
     lines(x, y2, pch = 15, col = "red", type = "b", lty = 2)
     lines(x, y3, pch = 21, col = "orange", type = "b", lty = 2)
     # Add a legend to the plot
-    legend(legpos, legend=c("Ours","Ours w/o causal", "HGT"),
+    legend(legpos, legend=c("HGC","HGC-causal", "HGT"),
         col=c("blue", "red",'orange'), lty = 1:2, cex=1.3, box.lty=0)
 }
 # http://www.sthda.com/english/wiki/add-legends-to-plots-in-r-software-the-easiest-way

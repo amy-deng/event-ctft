@@ -1,3 +1,4 @@
+import imp
 from typing import Counter
 import pandas as pd
 import numpy as np
@@ -6,7 +7,7 @@ from gensim import corpora, models, similarities
 from gensim.models.ldamulticore import LdaMulticore,LdaModel
 from gensim.test.utils import common_texts, common_corpus, common_dictionary
 from gensim.corpora.dictionary import Dictionary
-
+import random
 '''
 python build_topic_wordcloud.py THA_2012 THA_2012_50 50
 python build_topic_wordcloud.py AFG_2012 AFG_2012_60 60
@@ -60,6 +61,25 @@ elif lda_dict_name[:3] == 'RUS':
     topic_indices = [18,42,12,43] # 
     sel_color = cols[3] 
 
+
+def red_color_func(word, font_size, position, orientation, random_state=None,
+                    **kwargs):
+    return "hsl(0, 100%%, %d%%)" % random.randint(30, 50)
+
+def green_color_func(word, font_size, position, orientation, random_state=None,
+                    **kwargs):
+    return "hsl(100, 100%%, %d%%)" % random.randint(20, 40)
+
+def blue_color_func(word, font_size, position, orientation, random_state=None,
+                    **kwargs):
+    return "hsl(100, 0%%, %d%%)" % random.randint(20, 40)
+
+def orange_color_func(word, font_size, position, orientation, random_state=None,
+                    **kwargs):
+    return "hsl(50, 50%%, %d%%)" % random.randint(20, 40)
+
+    
+
 cloud = WordCloud(stopwords=STOPWORDS,
                   background_color='white',
                   width=2200,
@@ -67,6 +87,7 @@ cloud = WordCloud(stopwords=STOPWORDS,
                   max_words=25,
                 #   colormap='tab10',
                   color_func=lambda *args, **kwargs: sel_color,
+                  color_func=red_color_func,
                 #   color_func=lambda *args, **kwargs: "black",
                   prefer_horizontal=0.8)
 
@@ -85,7 +106,7 @@ for i, ax in enumerate(axes.flatten()):
     #     break
     fig.add_subplot(ax)
     topic_words = dict(topics[topic_indices[i]][1])
-    print((topic_words))
+    # print((topic_words))
     
     topic_words_term = {}
     for k in topic_words:
