@@ -85,7 +85,8 @@ for i, ax in enumerate(axes.flatten()):
     #     break
     fig.add_subplot(ax)
     topic_words = dict(topics[topic_indices[i]][1])
-#     print((topic_words))
+    print((topic_words))
+    exit()
     topic_words_term = {}
     for k in topic_words:
         topic_words_term[loaded_dict[int(k)]] = topic_words[k]

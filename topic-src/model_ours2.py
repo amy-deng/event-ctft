@@ -1730,7 +1730,7 @@ class causal_message_passing_rdm_content_prior3(nn.Module):
 
 # combine causal and correlation 
 
-# no shared key and value
+# no shared key and value MAIN ablation no causa;
 class message_passing_content_prior2(nn.Module):
     def __init__(self, in_dim, out_dim, ntypes, etypes, n_heads, dropout = 0.5, use_norm = False, device=torch.device("cpu")):
         super().__init__()

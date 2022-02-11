@@ -195,7 +195,57 @@ barerrorplotall.function <- function(y,errors,ylab,min,max) {
     )  
     segments(barCenters, y-errors, barCenters, y+errors, lwd=0.5)
     abline(h=y[1],lty = '2947', lwd=0.5)
+
 }
+# smaller
+barerrorplotall_smaller.function <- function(y,errors,ylab,min,max) { 
+    dev.new(width=3.6, height=3.0, unit="in")
+    par(mar=c(2.5,4,0.5,0.6))
+    barCenters <- barplot(y,  horiz=FALSE, panel.first=grid(),#main="Car Distribution",
+    names.arg=c("N/A","3", "7", "14", "ALL"),ylim = c(min, max), xpd = FALSE, ylab = ylab, axes=TRUE,
+    # width=c(0.2,0.2,0.2,0.2), 
+    col=c("#deebf7","#9ecae1","#9ecae1","#9ecae1","#3182bd"),
+    # density=c(30,20,10,5), 
+    # angle=c(11,90,45,0)
+    ,space=c(0.8,0.8,0.8,0.8,0.8) 
+    )  
+    segments(barCenters, y-errors, barCenters, y+errors, lwd=0.5)
+    abline(h=y[1],lty = '2947', lwd=0.5)
+    box(bty="l")
+    # mtext(2, text = "Trip Frequency", line = 2, las = 1)
+}
+barerrorplotall_smaller2.function <- function(y,errors,ylab,min,max) { 
+    dev.new(width=4, height=3.0, unit="in")
+    par(mar=c(2.5,4,0.5,0.6))
+    barCenters <- barplot(y,  horiz=FALSE, panel.first=grid(),#main="Car Distribution",
+    names.arg=c("N/A","3", "7", "14", "ALL"),ylim = c(min, max), xpd = FALSE, ylab = ylab,
+    # width=c(0.2,0.2,0.2,0.2), 
+    col=c("#deebf7","#9ecae1","#9ecae1","#9ecae1","#3182bd"),
+    # density=c(30,20,10,5), 
+    # angle=c(11,90,45,0)
+    ,space=c(0.8,0.8,0.8,0.8,0.8) 
+    )  
+    segments(barCenters, y-errors, barCenters, y+errors, lwd=0.5)
+    abline(h=y[1],lty = '2947', lwd=0.5)
+    box(bty="l")
+
+}
+
+}
+# barerrorplotall_smaller.function <- function(y,errors,ylab,min,max) { 
+#     dev.new(width=5, height=3.6, unit="in")
+#     par(mar=c(4,2.2,0.5,0.2))
+#     barCenters <- barplot(y,  horiz=TRUE, panel.first=grid(),#main="Car Distribution",
+#     names.arg=c("N/A","3", "7", "14", "ALL"),xlim = c(min, max), xpd = FALSE, xlab = ylab,
+#     # width=c(0.2,0.2,0.2,0.2), 
+#     col=c("#deebf7","#9ecae1","#9ecae1","#9ecae1","#3182bd"),
+#     # density=c(30,20,10,5), 
+#     # angle=c(11,90,45,0)
+#     ,space=c(0.6,0.6,0.6,0.6,0.6) 
+#     )  
+#     segments(barCenters, y-errors, barCenters, y+errors, lwd=0.5)
+#     abline(v=y[1],lty = '2947', lwd=0.5)
+# }
 
 ylab <- 'F1'
 # THA
@@ -208,6 +258,9 @@ barerrorplot.function(counts,errors,ylab,0.67,0.87)
 counts <- c(0.816, 0.823,0.828,0.836,0.839)
 errors <- c(0.011, 0.007, 0.021, 0.014, 0.023)
 barerrorplotall.function(counts,errors,ylab,0.67,0.87)
+barerrorplotall_smaller.function(counts,errors,ylab,0.67,0.87)
+barerrorplotall_smaller2.function(counts,errors,ylab,0.7,0.87)
+
 
 
 
@@ -221,6 +274,8 @@ barerrorplot.function(counts,errors,ylab,0.54,0.74)
 counts <- c(0.678, 0.706,0.692,0.713,0.7)
 errors <- c( 0.04,0.023, 0.017, 0.022, 0.013)
 barerrorplotall.function(counts,errors,ylab,0.5,0.74)
+barerrorplotall_smaller.function(counts,errors,ylab,0.5,0.74)
+barerrorplotall_smaller2.function(counts,errors,ylab,0.56,0.74)
 
 
 # AFG 64
@@ -240,6 +295,9 @@ barerrorplot.function(counts,errors,ylab,0.7,0.9)
 counts <- c(0.854, 0.854,0.857 ,0.869 ,0.86)
 errors <- c(0.008, 0.01, 0.004, 0.013, 0.006)
 barerrorplotall.function(counts,errors,ylab,0.72,0.9)
+barerrorplotall_smaller.function(counts,errors,ylab,0.72,0.89)
+barerrorplotall_smaller2.function(counts,errors,ylab,0.78,0.89)
+
 # 0.854 0.01 
 # 0.848 0.009
 # 0.869 0.013
@@ -255,6 +313,8 @@ barerrorplot.function(counts,errors,ylab,0.74,0.94)
 counts <- c(0.895, 0.899,0.906,0.893,0.9)
 errors <- c( 0.004, 0.009, 0.007, 0.013, 0.006)
 barerrorplotall.function(counts,errors,ylab,0.76,0.94)
+barerrorplotall_smaller.function(counts,errors,ylab,0.76,0.93)
+barerrorplotall_smaller2.function(counts,errors,ylab,0.8,0.93)
 
 
 
