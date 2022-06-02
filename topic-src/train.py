@@ -186,8 +186,9 @@ def prepare(args,word_embeds,device):
     elif args.model == 'dyngcn':
         model = dyngcn(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, activation=F.relu, seq_len=args.seq_len,device=device, 
         num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool)
-  
-    
+    elif args.model == 'evolvegcn':
+        model = EvolveGCN(n_inp=emb_size, n_hid=args.n_hidden, n_layers=args.n_layers, activation=F.relu, seq_len=args.seq_len,device=device, 
+        num_topic=args.n_topics, vocab_size=vocab_size, dropout=args.dropout,pool=args.pool)
     model_name = model.__class__.__name__
     # print(model)
     optimizer = torch.optim.Adam(
