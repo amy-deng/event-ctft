@@ -386,3 +386,7 @@ axz <- list(
 
 fig <- plot_ly(x = ~x, y = ~y, z = ~z, intensity = ~z, type = 'mesh3d', colors = colorRamp(c("blue", "lightblue", "chartreuse3", "yellow", "red")))
 fig <- fig %>% layout(scene = list(xaxis=axx,yaxis=axy,zaxis=axz))
+
+
+
+# https://stackoverflow.com/questions/50830452/word-cloud-with-scaled-color-according-to-frequency

@@ -749,7 +749,8 @@ class dyngcn(nn.Module):
         word_emb = self.adapt_ws(word_emb)
         bg.nodes['word'].data['h0'] = word_emb
         bg.nodes['word'].data['h'] = word_emb
-        for curr_time in range(self.seq_len):
+        # for curr_time in range(self.seq_len):
+        for curr_time in range(2,self.seq_len):
             ww_edges_idx = (bg.edges['ww'].data['time']==curr_time).nonzero(as_tuple=False).view(-1).cpu().detach().tolist()
             # wt_edges_idx = (bg.edges['wt'].data['time']==curr_time).nonzero(as_tuple=False).view(-1).cpu().detach().tolist()
             # wd_edges_idx = (bg.edges['wd'].data['time']==curr_time).nonzero(as_tuple=False).view(-1).cpu().detach().tolist()
