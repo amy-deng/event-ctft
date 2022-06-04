@@ -952,7 +952,7 @@ class EvolveGCN(nn.Module):
                 if curr_time == 0:
                     hx, cx = self.lstmCell[i](hx)
                 else:
-                    cx = cx_list[i]
+                    cx = cx_list[i-1]
                     hx, cx = self.lstmCell[i](hx, (hx, cx))
                 new_hx_list.append(hx)
                 cx_list.append(cx)
