@@ -957,6 +957,7 @@ class EvolveGCN(nn.Module):
                 new_hx_list.append(hx)
                 cx_list.append(cx)
                 h = self.layers[i](sub_bg, h, 'word','ww', hx)
+            hx_list = new_hx_list
             # obtain weights
             # if curr_time == 0:
             #     hx, cx = self.lstmCell(hx)
