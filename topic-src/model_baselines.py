@@ -907,6 +907,7 @@ class EvolveGCN(nn.Module):
         bg.nodes['word'].data['h0'] = word_emb
         bg.nodes['word'].data['h'] = word_emb
         hx_list = self.weights
+        cx_list = []
         # self.weights
         # for curr_time in range(self.seq_len):
         for curr_time in range(0,self.seq_len):
@@ -946,13 +947,13 @@ class EvolveGCN(nn.Module):
             # h = torch.relu(self.temp_encoding(cat_h))+h
             # h = self.layers[curr_time](sub_bg, h, ntype='word',etype='ww') 
             new_hx_list = []
-            cx_list = []
+            
             for i in range(self.n_layers):
                 hx = hx_list[i]
                 if curr_time == 0:
                     hx, cx = self.lstmCell[i](hx)
                 else:
-                    cx = cx_list[i-1]
+                    cx = cx_list[-1]
                     hx, cx = self.lstmCell[i](hx, (hx, cx))
                 new_hx_list.append(hx)
                 cx_list.append(cx)
