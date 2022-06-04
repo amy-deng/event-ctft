@@ -874,11 +874,12 @@ class EvolveGCN(nn.Module):
         # self.bn = nn.BatchNorm1d(2*n_hid)
         # input layer
         self.layers = nn.ModuleList()
-        self.weights = nn.ModuleList()
+        # self.weights = nn.ModuleList()
         self.lstmCell = nn.ModuleList()
+        self.weights = nn.Parameter(torch.Tensor(self.n_layers,n_hid, n_hid))
         for i in range(self.n_layers):
             self.layers.append(EvolveGCNLayer(n_hid, n_hid, activation, dropout))
-            self.weights.append(nn.Parameter(torch.Tensor(n_hid, n_hid)))
+            # self.weights.append(nn.Parameter(torch.Tensor(n_hid, n_hid)))
             self.lstmCell.append(nn.LSTMCell(n_hid, n_hid))
         # self.layers = EvolveGCNLayer(n_hid, n_hid, activation, dropout)
         # self.weights = nn.Parameter(torch.Tensor(n_hid, n_hid)) 
@@ -906,6 +907,7 @@ class EvolveGCN(nn.Module):
         bg.nodes['word'].data['h0'] = word_emb
         bg.nodes['word'].data['h'] = word_emb
         hx_list = self.weights
+        # self.weights
         # for curr_time in range(self.seq_len):
         for curr_time in range(0,self.seq_len):
             ww_edges_idx = (bg.edges['ww'].data['time']==curr_time).nonzero(as_tuple=False).view(-1).cpu().detach().tolist()
