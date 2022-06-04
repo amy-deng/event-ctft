@@ -199,7 +199,6 @@ class GCN(nn.Module):
         self.criterion = F.binary_cross_entropy_with_logits #soft_cross_entropy
         self.init_weights()
 
-
     def init_weights(self):
         for p in self.parameters():
             if p.data.ndimension() >= 2:
@@ -874,28 +873,16 @@ class EvolveGCN(nn.Module):
         # self.temp_encoding = nn.Linear(n_hid*2,  n_hid)
         # self.bn = nn.BatchNorm1d(2*n_hid)
         # input layer
-        # self.layers = nn.ModuleList()
-        # self.layers = nn.ModuleList([
-        #     EvolveGCNLayer(n_hid, n_hid, activation, dropout),
-        #     EvolveGCNLayer(n_hid, n_hid, activation, dropout)
-        #     ])
-        # self.weights = nn.ModuleList([
-        #     nn.Parameter(torch.Tensor(n_hid, n_hid)),
-        #     nn.Parameter(torch.Tensor(n_hid, n_hid)),
-        #     ])
-        self.layers = EvolveGCNLayer(n_hid, n_hid, activation, dropout)
-        self.weights = nn.Parameter(torch.Tensor(n_hid, n_hid))
-        # self.temp_encoding = nn.ModuleList()
-        # self.bn = nn.ModuleList()
-        # for i in range(seq_len):
-        #     self.layers.append(GCNLayerM(n_hid, n_hid, activation, dropout))
-        #     self.temp_encoding.append(nn.Linear(n_hid*2,  n_hid))
-        #     self.bn.append(nn.BatchNorm1d(2*n_hid))
-        # self.layers.append()
-        # hidden layers
-        # for i in range(n_layers - 1):
-        #     self.layers.append(GCNLayerM(n_hid, n_hid, activation, dropout))
-        self.lstmCell = nn.LSTMCell(n_hid, n_hid)
+        self.layers = nn.ModuleList()
+        self.weights = nn.ModuleList()
+        self.lstmCell = nn.ModuleList()
+        for i in range(self.n_layers):
+            self.layers.append(EvolveGCNLayer(n_hid, n_hid, activation, dropout))
+            self.weights.append(nn.Parameter(torch.Tensor(n_hid, n_hid)))
+            self.lstmCell.append(nn.LSTMCell(n_hid, n_hid))
+        # self.layers = EvolveGCNLayer(n_hid, n_hid, activation, dropout)
+        # self.weights = nn.Parameter(torch.Tensor(n_hid, n_hid)) 
+        # self.lstmCell = nn.LSTMCell(n_hid, n_hid)
         self.out_layer = nn.Linear(n_hid, 1) 
         self.threshold = 0.5
         # self.out_func = torch.sigmoid
@@ -918,7 +905,7 @@ class EvolveGCN(nn.Module):
         word_emb = self.adapt_ws(word_emb)
         bg.nodes['word'].data['h0'] = word_emb
         bg.nodes['word'].data['h'] = word_emb
-        hx = self.weights
+        hx_list = self.weights
         # for curr_time in range(self.seq_len):
         for curr_time in range(0,self.seq_len):
             ww_edges_idx = (bg.edges['ww'].data['time']==curr_time).nonzero(as_tuple=False).view(-1).cpu().detach().tolist()
@@ -956,14 +943,24 @@ class EvolveGCN(nn.Module):
             # h = torch.tanh(self.temp_encoding(self.bn(cat_h)))
             # h = torch.relu(self.temp_encoding(cat_h))+h
             # h = self.layers[curr_time](sub_bg, h, ntype='word',etype='ww') 
-            # for i in range(len(self.layers)):
+            new_hx_list = []
+            cx_list = []
+            for i in range(len(self.layers)):
+                hx = hx_list[i]
+                if curr_time == 0:
+                    hx, cx = self.lstmCell(hx)
+                else:
+                    cx = cx_list[i]
+                    hx, cx = self.lstmCell(hx, (hx, cx))
+                new_hx_list.append(hx)
+                cx_list.append(cx)
+                h = self.layers[i](sub_bg, h, 'word','ww', hx)
             # obtain weights
-            if curr_time == 0:
-                hx, cx = self.lstmCell(hx)
-            else:
-                hx, cx = self.lstmCell(hx, (hx, cx))
-
-            h = self.layers(sub_bg, h, 'word','ww', hx)
+            # if curr_time == 0:
+            #     hx, cx = self.lstmCell(hx)
+            # else:
+            #     hx, cx = self.lstmCell(hx, (hx, cx))
+            # h = self.layers(sub_bg, h, 'word','ww', hx)
             # for layer in self.layers:
             #     h = layer(sub_bg, h, ntype='word',etype='ww') 
             bg.nodes['word'].data['h'][orig_node_ids['word'].long()] = h
