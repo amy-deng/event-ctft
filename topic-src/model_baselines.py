@@ -950,10 +950,10 @@ class EvolveGCN(nn.Module):
             for i in range(len(self.layers)):
                 hx = hx_list[i]
                 if curr_time == 0:
-                    hx, cx = self.lstmCell(hx)
+                    hx, cx = self.lstmCell[i](hx)
                 else:
                     cx = cx_list[i]
-                    hx, cx = self.lstmCell(hx, (hx, cx))
+                    hx, cx = self.lstmCell[i](hx, (hx, cx))
                 new_hx_list.append(hx)
                 cx_list.append(cx)
                 h = self.layers[i](sub_bg, h, 'word','ww', hx)
