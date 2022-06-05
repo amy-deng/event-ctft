@@ -42,4 +42,4 @@ for mod in model_l:
         command = "python train.py --dataset {} --datafiles {} --horizon {} --gpu {} -m {}  --n-hidden {} --n-layers {} {}".format(\
         dataset,datafiles,horizon,gpu,mod,hidden,layer,others)  
         print(command)
-        # call(command, shell=True)
+        call(command, shell=True)
