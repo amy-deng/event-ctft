@@ -22,10 +22,35 @@ python train.py --dataset THA_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_60
 
 
 ############# THA
-python train.py --dataset THA_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900 --train 0.6 -m evolvegcn --gpu 1 --runs 5 --lr 0.001 --n-hidden 64 
-python train.py --dataset THA_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900 --train 0.6 -m evolvegcn --gpu 1 --runs 5 --lr 0.001 --n-hidden 32 
-python train.py --dataset THA_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900 --train 0.6 -m evolvegcn --gpu 1 --runs 5 --lr 0.001 --n-hidden 128 
+python train.py --dataset THA_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.6 -m evolvegcn --gpu 1 --runs 5 --lr 0.001 --n-hidden 64 
+python train.py --dataset THA_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.6 -m evolvegcn --gpu 1 --runs 5 --lr 0.001 --n-hidden 32 
+python train.py --dataset THA_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.6 -m evolvegcn --gpu 1 --runs 5 --lr 0.001 --n-hidden 128 
+python train.py --dataset THA_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.6 -m evolvegcn --gpu 1 --runs 5 --lr 0.005 --n-hidden 64 
+python train.py --dataset THA_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.6 -m evolvegcn --gpu 1 --runs 5 --lr 0.005 --n-hidden 32 
+python train.py --dataset THA_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.6 -m evolvegcn --gpu 1 --runs 5 --lr 0.005 --n-hidden 128 
 
+python train.py --dataset THA_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.4 -m evolvegcn --gpu 1 --runs 5 --lr 0.001 --n-hidden 64 
+python train.py --dataset THA_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.4 -m evolvegcn --gpu 1 --runs 5 --lr 0.001 --n-hidden 32 
+python train.py --dataset THA_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.4 -m evolvegcn --gpu 1 --runs 5 --lr 0.001 --n-hidden 128 
+python train.py --dataset THA_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.4 -m evolvegcn --gpu 1 --runs 5 --lr 0.005 --n-hidden 64 
+python train.py --dataset THA_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.4 -m evolvegcn --gpu 1 --runs 5 --lr 0.005 --n-hidden 32 
+python train.py --dataset THA_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.4 -m evolvegcn --gpu 1 --runs 5 --lr 0.005 --n-hidden 128 
+
+----
+python train.py --dataset THA_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.6 -m evolvegcn --gpu 1 --runs 5 --lr 0.001 --n-hidden 64 --n-layers 1
+python train.py --dataset THA_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.6 -m evolvegcn --gpu 1 --runs 5 --lr 0.001 --n-hidden 32  --n-layers 1
+python train.py --dataset THA_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.6 -m evolvegcn --gpu 1 --runs 5 --lr 0.001 --n-hidden 128  --n-layers 1
+python train.py --dataset THA_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.6 -m evolvegcn --gpu 1 --runs 5 --lr 0.005 --n-hidden 64  --n-layers 1
+python train.py --dataset THA_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.6 -m evolvegcn --gpu 1 --runs 5 --lr 0.005 --n-hidden 32  --n-layers 1
+python train.py --dataset THA_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.6 -m evolvegcn --gpu 1 --runs 5 --lr 0.005 --n-hidden 128  --n-layers 1
+
+python train.py --dataset THA_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.4 -m evolvegcn --gpu 1 --runs 5 --lr 0.001 --n-hidden 64  --n-layers 1
+python train.py --dataset THA_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.4 -m evolvegcn --gpu 1 --runs 5 --lr 0.001 --n-hidden 32  --n-layers 1
+python train.py --dataset THA_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.4 -m evolvegcn --gpu 1 --runs 5 --lr 0.001 --n-hidden 128  --n-layers 1
+python train.py --dataset THA_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.4 -m evolvegcn --gpu 1 --runs 5 --lr 0.005 --n-hidden 64  --n-layers 1
+python train.py --dataset THA_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.4 -m evolvegcn --gpu 1 --runs 5 --lr 0.005 --n-hidden 32  --n-layers 1
+python train.py --dataset THA_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.4 -m evolvegcn --gpu 1 --runs 5 --lr 0.005 --n-hidden 128  --n-layers 1
+----
 python train.py --dataset THA_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900 --train 0.6 -m evolvegcn --gpu 1 --runs 5 --lr 0.001 --n-hidden 64 
 
 
@@ -46,6 +71,23 @@ python train.py --dataset EGY_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_90
 
 python train.py --dataset EGY_w7h7_mind3n7df0.01 --datafiles sta_tf_2014-2015_900,sta_tf_2015-2016_900,sta_tf_2016-2017_900 --horizon 5 --note 900 --train 0.6 -m evolvegcn --gpu 2 --runs 5 --lr 0.005 --n-hidden 64  --n-layers 3
 
+
+
+python train.py --dataset EGY_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.6 -m evolvegcn --gpu 2 --runs 5 --lr 0.001 --n-hidden 64 
+python train.py --dataset EGY_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.6 -m evolvegcn --gpu 2 --runs 5 --lr 0.001 --n-hidden 32 
+python train.py --dataset EGY_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.6 -m evolvegcn --gpu 2 --runs 5 --lr 0.001 --n-hidden 128 
+python train.py --dataset EGY_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.6 -m evolvegcn --gpu 2 --runs 5 --lr 0.005 --n-hidden 64 
+python train.py --dataset EGY_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.6 -m evolvegcn --gpu 2 --runs 5 --lr 0.005 --n-hidden 32 
+python train.py --dataset EGY_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.6 -m evolvegcn --gpu 2 --runs 5 --lr 0.005 --n-hidden 128 
+
+python train.py --dataset EGY_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.4 -m evolvegcn --gpu 2 --runs 5 --lr 0.001 --n-hidden 64 
+python train.py --dataset EGY_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.4 -m evolvegcn --gpu 2 --runs 5 --lr 0.001 --n-hidden 32 
+python train.py --dataset EGY_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.4 -m evolvegcn --gpu 2 --runs 5 --lr 0.001 --n-hidden 128 
+python train.py --dataset EGY_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.4 -m evolvegcn --gpu 2 --runs 5 --lr 0.005 --n-hidden 64 
+python train.py --dataset EGY_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.4 -m evolvegcn --gpu 2 --runs 5 --lr 0.005 --n-hidden 32 
+python train.py --dataset EGY_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.4 -m evolvegcn --gpu 2 --runs 5 --lr 0.005 --n-hidden 128 
+
+
 ######## AFG
 python train.py --dataset AFG_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900 --train 0.6 -m evolvegcn --gpu 3 --runs 5 --lr 0.001 --n-hidden 64 
 python train.py --dataset AFG_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900 --train 0.6 -m evolvegcn --gpu 3 --runs 5 --lr 0.005 --n-hidden 64 
@@ -59,6 +101,22 @@ python train.py --dataset AFG_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_90
 
 python train.py --dataset AFG_w7h7_mind3n7df0.01 --datafiles sta_tf_2014-2015_900,sta_tf_2015-2016_900,sta_tf_2016-2017_900 --horizon 5 --note 900 --train 0.6 -m evolvegcn --gpu 2 --runs 5 --lr 0.005 --n-hidden 64  --n-layers 3
 
+
+python train.py --dataset AFG_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.6 -m evolvegcn --gpu 3 --runs 5 --lr 0.001 --n-hidden 64 
+python train.py --dataset AFG_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.6 -m evolvegcn --gpu 3 --runs 5 --lr 0.001 --n-hidden 32 
+python train.py --dataset AFG_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.6 -m evolvegcn --gpu 3 --runs 5 --lr 0.001 --n-hidden 128 
+python train.py --dataset AFG_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.6 -m evolvegcn --gpu 3 --runs 5 --lr 0.005 --n-hidden 64 
+python train.py --dataset AFG_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.6 -m evolvegcn --gpu 3 --runs 5 --lr 0.005 --n-hidden 32 
+python train.py --dataset AFG_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.6 -m evolvegcn --gpu 3 --runs 5 --lr 0.005 --n-hidden 128 
+
+python train.py --dataset AFG_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.4 -m evolvegcn --gpu 3 --runs 5 --lr 0.001 --n-hidden 64 
+python train.py --dataset AFG_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.4 -m evolvegcn --gpu 3 --runs 5 --lr 0.001 --n-hidden 32 
+python train.py --dataset AFG_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.4 -m evolvegcn --gpu 3 --runs 5 --lr 0.001 --n-hidden 128 
+python train.py --dataset AFG_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.4 -m evolvegcn --gpu 3 --runs 5 --lr 0.005 --n-hidden 64 
+python train.py --dataset AFG_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.4 -m evolvegcn --gpu 3 --runs 5 --lr 0.005 --n-hidden 32 
+python train.py --dataset AFG_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.4 -m evolvegcn --gpu 3 --runs 5 --lr 0.005 --n-hidden 128 
+
+
 ##### RUS
 python train.py --dataset RUS_w7h7_mind3n10df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900 --train 0.6 -m evolvegcn --gpu 4 --runs 5 --lr 0.001 --n-hidden 64 
 python train.py --dataset RUS_w7h7_mind3n10df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900 --train 0.6 -m evolvegcn --gpu 4 --runs 5 --lr 0.005 --n-hidden 64 
@@ -71,6 +129,37 @@ python train.py --dataset RUS_w7h7_mind3n10df0.01 --datafiles dyn_tf_2014-2015_9
 
 
 python train.py --dataset RUS_w7h7_mind3n10df0.01 --datafiles sta_tf_2014-2015_900,sta_tf_2015-2016_900,sta_tf_2016-2017_900 --horizon 5 --note 900 --train 0.6 -m evolvegcn --gpu 2 --runs 5 --lr 0.005 --n-hidden 64  --n-layers 3
+
+
+python train.py --dataset RUS_w7h7_mind3n10df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.6 -m evolvegcn --gpu 4 --runs 5 --lr 0.001 --n-hidden 64 
+python train.py --dataset RUS_w7h7_mind3n10df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.6 -m evolvegcn --gpu 4 --runs 5 --lr 0.001 --n-hidden 32 
+python train.py --dataset RUS_w7h7_mind3n10df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.6 -m evolvegcn --gpu 4 --runs 5 --lr 0.001 --n-hidden 128 
+python train.py --dataset RUS_w7h7_mind3n10df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.6 -m evolvegcn --gpu 4 --runs 5 --lr 0.005 --n-hidden 64 
+python train.py --dataset RUS_w7h7_mind3n10df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.6 -m evolvegcn --gpu 4 --runs 5 --lr 0.005 --n-hidden 32 
+python train.py --dataset RUS_w7h7_mind3n10df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.6 -m evolvegcn --gpu 4 --runs 5 --lr 0.005 --n-hidden 128 
+
+python train.py --dataset RUS_w7h7_mind3n10df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.4 -m evolvegcn --gpu 4 --runs 5 --lr 0.001 --n-hidden 64 
+python train.py --dataset RUS_w7h7_mind3n10df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.4 -m evolvegcn --gpu 4 --runs 5 --lr 0.001 --n-hidden 32 
+python train.py --dataset RUS_w7h7_mind3n10df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.4 -m evolvegcn --gpu 4 --runs 5 --lr 0.001 --n-hidden 128 
+python train.py --dataset RUS_w7h7_mind3n10df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.4 -m evolvegcn --gpu 4 --runs 5 --lr 0.005 --n-hidden 64 
+python train.py --dataset RUS_w7h7_mind3n10df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.4 -m evolvegcn --gpu 4 --runs 5 --lr 0.005 --n-hidden 32 
+python train.py --dataset RUS_w7h7_mind3n10df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.4 -m evolvegcn --gpu 4 --runs 5 --lr 0.005 --n-hidden 128 
+
+
+python train.py --dataset RUS_w7h7_mind3n10df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.6 -m evolvegcn --gpu 4 --runs 5 --lr 0.001 --n-hidden 64 --n-layers 1
+python train.py --dataset RUS_w7h7_mind3n10df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.6 -m evolvegcn --gpu 4 --runs 5 --lr 0.001 --n-hidden 32  --n-layers 1
+python train.py --dataset RUS_w7h7_mind3n10df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.6 -m evolvegcn --gpu 4 --runs 5 --lr 0.001 --n-hidden 128  --n-layers 1
+python train.py --dataset RUS_w7h7_mind3n10df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.6 -m evolvegcn --gpu 4 --runs 5 --lr 0.005 --n-hidden 64  --n-layers 1
+python train.py --dataset RUS_w7h7_mind3n10df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.6 -m evolvegcn --gpu 4 --runs 5 --lr 0.005 --n-hidden 32  --n-layers 1
+python train.py --dataset RUS_w7h7_mind3n10df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.6 -m evolvegcn --gpu 4 --runs 5 --lr 0.005 --n-hidden 128  --n-layers 1
+
+python train.py --dataset RUS_w7h7_mind3n10df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.4 -m evolvegcn --gpu 4 --runs 5 --lr 0.001 --n-hidden 64  --n-layers 1
+python train.py --dataset RUS_w7h7_mind3n10df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.4 -m evolvegcn --gpu 4 --runs 5 --lr 0.001 --n-hidden 32  --n-layers 1
+python train.py --dataset RUS_w7h7_mind3n10df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.4 -m evolvegcn --gpu 4 --runs 5 --lr 0.001 --n-hidden 128  --n-layers 1
+python train.py --dataset RUS_w7h7_mind3n10df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.4 -m evolvegcn --gpu 4 --runs 5 --lr 0.005 --n-hidden 64  --n-layers 1
+python train.py --dataset RUS_w7h7_mind3n10df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.4 -m evolvegcn --gpu 4 --runs 5 --lr 0.005 --n-hidden 32  --n-layers 1
+python train.py --dataset RUS_w7h7_mind3n10df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900-64 --train 0.4 -m evolvegcn --gpu 4 --runs 5 --lr 0.005 --n-hidden 128  --n-layers 1
+
 
 ------------
 EGY
