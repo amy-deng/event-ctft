@@ -9,6 +9,9 @@ python main-static.py gcn,gat,rgcn AFG_w7h7_mind3n7df0.01 sta_tf_2014-2015_900,s
 python main-static.py gcn,gat,rgcn RUS_w7h7_mind3n10df0.01 sta_tf_2014-2015_900,sta_tf_2015-2016_900,sta_tf_2016-2017_900 5 64 3 8    "--train 0.4"
 python main-static.py gcn,gat,rgcn THA_w7h7_mind3n7df0.01 sta_tf_2014-2015_900,sta_tf_2015-2016_900,sta_tf_2016-2017_900 5 64 3 7    "--train 0.4"
 
+
+/Users/amy/anaconda3/bin/python main-static.py gcn,gat,rgcn EGY_w7h7_mind3n7df0.01,AFG_w7h7_mind3n7df0.01,THA_w7h7_mind3n7df0.01,RUS_w7h7_mind3n10df0.01 sta_tf_2014-2015_900,sta_tf_2015-2016_900,sta_tf_2016-2017_900 5 64 3 7    "--train 0.4"
+
 '''
 
 try:
@@ -38,5 +41,5 @@ for mod in model_l:
     # for horizon in horizon_l:
         command = "python train.py --dataset {} --datafiles {} --horizon {} --gpu {} -m {}  --n-hidden {} --n-layers {} {}".format(\
         dataset,datafiles,horizon,gpu,mod,hidden,layer,others)  
-    print(command)
-    call(command, shell=True)
+        print(command)
+        # call(command, shell=True)
