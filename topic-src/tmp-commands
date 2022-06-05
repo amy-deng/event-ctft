@@ -69,7 +69,7 @@ python train.py --dataset EGY_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_90
 python train.py --dataset EGY_w7h7_mind3n7df0.01 --datafiles dyn_tf_2014-2015_900,dyn_tf_2015-2016_900,dyn_tf_2016-2017_900 --horizon 5 --note 900 --train 0.6 -m evolvegcn --gpu 2 --runs 5 --lr 0.005 --n-hidden 128 
 
 
-python train.py --dataset EGY_w7h7_mind3n7df0.01 --datafiles sta_tf_2014-2015_900,sta_tf_2015-2016_900,sta_tf_2016-2017_900 --horizon 5 --note 900 --train 0.6 -m evolvegcn --gpu 2 --runs 5 --lr 0.005 --n-hidden 64  --n-layers 3
+python train.py --dataset EGY_w7h7_mind3n7df0.01 --datafiles sta_tf_2014-2015_900,sta_tf_2015-2016_900,sta_tf_2016-2017_900 --horizon 5 --note 900 --train 0.6 -m evolvegcn --gpu 5 --runs 5 --lr 0.005 --n-hidden 64  --n-layers 3
 
 
 
